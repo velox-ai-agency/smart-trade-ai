@@ -199,12 +199,25 @@ function initFxBackground() {
     // 中性文案：只表达产品定位，不声称任何同步/逾期状态（2026-11-21 审计 P2-1）。
     // 真实指标在「今日简报」右栏，那里读的是 /brief/today 的真实数据。
     const STATUS = [
-        'B2B 外贸助手 · TRADE',
-        '客户开发 · LEAD GEN',
-        '背调与画像 · DUE DILIGENCE',
-        '文档与报价 · DOCUMENTS',
+        { zh: 'B2B 外贸助手 · TRADE', en: 'B2B assistant · TRADE', ar: 'مساعد التجارة B2B · TRADE' },
+        { zh: '客户开发 · LEAD GEN', en: 'Lead generation · LEAD GEN', ar: 'توليد العملاء المحتملين · LEAD GEN' },
+        { zh: '背调与画像 · DUE DILIGENCE', en: 'Background check & profiling · DUE DILIGENCE', ar: 'الفحص وبناء الملف · DUE DILIGENCE' },
+        { zh: '文档与报价 · DOCUMENTS', en: 'Documents & quotes · DOCUMENTS', ar: 'المستندات والعروض · DOCUMENTS' },
     ];
     let statusIdx = 0;
+    function statusText() {
+        var s = STATUS[statusIdx];
+        return (typeof currentLang !== 'undefined' && currentLang === 'ar') ? s.ar
+            : ((typeof currentLang !== 'undefined' && currentLang === 'en') ? s.en : s.zh);
+    }
+    function applyStatusText() {
+        var text = statusText(), el = document.getElementById('sys-status');
+        if (el) el.textContent = text;
+        var topEl = document.getElementById('app-top-status');
+        if (topEl && !(document.body && document.body.classList.contains('profile-open'))) topEl.textContent = text;
+    }
+    // 供 i18n.js 在语言切换时立即刷新顶栏文案
+    window.applyStatusText = applyStatusText;
     function pad2(n) { return (n < 10 ? '0' : '') + n; }
     function tickClock() {
         const now = new Date();
@@ -223,17 +236,13 @@ function initFxBackground() {
         if (timeEl) timeEl.textContent = time;
     }
     tickClock();
+    applyStatusText();
     setInterval(tickClock, 1000);
     setInterval(function () {
         statusIdx = (statusIdx + 1) % STATUS.length;
         // [提案] 有任务在等待时，顶栏显示真实任务状态，轮播让路
         if (typeof TradeWaitStatus !== 'undefined' && TradeWaitStatus.active()) return;
-        const text = STATUS[statusIdx];
-        const el = document.getElementById('sys-status');
-        if (el) el.textContent = text;
-        const topEl = document.getElementById('app-top-status');
-        // 画像页的统计状态由 customers.js 接管，轮播不得覆盖
-        if (topEl && !document.body.classList.contains('profile-open')) topEl.textContent = text;
+        applyStatusText();
     }, 8000); // 纯装饰轮播，放慢节奏减少跳动（审计 P2-1）
 
     // reduced-motion / 用户偏好 / THREE 缺失 → 关

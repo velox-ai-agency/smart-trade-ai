@@ -8,27 +8,30 @@ pulling in FastAPI or route dependencies.
 import re
 
 _CJK_RE = re.compile(r"[\u4e00-\u9fff]")
+_ARABIC_RE = re.compile(r"[\u0600-\u06ff]")
 _LATIN_WORD_RE = re.compile(r"[A-Za-z]{2,}")
+_SUPPORTED_UI_LANGS = ("ar", "en", "zh")
 
 
-def detect_reply_language(text: str, fallback: str = "zh") -> str:
-    """按**用户这句话**决定回复语言：中文交流回中文，英文交流回英文。
+def detect_reply_language(text: str, fallback: str = "") -> str:
+    """Decide the assistant's reply language. The UI language wins.
 
-    为什么按输入判断而不是只看界面语言（2026-11-02 Lau 定的口径）：
-    「用户用英文交流，返回英文；用中文交流，返回中文；给客户的回答用客户语言」。
-    界面语言只决定界面文案，不该把中文提问的回复也翻成英文。
-
-    判据（宁可保守）：
-      - 句子里**有中文** → 中文（中英混排按中文算，说明用户在说中文）；
-      - 没有中文、且至少 3 个英文单词 → 英文；
-      - 其余（纯数字 / 极短 / 只有型号）→ fallback（界面语言，默认中文）。
+    Updated 2026-11-25 at Hisham's request: when the web UI sends its language
+    (ar/en/zh) it is authoritative, so an Arabic interface produces an Arabic
+    report even if the user pastes a Chinese query. When the UI language is not
+    supplied, fall back to detecting the language of the user's message.
     """
+    ui_lang = str(fallback or "").lower()
+    if ui_lang in _SUPPORTED_UI_LANGS:
+        return ui_lang
     text = text or ""
     if _CJK_RE.search(text):
         return "zh"
+    if _ARABIC_RE.search(text):
+        return "ar"
     if len(_LATIN_WORD_RE.findall(text)) >= 3:
         return "en"
-    return "en" if str(fallback).lower() == "en" else "zh"
+    return "zh"
 
 
 TRADE_DISCLAIMER_BLOCK = """# Disclaimer — READ BEFORE ANSWERING ANY QUESTION
@@ -59,6 +62,13 @@ LANGUAGE_POLICY_BLOCK_EN = """# Language Policy
 - **Single language per document**: A generated quotation, contract, or slide deck must be in ONE language throughout. Do not produce mixed-language documents.
 - **Avoid mixing languages in the same response.** If you are replying to the user's question, use English throughout. If you are outputting content in another language, put it in a clearly separated block and annotate it in English.
 - **Technical terms, model numbers, and SKU codes stay in their original form** — do not translate product codes."""
+
+LANGUAGE_POLICY_BLOCK_AR = """# Language Policy — Arabic UI
+- **All chat responses, explanations, and analysis communicated to the user MUST be in clear Arabic.** This includes answering questions, explaining reasoning, providing suggestions, summarizing data, and any other interactive dialogue. Use Modern Standard Arabic; a natural Egyptian tone is fine for outreach copy.
+- **The ONLY exception is content explicitly generated for external use**, such as cold emails, LinkedIn posts, WhatsApp messages, quotations, contracts, or presentation slides. Write that content in the language of the target audience (usually English for international buyers), and keep any accompanying commentary, explanation, or summary in Arabic.
+- **Single language per document**: A generated quotation, contract, or slide deck must be in ONE language throughout. Do not produce mixed-language documents.
+- **Avoid mixing languages in the same response.** If replying to the user, use Arabic throughout. If you output an English email or report, put it in a clearly separated block and annotate it in Arabic.
+- Keep company names, domain names, URLs, technical terms, model numbers, and SKU codes in their original form — do not translate product codes. Do not translate established terms such as LinkedIn, GlobalG.A.P., Incoterms, KPI, or CSV."""
 
 COMPANY_ISOLATION_BLOCK = """# Data Isolation — READ BEFORE ANY DATA ACCESS
 You are working for a specific company. **NEVER mix data across companies.**
@@ -158,7 +168,8 @@ TRADE_ACCURACY_BLOCK = """
 - 没说读过就别下结论；每个输出的数字都要能追溯到源单元格/行/段落。
 - **单位与币种**：数字必须带单位，金额必须带币种符号；源里没有就写 [单位未标注]（英文回复写 [unit not stated]），绝不猜。
 - **置信度标注**：关键结论按**回复语言**标注 —— 中文 [确切]/[推断]/[不确定]，
-  英文 [exact]/[inferred]/[unclear]；后两者附「建议核实」（英文 "needs verification"）。
+  英文 [exact]/[inferred]/[unclear]，
+  阿拉伯语 [دقيق]/[مُستنتَج]/[غير مؤكد]；后两者附「建议核实」（英文 "needs verification"，阿语 "يُنصح بالتحقق"）。
   **同一条回复里不得混用两种标签。**
 - **冲突**：两份材料矛盾时把两个值都标出来，不要静默选一个。
 - **回读**：提取关键数字（价格/数量/规格）后回读源行核对，不一致就修正并说明。
@@ -202,7 +213,7 @@ TRADE_SYSTEM_PROMPT_OSINT = (
 - **Cross-reference aggressively.** Verify every claim against multiple independent sources. A single data point is not proof.
 - **Search in multiple languages.** For Chinese companies, search both Chinese and English. For international targets, prioritize English search.
 - **Prioritize primary sources.** Company registration databases, official websites, LinkedIn company pages, regulatory filings. Third-party blog posts mentioning the company are NOT primary sources.
-- **Label your confidence on every key claim.** Use the tags of your reply language — [确切]/[推断]/[不确定] in Chinese, [exact]/[inferred]/[unclear] in English (see R3). Never mix the two scripts in one reply. If you cannot find a piece of information after searching, say "经搜索未找到 [具体信息]" (Chinese) or "not found after searching [specific item]" (English) rather than omitting it silently.
+- **Label your confidence on every key claim.** Use the tags of your reply language — [确切]/[推断]/[不确定] in Chinese, [exact]/[inferred]/[unclear] in English, [دقيق]/[مُستنتَج]/[غير مؤكد] in Arabic (see R3). Never mix scripts from different languages in one reply. If you cannot find a piece of information after searching, say "经搜索未找到 [具体信息]" (Chinese) or "not found after searching [specific item]" (English) rather than omitting it silently.
 - **Do not combine information from different sources into one "fact."** If Source A says the company was founded in 2010 and Source B says it has 50 employees, report them as separate claims with separate citations. Do not write "Founded in 2010 with 50 employees" as if it's from one source.
 - **Browser-navigated pages: capture the URL immediately and cite it.** Every page you visit with browser_navigate becomes a source. Note the URL before extracting any data.
 - **Report uncertainty honestly.** If a piece of information cannot be verified, clearly state it. Never fabricate verification results.
@@ -347,15 +358,15 @@ Label every factual claim with one of:
 - **[推断] / [inferred]** — reasonable inference based on context (explain reasoning)
 - **[不确定] / [unclear]** — you're not fully confident, user should verify
 - **Use the tag pair that matches your reply language.** Chinese reply → Chinese tags;
-  English reply → English tags. **Never mix the two scripts in one reply.**
-- If a claim is **[不确定]/[unclear]** or **[推断]/[inferred]**, append 「建议核实」
-  (Chinese reply) or "needs verification" (English reply) to that line
+  English reply → English tags; Arabic reply → Arabic tags. **Never mix tags from different languages in one reply.**
+- If a claim is **[不确定]/[unclear]/[غير مؤكد]** or **[推断]/[inferred]/[مُستنتَج]**, append 「建议核实」
+  (Chinese reply), "needs verification" (English reply), or «يُنصح بالتحقق» (Arabic reply) to that line
 
 ## R4: Unit Completeness (单位完整性)
 **Every number MUST have a unit. Every currency amount MUST have a currency symbol.**
 - "MOQ: 100" → ❌ forbidden. Must be "MOQ: 100 pcs" or "MOQ: 100 sets"
 - "Price: 3.5" → ❌ forbidden. Must be "Price: $3.50/pc" or "Price: ¥3.50/个"
-- If the source document doesn't specify the unit, state "[单位未标注]" (Chinese reply) or "[unit not stated]" (English reply) after the number — do NOT guess the unit
+- If the source document doesn't specify the unit, state "[单位未标注]" (Chinese reply), "[unit not stated]" (English reply), or "[الوحدة غير محددة]" (Arabic reply) after the number — do NOT guess the unit
 
 ## R5: Conflicting Data Resolution (冲突数据标记)
 **When two documents give different values for the same thing, flag it — don't silently choose one.**
@@ -440,7 +451,7 @@ TRADE_DOC_GENERATION_BLOCK = """## General Rules for Any Generated File (PPTX / 
 4. **Proper spacing**: Minimum 0.5-inch page margins. Consistent gaps between elements. Don't cram content to the edges.
 5. **Tables must be complete**: Populate ALL rows and columns with actual data from the source documents. Apply alternating row colors and bold headers. Never leave a table half-empty or with placeholder values.
 6. **No placeholder text**: Never output "XXX", "Lorem ipsum", "[insert here]", or made-up phone numbers. If a value is unknown, omit that field rather than fabricate.
-7. **Single language per document**: If the user asks for a presentation targeting Middle East / European / American customers, the ENTIRE document must be in English. If targeting Chinese-speaking audiences, use Chinese throughout. Do not produce mixed-language slides.
+7. **Single language per document**: If the user asks for a presentation targeting Middle East / European / American customers, the ENTIRE document must be in English. If targeting Chinese-speaking audiences, use Chinese throughout. If targeting Arabic-speaking audiences, use Arabic throughout. Do not produce mixed-language slides.
 8. **Verify before finishing**: After generating a file, read it back to check for truncation, layout issues, or missing data. If something is wrong, fix it.
 
 ## PPTX-Specific Guidelines

@@ -65,7 +65,7 @@ class TestEnsureSection:
     def test_appends_when_osint_tool_not_used(self, monkeypatch):
         monkeypatch.setattr(
             chat, "_sanctions_fallback_text",
-            lambda query: "制裁名单筛查：未命中（哨兵）",
+            lambda query, language="zh": "制裁名单筛查：未命中（哨兵）",
         )
         tools = CompletedToolTracker()
 
@@ -80,7 +80,7 @@ class TestEnsureSection:
     def test_skips_when_tool_used_and_section_present(self, monkeypatch):
         monkeypatch.setattr(
             chat, "_sanctions_fallback_text",
-            lambda query: "不应调用",
+            lambda query, language="zh": "不应调用",
         )
         tools = CompletedToolTracker()
         tools.on_complete("osint_job_start", {"target": "acme.com"}, "{}")
@@ -97,7 +97,7 @@ class TestEnsureSection:
     def test_appends_when_tool_used_but_answer_omits_sanctions(self, monkeypatch):
         monkeypatch.setattr(
             chat, "_sanctions_fallback_text",
-            lambda query: "制裁名单筛查：未命中（哨兵）",
+            lambda query, language="zh": "制裁名单筛查：未命中（哨兵）",
         )
         tools = CompletedToolTracker()
         tools.on_complete("osint_job_start", {"target": "acme.com"}, "{}")
@@ -110,7 +110,7 @@ class TestEnsureSection:
         assert "【制裁名单筛查】" in out
 
     def test_other_skills_untouched(self, monkeypatch):
-        monkeypatch.setattr(chat, "_sanctions_fallback_text", lambda q: "不应调用")
+        monkeypatch.setattr(chat, "_sanctions_fallback_text", lambda q, language="zh": "不应调用")
         out = chat._ensure_sanctions_section(
             query="写一封开发信", response="正文", skill="b2b-cold-outreach",
             tools=CompletedToolTracker(),
@@ -202,7 +202,7 @@ async def test_sync_route_appends_sanctions_section(company, monkeypatch):
 
     monkeypatch.setattr(
         chat, "_sanctions_fallback_text",
-        lambda query: "制裁名单筛查：未命中（哨兵）",
+        lambda query, language="zh": "制裁名单筛查：未命中（哨兵）",
     )
     saved: list[dict] = []
     with patch.object(chat, "build_query", return_value=("Q", "## 当前技能：b2b-osint")), \
@@ -224,7 +224,7 @@ async def test_stream_route_appends_sanctions_section(company, monkeypatch):
 
     monkeypatch.setattr(
         chat, "_sanctions_fallback_text",
-        lambda query: "制裁名单筛查：未命中（哨兵）",
+        lambda query, language="zh": "制裁名单筛查：未命中（哨兵）",
     )
     saved: list[dict] = []
     with patch.object(chat, "build_query", return_value=("Q", "## 当前技能：b2b-osint")), \

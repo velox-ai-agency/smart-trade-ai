@@ -235,8 +235,55 @@ def _osint_sanctions_used(tools: CompletedToolTracker) -> bool:
     return False
 
 
-def _missing_lists_note(lists: dict) -> str:
+# 交付前制裁兜底文案：UI 语言优先（Hisham 2026-11-25：UI wins）。
+# 默认 zh 保持旧测试与旧行为；前端传 ar/en 时整段本地结论跟随界面语言。
+_SANCTIONS_TEXT = {
+    "zh": {
+        "header": "【制裁名单筛查】", "check": "制裁", "prefix": "制裁名单筛查：",
+        "no_target": "未执行（无法从问题中确定筛查对象）",
+        "error": "未执行（{}: {}）", "hit": "命中", "possible": "发现 {} 条疑似匹配（非精确），需人工核查",
+        "cjk": "未执行（名单为英文/拼音，中文名称无法比对，请提供英文或拼音名称）",
+        "degraded": "未执行（本地名单未就绪，不构成「无制裁记录」的结论）",
+        "stale": "{} 过期 {:.0f} 小时", "join": "、", "sep": "；",
+        "clean": "未命中（已比对 {} 份名单、本地 {} 条{}）。",
+        "advise": "强烈建议拒绝交易或咨询法律部门。",
+        "missing_item": "{}未就绪", "missing_tail": "，结论不完整",
+        "dot": "。", "warn": "⚠️ ",
+    },
+    "en": {
+        "header": "【Sanctions screening】", "check": "sanction", "prefix": "Sanctions screening: ",
+        "no_target": "not run (no screening target could be identified from the question)",
+        "error": "not run ({}: {})", "hit": "MATCH", "possible": "found {} possible matches (not exact), manual review required",
+        "cjk": "not run (lists are in English/romanized form; a Chinese name cannot be compared — provide the English or pinyin name)",
+        "degraded": "not run (local lists are not ready; this is not a clean record)",
+        "stale": "{} stale by {:.0f}h", "join": ", ", "sep": "; ",
+        "clean": "no match (compared {} lists, {} local records{}).",
+        "advise": "Strongly recommend declining the transaction or consulting the legal department.",
+        "missing_item": "{} not ready", "missing_tail": ", conclusion incomplete",
+        "dot": ".", "warn": "⚠️ ",
+    },
+    "ar": {
+        "header": "【فحص العقوبات】", "check": "عقوبات", "prefix": "فحص العقوبات: ",
+        "no_target": "لم يُنفَذ (تعذّر تحديد هدف الفحص من السؤال)",
+        "error": "لم يُنفَذ ({}: {})", "hit": "تطابق", "possible": "تم العثور على {} تطابقًا محتملًا (غير دقيق)، ويلزم مراجعة يدوية",
+        "cjk": "لم يُنفَذ (القوائم بالإنجليزية أو بالحروف اللاتينية ولا يمكن مقارنة الاسم الصيني؛ يُرجى تقديم الاسم بالإنجليزية أو بينيين)",
+        "degraded": "لم يُنفَذ (القوائم المحلية غير جاهزة؛ لا يُعد هذا سجلاً خاليًا من العقوبات)",
+        "stale": "{} متأخر {:.0f} ساعة", "join": "، ", "sep": "؛ ",
+        "clean": "لا تطابق (تمت مقارنة {} قائمةً و{} سجلًا محليًا{}).",
+        "advise": "يُنصح بشدة برفض التعامل أو استشارة الإدارة القانونية.",
+        "missing_item": "{} غير جاهزة", "missing_tail": "، والنتيجة غير مكتملة",
+        "dot": ".", "warn": "⚠️ ",
+    },
+}
+
+
+def _sanctions_text(language: str = "zh") -> dict:
+    return _SANCTIONS_TEXT.get(language or "zh", _SANCTIONS_TEXT["zh"])
+
+
+def _missing_lists_note(lists: dict, language: str = "zh") -> str:
     """degraded 时列出未就绪的名单（S3：结论不完整必须写明）。"""
+    L = _sanctions_text(language)
     missing = [
         info.get("label") or code
         for code, info in lists.items()
@@ -244,73 +291,66 @@ def _missing_lists_note(lists: dict) -> str:
     ]
     if not missing:
         return ""
-    return "；" + "、".join(f"{label}未就绪" for label in missing[:6]) + "，结论不完整"
+    return L["sep"] + L["join"].join(L["missing_item"].format(label) for label in missing[:6]) + L["missing_tail"]
 
 
-def _sanctions_fallback_text(query: str) -> str:
+def _sanctions_fallback_text(query: str, language: str = "zh") -> str:
     """用本地制裁库补一段结论（<1 秒，无网络下载）。
 
+    回复语言跟随界面语言（Hisham 2026-11-25：UI wins）。
     S2：中文目标无命中时不得写「未命中」——本地名单以英文/拼音为主，
     中文名无法直接比对；只给出「未执行（中文名）」，让用户补英文名。
     S3：名单不全（coverage.degraded）但已有命中时，必须把命中如实报出来，
     同时说明还有哪些名单未就绪，不能整个藏掉。
     """
+    L = _sanctions_text(language)
     target, reason = _osint_target_info(query)
     if not target:
-        return "制裁名单筛查：未执行（无法从问题中确定筛查对象）"
+        return L["prefix"] + L["no_target"]
     try:
         from trade.osint.sanctions import check_sanctions
 
         result = check_sanctions(target)
     except Exception as exc:  # noqa: BLE001 —— 兜底失败不能影响主回答
         _log.exception("交付前制裁兜底失败")
-        return f"制裁名单筛查：未执行（{type(exc).__name__}: {exc}）"
+        return L["prefix"] + L["error"].format(type(exc).__name__, exc)
 
     coverage = result.get("coverage") or {}
     lists = coverage.get("lists") or {}
     degraded = bool(coverage.get("degraded", True))
     total = int(coverage.get("total_entries") or 0)
     hits = result.get("hits") or []
-    missing_note = _missing_lists_note(lists) if degraded else ""
+    missing_note = _missing_lists_note(lists, language) if degraded else ""
 
     if result.get("is_sanctioned"):
-        top = "、".join(
+        top = L["join"].join(
             f"{hit.get('list_label') or hit.get('list')}: {hit.get('matched_value')}"
             for hit in hits[:3]
         )
-        tail = f"{missing_note}。" if missing_note else "。"
+        tail = f"{missing_note}{L['dot']}" if missing_note else L["dot"]
         return (
-            f"制裁名单筛查：⚠️ 命中（{top}）{tail}"
-            "强烈建议拒绝交易或咨询法律部门。"
+            f"{L['prefix']}{L['warn']}{L['hit']}（{top}）{tail}"
+            f"{L['advise']}"
         )
     if hits:
-        tail = f"{missing_note}。" if missing_note else "。"
-        return (
-            f"制裁名单筛查：发现 {len(hits)} 条疑似匹配（非精确），"
-            f"需人工核查{tail}"
-        )
-    # 没有命中：先判中文目标，再判名单是否就绪。
+        tail = f"{missing_note}{L['dot']}" if missing_note else L["dot"]
+        return f"{L['prefix']}{L['possible'].format(len(hits))}{tail}"
     if reason == "cjk":
-        return (
-            "制裁名单筛查：未执行（名单为英文/拼音，中文名称无法比对，"
-            "请提供英文或拼音名称）"
-        )
+        return L["prefix"] + L["cjk"]
     if degraded:
-        return "制裁名单筛查：未执行（本地名单未就绪，不构成「无制裁记录」的结论）"
+        return L["prefix"] + L["degraded"]
     stale = [
-        f"{info.get('label', code)} 过期 {float(info.get('stale_hours') or 0):.0f} 小时"
+        L["stale"].format(info.get("label", code), float(info.get("stale_hours") or 0))
         for code, info in lists.items()
         if info.get("stale")
     ]
-    stale_note = ("；" + "、".join(stale[:3])) if stale else ""
-    return (
-        f"制裁名单筛查：未命中（已比对 {len(lists)} 份名单、本地 {total} 条"
-        f"{stale_note}）。"
-    )
+    stale_note = (L["sep"] + L["join"].join(stale[:3])) if stale else ""
+    return f"{L['prefix']}{L['clean'].format(len(lists), total, stale_note)}"
 
 
 def _ensure_sanctions_section(
     *, query: str, response: str, skill: str, tools: CompletedToolTracker,
+    language: str = "zh",
 ) -> str:
     """命中 b2b-osint 但没跑过 OSINT 工具、或缺制裁段落时，补一段本地结论。
 
@@ -318,12 +358,15 @@ def _ensure_sanctions_section(
       - 没有成功调用过 osint_job_start / trade.osint，或
       - 回答里没有「制裁」段落。
     两个条件都满足（工具跑过且回答已写制裁）才跳过。
+    回复语言跟随界面语言（Hisham 2026-11-25：UI wins）。
     """
     if skill != _OSINT_SKILL or not response:
         return response
-    if _osint_sanctions_used(tools) and "制裁" in response:
+    checks = [L["check"] for L in _SANCTIONS_TEXT.values()]
+    if _osint_sanctions_used(tools) and any(c.lower() in response.lower() for c in checks):
         return response
-    return f"{response}\n\n【制裁名单筛查】\n{_sanctions_fallback_text(query)}"
+    L = _sanctions_text(language)
+    return f"{response}\n\n{L['header']}\n{_sanctions_fallback_text(query, language)}"
 
 
 def _path_under(path: Path, root: Path) -> bool:
@@ -711,12 +754,13 @@ async def trade_chat(
     with _skill_cache_lock:
         last_skill = _last_skill_per_company.get(cid)
 
+    # 回复语言跟随界面语言（Hisham 2026-11-25：UI wins）。
+    # 旧口径「跟随用户这句话」已废弃；ar/en/zh 由前端传入，优先级最高。
+    reply_lang = detect_reply_language(query, payload.language or "")
     full_query, skill_hint = build_query(
         cid, payload.library_id, query, customer_id=payload.customer_id,
         last_skill_name=last_skill,
-        # 回复语言跟随**用户这句话**：中文回中文、英文回英文；
-        # 界面语言只作「判不出来时」的兜底（2026-11-02 口径）。
-        language=detect_reply_language(query, payload.language or "zh"),
+        language=reply_lang,
     )
     # 用户本轮亲手贴出的文件 → 直接只读放行（贴出来即授权，不再二次确认）
     user_paths = _classify_user_paths(query, cid)
@@ -968,6 +1012,7 @@ async def trade_chat(
         response = _ensure_sanctions_section(
             query=query, response=response,
             skill=current_skill or "", tools=tools,
+            language=reply_lang,
         )
 
     lib_name = ""
@@ -1048,12 +1093,13 @@ async def trade_chat_stream(
     with _skill_cache_lock:
         last_skill = _last_skill_per_company.get(cid)
 
+    # 回复语言跟随界面语言（Hisham 2026-11-25：UI wins）。
+    # 旧口径「跟随用户这句话」已废弃；ar/en/zh 由前端传入，优先级最高。
+    reply_lang = detect_reply_language(query, payload.language or "")
     full_query, skill_hint = build_query(
         cid, payload.library_id, query, customer_id=payload.customer_id,
         last_skill_name=last_skill,
-        # 回复语言跟随**用户这句话**：中文回中文、英文回英文；
-        # 界面语言只作「判不出来时」的兜底（2026-11-02 口径）。
-        language=detect_reply_language(query, payload.language or "zh"),
+        language=reply_lang,
     )
     # 用户本轮亲手贴出的文件 → 直接只读放行（贴出来即授权，不再二次确认）
     user_paths = _classify_user_paths(query, cid)
@@ -1310,6 +1356,7 @@ async def trade_chat_stream(
             result = _ensure_sanctions_section(
                 query=query, response=result,
                 skill=current_skill or "", tools=tools,
+                language=reply_lang,
             )
 
         # W10：先剥 trade-json 围栏，再入库并推 SSE（失败静默为纯文本）

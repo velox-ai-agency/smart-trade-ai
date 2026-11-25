@@ -716,10 +716,14 @@ def build_query(
         include_custom=not is_osint,
     )
 
-    # 1.4 语言策略：用户选择英文时替换语言策略块
-    if language == "en":
-        from trade.prompt import LANGUAGE_POLICY_BLOCK, LANGUAGE_POLICY_BLOCK_EN
-        system_prompt = system_prompt.replace(LANGUAGE_POLICY_BLOCK, LANGUAGE_POLICY_BLOCK_EN)
+    # 1.4 语言策略：界面语言优先（ar/en），替换默认中文策略块
+    # 2026-11-25: Arabic UI must produce Arabic reports; English UI stays English.
+    if language in ("en", "ar"):
+        from trade.prompt import (
+            LANGUAGE_POLICY_BLOCK, LANGUAGE_POLICY_BLOCK_EN, LANGUAGE_POLICY_BLOCK_AR,
+        )
+        replacement = LANGUAGE_POLICY_BLOCK_AR if language == "ar" else LANGUAGE_POLICY_BLOCK_EN
+        system_prompt = system_prompt.replace(LANGUAGE_POLICY_BLOCK, replacement)
 
     # 1.5 注入当前公司信息 — Agent 需要明确知道自己为哪家公司工作。
     # 公司 ID 这条**特别重要**：chat_memory_list 等公司隔离工具要带 company_id 参数

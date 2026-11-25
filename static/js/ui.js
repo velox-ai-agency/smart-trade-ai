@@ -279,12 +279,6 @@ function navToView(view, chatCtx, chatName) {
         renderNoCompanyPage();
         return;
     }
-    // 付费栏目的深链/恢复兜底：入口虽然隐藏了，仍需挡住内部调用与恢复的旧视图
-    if (_isPaidDestination(view, chatCtx) && !_licenseGateAllowsPaid()) {
-        toast(t('license.paid_only'));
-        return;
-    }
-
     currentView = view;
     if (chatCtx) { currentChatContext = chatCtx; currentChatName = chatName || ''; }
     // 今日简报用右栏承载待办，顶部横幅隐藏（zip s1 版式）
@@ -299,20 +293,20 @@ function navToView(view, chatCtx, chatName) {
 
     // 顶栏标题（zip s1–s4 统一外壳）
     const topMeta = {
-        'chat-daily': ['今日简报', '/ DAILY BRIEF'],
-        'chat-lead': ['客户开发', '/ LEAD GEN'],
-        'chat-platform': ['网站诊断', '/ SITE AUDIT'],
-        'chat-social': ['社媒营销', '/ SOCIAL'],
+        'chat-daily': [langText('今日简报','Daily Brief'), '/ DAILY BRIEF'],
+        'chat-lead': [langText('客户开发','Lead Gen'), '/ LEAD GEN'],
+        'chat-platform': [langText('网站诊断','Site Audit'), '/ SITE AUDIT'],
+        'chat-social': [langText('社媒营销','Social'), '/ SOCIAL'],
         'chat-linkedin': ['LinkedIn', '/ LINKEDIN'],
-        'chat-customs': ['海关数据', '/ CUSTOMS'],
-        'chat-docs': ['文档库', '/ LIBRARY'],
-        'chat-docgen': ['文档生成', '/ DOC GEN'],
-        'chat-osint': ['客户背调', '/ OSINT'],
-        'customers': ['客户管理', '/ CUSTOMERS'],
-        'mailboxes': ['邮箱', '/ MAILBOXES'],
-        'tasks': ['定时任务', '/ CRON'],
-        'history': ['对话记录', '/ HISTORY'],
-        'visit': ['验厂计划', '/ SITE VISIT'],
+        'chat-customs': [langText('海关数据','Customs'), '/ CUSTOMS'],
+        'chat-docs': [langText('文档库','Library'), '/ LIBRARY'],
+        'chat-docgen': [langText('文档生成','Doc Gen'), '/ DOC GEN'],
+        'chat-osint': [langText('客户背调','OSINT'), '/ OSINT'],
+        'customers': [langText('客户管理','Customers'), '/ CUSTOMERS'],
+        'mailboxes': [langText('邮箱','Mailboxes'), '/ MAILBOXES'],
+        'tasks': [langText('定时任务','Cron'), '/ CRON'],
+        'history': [langText('对话记录','History'), '/ HISTORY'],
+        'visit': [langText('验厂计划','Site Visit'), '/ SITE VISIT'],
     };
     const topInfo = topMeta[view + (chatCtx ? '-' + chatCtx : '')] || [chatName || '', ''];
     const topTitleEl = document.getElementById('app-top-title');
@@ -393,5 +387,7 @@ function navToView(view, chatCtx, chatName) {
     if (typeof loadTodos === 'function' && typeof currentCompanyId !== 'undefined' && currentCompanyId) {
         loadTodos(true);
     }
+    // 语言切换后新渲染的节点也需要翻译静态文案
+    if (typeof _translateStaticHtml === 'function') _translateStaticHtml();
 }
 

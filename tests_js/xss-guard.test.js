@@ -24,6 +24,8 @@ const { SRC } = require('./_extract');
 const SAFE_PATTERNS = [
     // i18n 文案与固定中文/英文常量
     /^t\(/,
+    // langText(zh, en) 只接受字面量，返回硬编码译文，不接用户数据
+    /^langText\(/,
     // 静态图标标记：btnIcon 只拼写死的 SVG 路径，不接用户输入。
     // 只放行**纯字面量**图标名（可带数字尺寸）：图标名会被拼进
     // /static/icons/lucide-<name>.svg 的 URL，btnIcon('x' + userInput)

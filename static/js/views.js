@@ -549,7 +549,7 @@ async function renderHistoryViewInto(container) {
         <div class="panel-topbar">
             <h2>💬 ${t('history.title')}${coName ? '<span style="margin-left:10px;padding:3px 10px;background:rgba(59,130,246,0.08);color:var(--primary);border-radius:999px;font-size:12px;font-weight:500;">🏢 '+esc(coName)+'</span>' : ''}</h2>
             <div class="panel-topbar-actions">
-                <input class="panel-search" id="conv-search" aria-label="搜索对话" placeholder="${currentLang==='en'?'Search conversations...':'搜索对话...'}" data-oninput="filterConversations">
+                <input class="panel-search" id="conv-search" aria-label="搜索对话" placeholder="${langText('搜索对话...','Search conversations...')}" data-oninput="filterConversations">
             </div>
         </div>
         <div class="panel-body">
@@ -682,11 +682,11 @@ function showOnboardingGuide() {
 }
 
 function renderOnboardingStep1HTML() {
-    return `<div id="onboarding-step1"><div class="onboarding-icon">🎉</div><h2 class="onboarding-title">欢迎使用 Trade AI</h2><p class="onboarding-subtitle">Trade 可以帮你<strong>自动搜索客户背景信息（OSINT）</strong>，并基于你的产品定位<strong>撰写专业 B2B 开发信</strong>。</p><div class="onboarding-features"><div class="onb-feature"><span>🔍</span> 海关数据 · 社媒分析 · 官网诊断</div><div class="onb-feature"><span>📧</span> AI 写开发信 · 跟进序列 · 报价单</div><div class="onb-feature"><span>🤖</span> 7x24 自动获客 · 定时任务调度</div></div><button class="btn btn-primary btn-lg" data-act="onboardingGoToStep2">${btnIcon('target')} 开发第一个客户</button><div class="onboarding-skip"><a href="#" data-act="onboardingSkip" data-event="1">跳过引导，直接开始</a></div></div>`;
+    return `<div id="onboarding-step1"><div class="onboarding-icon">🎉</div><h2 class="onboarding-title">${t('onb.welcome_title')}</h2><p class="onboarding-subtitle">${t('onb.welcome_desc2')}</p><div class="onboarding-features"><div class="onb-feature"><span>🔍</span> ${t('onb.feat1')}</div><div class="onb-feature"><span>📧</span> ${t('onb.feat2')}</div><div class="onb-feature"><span>🤖</span> ${t('onb.feat3')}</div></div><button class="btn btn-primary btn-lg" data-act="onboardingGoToStep2">${btnIcon('target')} ${t('onb.start_btn')}</button><div class="onboarding-skip"><a href="#" data-act="onboardingSkip" data-event="1">${t('onb.skip')}</a></div></div>`;
 }
 
 function renderOnboardingStep2HTML() {
-    return `<div id="onboarding-step2"><div class="onboarding-step-indicator"><span class="onb-step done">✓ 了解 Trade</span><span class="onb-step-arrow">→</span><span class="onb-step active">● 开发客户</span></div><h3 class="onboarding-title" style="font-size:18px;margin-bottom:6px;">试试对目标客户做背调</h3><p style="color:var(--text-secondary);font-size:13px;margin-bottom:16px;">输入客户公司名或官网，AI 将自动搜索公开信息并生成开发信</p><div class="onboarding-input-row"><input type="text" id="onboarding-osint-input" placeholder="粘贴客户公司名或网址，如：acme-corp.com" class="onboarding-text-input" data-enter="onboardingStartOSINT" autofocus /><button class="btn btn-primary" id="onboarding-send-btn" data-act="onboardingStartOSINT">开始分析</button><button id="onboarding-stop-btn" class="hidden" style="background:var(--accent-red);color:#fff;border:none;padding:8px 16px;border-radius:var(--radius-sm);cursor:pointer;" data-act="onboardingStopOSINT">${btnIcon('x')} 停止</button></div><div id="onboarding-results-area"></div><div id="onboarding-actions" class="hidden"></div><div class="onboarding-skip"><a href="#" data-act="onboardingSkip" data-event="1">跳过引导，直接开始</a></div></div>`;
+    return `<div id="onboarding-step2"><div class="onboarding-step-indicator"><span class="onb-step done">${t('onb.step1_done')}</span><span class="onb-step-arrow">→</span><span class="onb-step active">${t('onb.step2_active')}</span></div><h3 class="onboarding-title" style="font-size:18px;margin-bottom:6px;">${t('onb.step2_title')}</h3><p style="color:var(--text-secondary);font-size:13px;margin-bottom:16px;">${t('onb.step2_desc')}</p><div class="onboarding-input-row"><input type="text" id="onboarding-osint-input" placeholder="${t('onb.osint_placeholder')}" class="onboarding-text-input" data-enter="onboardingStartOSINT" autofocus /><button class="btn btn-primary" id="onboarding-send-btn" data-act="onboardingStartOSINT">${t('onb.analyze_btn')}</button><button id="onboarding-stop-btn" class="hidden" style="background:var(--accent-red);color:#fff;border:none;padding:8px 16px;border-radius:var(--radius-sm);cursor:pointer;" data-act="onboardingStopOSINT">${btnIcon('x')} ${t('onb.stop_btn')}</button></div><div id="onboarding-results-area"></div><div id="onboarding-actions" class="hidden"></div><div class="onboarding-skip"><a href="#" data-act="onboardingSkip" data-event="1">${t('onb.skip')}</a></div></div>`;
 }
 
 function onboardingGoToStep2() {
@@ -778,12 +778,7 @@ async function onboardingStartOSINT() {
         });
         if (!resp.ok) {
             progDiv.remove();
-            if (resp.status === 402) {
-                var err402 = await resp.json().catch(function() { return {}; });
-                showLicenseExpired(err402.detail || t('license.expired'));
-            } else {
-                resultsArea.innerHTML = '<div class="onb-error">请求失败 (' + resp.status + ')</div>';
-            }
+            resultsArea.innerHTML = '<div class="onb-error">请求失败 (' + resp.status + ')</div>';
             resetInputs();
             return;
         }
@@ -948,7 +943,7 @@ function loadCompanyListUI() {
         <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border-light);">
             <div style="flex:1;"><div style="font-weight:600;font-size:13px;">${esc(c.name)}</div>
             <div style="font-size:11px;color:var(--text-muted);">${esc(c.slug)} · ${c.contact_email ? ' · ' + esc(c.contact_email) : ''}</div></div>
-            ${_licenseGateAllowsPaid() ? `<button class="btn btn-xs" data-act="exportCompany" data-arg="${c.id}">导出</button>` : ''}
+            <button class="btn btn-xs" data-act="exportCompany" data-arg="${c.id}">导出</button>
             <button class="btn btn-danger btn-xs" data-act="deleteCompany" data-arg="${c.id}">删除</button>
         </div>`).join('');
 }
@@ -1022,11 +1017,7 @@ async function exportCompany(cid) {
 }
 
 function showImportCompanyDialog() {
-    // 导入/导出是付费能力：入口隐藏之外，这里再挡一次控制台直接调用
-    if (!_licenseGateAllowsPaid()) {
-        toast(t('license.paid_only'));
-        return;
-    }
+    // 导入/导出在本构建中始终可用。
     document.querySelectorAll('.import-company-backdrop').forEach(el => el.remove());
     const backdrop = document.createElement('div');
     backdrop.className = 'modal-backdrop import-company-backdrop';

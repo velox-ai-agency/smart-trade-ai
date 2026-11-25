@@ -9,7 +9,7 @@
     --grid-line: rgba(12, 13, 14, 0.045);
     --bg-field: #FFFFFF;
     --todo-bar-bg: #EBEBE9;
-    --font-ui: "Archivo", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    --font-ui: "Archivo", "Noto Sans Arabic", "Geeza Pro", "Al Bayan", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
     --font-mono: "Share Tech Mono", ui-monospace, monospace;
     --ease-s01: cubic-bezier(.22,.9,.3,1);
 

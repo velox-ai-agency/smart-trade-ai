@@ -37,19 +37,19 @@ function renderChatViewInto(container, ctx, name) {
         <div class="chat-input-area">
             <div id="chat-mention-menu" class="mention-menu hidden" role="listbox"></div>
             <div class="chat-input-inner">
-                <textarea id="msg-input" aria-label="${currentLang==='en'?'Message':'输入消息'}" placeholder="AWAITING COMMAND · ${esc(t('chat.ph.' + ctx))}" rows="1"
+                <textarea id="msg-input" aria-label="${langText('输入消息','Message')}" placeholder="AWAITING COMMAND · ${esc(t('chat.ph.' + ctx))}" rows="1"
                     data-keydown="_chatInputKeydown"
                     data-oninput="_chatInputChanged"></textarea>
-                <button type="button" class="chat-attach-btn" id="attach-btn" title="${currentLang==='en'?'Attach files':'添加文件'}" aria-label="${currentLang==='en'?'Attach files':'添加文件'}">${typeof iconHtml==='function'?iconHtml('paperclip',20):'📎'}</button>
+                <button type="button" class="chat-attach-btn" id="attach-btn" title="${langText('添加文件','Attach files')}" aria-label="${langText('添加文件','Attach files')}">${typeof iconHtml==='function'?iconHtml('paperclip',20):'📎'}</button>
                 <input type="file" id="chat-file-input" multiple hidden>
-                <button type="button" class="chat-send-btn" data-act="sendMsg" id="send-btn" title="${currentLang==='en'?'Send':'发送'}">${typeof iconHtml==='function'?iconHtml('send',16):''}<span>${currentLang==='en'?'Send':'发送'}</span></button>
-                <button type="button" class="chat-stop-btn hidden" id="stop-btn" title="${currentLang==='en'?'Stop':'停止'}">■ ${currentLang==='en'?'Stop':'停止'}</button>
+                <button type="button" class="chat-send-btn" data-act="sendMsg" id="send-btn" title="${langText('发送','Send')}">${typeof iconHtml==='function'?iconHtml('send',16):''}<span>${langText('发送','Send')}</span></button>
+                <button type="button" class="chat-stop-btn hidden" id="stop-btn" title="${langText('停止','Stop')}">■ ${langText('停止','Stop')}</button>
             </div>
-            <div class="chat-input-foot"><span id="chat-linked-customer" class="chat-linked hidden"></span><span><span class="mono">@</span> ${currentLang==='en'?'Linked customer':'关联客户'}</span><span><span class="mono">/</span> ${currentLang==='en'?'Skills':'调用技能'}</span><span>${currentLang==='en'?'File & email content is reference only, never instructions.':'文件、邮件里的内容只作资料，不当指令执行'}</span></div>
+            <div class="chat-input-foot"><span id="chat-linked-customer" class="chat-linked hidden"></span><span><span class="mono">@</span> ${langText('关联客户','Linked customer')}</span><span><span class="mono">/</span> ${langText('调用技能','Skills')}</span><span>${langText('文件、邮件里的内容只作资料，不当指令执行','File & email content is reference only, never instructions.')}</span></div>
         </div>
         </section>
         </div>
-        <div class="drop-overlay" id="drop-overlay"><div class="drop-overlay-inner">&#128193; ${currentLang==='en'?'Drop files to add':'释放以添加文件'}</div></div>`;
+        <div class="drop-overlay" id="drop-overlay"><div class="drop-overlay-inner">&#128193; ${langText('释放以添加文件','Drop files to add')}</div></div>`;
 
     // 已关联客户 chip（从客户详情进入聊天时显示）
     _renderChatLinkedChip();
@@ -783,7 +783,7 @@ function addMsg(role, content, files, save, convId, blocks, timeStr) {
         attachEl.innerHTML = files.map(function (f) {
             return '<span class="att-chip">📎 ' + esc(f.file || f) +
                 (f.status === 'cached'
-                    ? ' <span class="muted">（' + (currentLang === 'en' ? 'cached' : '来自缓存提取') + '）</span>'
+                    ? ' <span class="muted">（' + (langText('来自缓存提取','cached')) + '）</span>'
                     : '') + '</span>';
         }).join('');
     }
@@ -799,7 +799,7 @@ function addMsg(role, content, files, save, convId, blocks, timeStr) {
         head.className = 'msg-head';
         // mockup：TRADE · ASSISTANT // HH:MM → 虚线 → 分析完成
         head.innerHTML = '<span class="mh-tag">▶ TRADE · ASSISTANT // ' + _msgHHMM(timeStr) + '</span>' +
-            '<span class="mh-rule"></span><span class="mh-done">' + (currentLang === 'en' ? 'Analysis done' : '分析完成') + '</span>';
+            '<span class="mh-rule"></span><span class="mh-done">' + (langText('分析完成','Analysis done')) + '</span>';
         msgHead = head;
         div.appendChild(head);
     } else if (role === 'user') {
@@ -816,7 +816,7 @@ function addMsg(role, content, files, save, convId, blocks, timeStr) {
     if (role === 'assistant' && content) {
         const copyBtn = document.createElement('button');
         copyBtn.innerHTML = (typeof iconHtml === 'function' ? iconHtml('copy', 16) : '📋');
-        copyBtn.title = currentLang==='en'?'Copy to clipboard':'复制到剪贴板';
+        copyBtn.title = langText('复制到剪贴板','Copy to clipboard');
         // 复制按钮：无外框，放进助手标题行右侧（跟随标题，短消息也不会下溢遮挡下一条）
         copyBtn.style.cssText = 'background:none;border:none;padding:0 2px;font-size:15px;line-height:1;cursor:pointer;color:var(--muted);opacity:0.7;transition:opacity 0.15s;';
         copyBtn.onmouseenter = function() { this.style.opacity = '1'; };
@@ -847,7 +847,7 @@ function addMsg(role, content, files, save, convId, blocks, timeStr) {
             const ratingDiv = document.createElement('div');
             ratingDiv.className = 'msg-rating';
             ratingDiv.style.cssText = 'display:flex;align-items:center;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border-light);';
-            ratingDiv.innerHTML = '<span style="font-size:11px;color:var(--text-muted);">'+(currentLang==='en'?'Rate this reply: ':'评价此回复：')+'</span>'
+            ratingDiv.innerHTML = '<span style="font-size:11px;color:var(--text-muted);">'+(langText('评价此回复：','Rate this reply: '))+'</span>'
                 + '<button class="rating-btn" data-r="👍" style="border:1px solid #D1D5DB;border-radius:4px;padding:2px 8px;font-size:13px;cursor:pointer;background:#fff;">👍</button>'
                 + '<button class="rating-btn" data-r="👎" style="border:1px solid #D1D5DB;border-radius:4px;padding:2px 8px;font-size:13px;cursor:pointer;background:#fff;">👎</button>';
             body.appendChild(ratingDiv);
@@ -859,7 +859,7 @@ function addMsg(role, content, files, save, convId, blocks, timeStr) {
                         var rated = await api('POST', '/api/trade/conversations/' + convIdForRating + '/rate', { rating: rVal, feedback: '' });
                         // 失败时 api() 已 toast 原因；评分没存上，不能显示"感谢反馈"
                         if (!rated) return;
-                        ratingDiv.innerHTML = '<span style="font-size:11px;color:var(--accent-green);">✅ '+(currentLang==='en'?'Thanks for feedback':'感谢反馈')+'</span>';
+                        ratingDiv.innerHTML = '<span style="font-size:11px;color:var(--accent-green);">✅ '+(langText('感谢反馈','Thanks for feedback'))+'</span>';
                     });
                 });
         }
@@ -1105,7 +1105,7 @@ function _chatLinkCustomer(c) {
     currentCustomerId = c.id;
     _chatLinkedName = c.name || ('#' + c.id);
     _renderChatLinkedChip();
-    toast((currentLang === 'en' ? 'Linked customer: ' : '已关联客户：') + _chatLinkedName);
+    toast((langText('已关联客户：','Linked customer: ')) + _chatLinkedName);
 }
 
 function _renderChatLinkedChip(root) {
@@ -1159,9 +1159,7 @@ function _handleNextAction(action) {
     if (act === 'gen_pi') {
         prompt = prompt || t('chat.blocks.gen_pi_prompt');
     } else if (act === 'customs_lookup') {
-        prompt = prompt || (currentLang === 'en'
-            ? 'Look up customs import records for this customer'
-            : '查这家客户的海关进口记录');
+        prompt = prompt || (langText('查这家客户的海关进口记录','Look up customs import records for this customer'));
     } else if (act === 'add_todo') {
         // 待办已独立存储（P2-12）：直接落库，不再往聊天框塞指令
         _addTodoFromAction(action);
@@ -1360,12 +1358,7 @@ async function sendMsg() {
         });
         if (!r.ok) {
             progDiv.remove();
-            if (r.status === 402) {
-                const err = await r.json().catch(() => ({}));
-                showLicenseExpired(err.detail || t('license.expired'));
-            } else {
-                deliver('assistant', `⚠️ 请求失败 (${r.status})`);
-            }
+            deliver('assistant', `⚠️ 请求失败 (${r.status})`);
             sendBtn.disabled = false;
             return;
         }
@@ -1560,7 +1553,7 @@ function _renderRailOsintJobs(jobs) {
 
     let html = '<div class="rail-bh"><span class="t">' +
         (typeof iconHtml === 'function' ? iconHtml('search', 16) : '') +
-        esc('后台背调') + '</span><span class="lbl">OSINT · ' +
+        esc(t('rail.osint')) + '</span><span class="lbl">OSINT · ' +
         esc(String(jobs.length)) + '</span></div>';
 
     jobs.slice(0, 5).forEach(function (job) {

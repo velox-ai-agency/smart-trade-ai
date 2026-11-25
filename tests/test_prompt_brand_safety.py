@@ -128,17 +128,17 @@ class TestAccuracyTagsAreBilingual:
 
     @pytest.mark.parametrize("tag", [
         "[calculated]", "[from conversation]", "[unit not stated]",
-        "Never mix the two scripts",
+        "Never mix tags from different languages in one reply.",
     ])
     def test_english_forms_in_document_protocol(self, full, tag):
         assert tag in full, f"文档协议里缺英文标签 {tag}"
 
 
-class TestReplyLanguageFollowsInput:
-    """回复语言跟随**用户这句话**，而不是界面选择框（2026-11-02 Lau 口径）。
+class TestReplyLanguageFollowsUI:
+    """回复语言跟随界面选择框（Hisham 2026-11-25：UI wins）。
 
-    「用户用英文交流 → 返回英文；用中文交流 → 返回中文；给客户的回答用客户语言」。
-    修复前：界面语言是 zh 时，即使用户写英文也回中文。
+    旧口径「跟随用户这句话」已废弃：ar/en/zh 由前端传入，优先级最高；
+    仅在界面未传语言时才回退到按输入文本判定。
     """
 
     def test_chinese_input_replies_chinese(self):
@@ -181,6 +181,28 @@ class TestReplyLanguageFollowsInput:
         from trade.prompt import LANGUAGE_POLICY_BLOCK
 
         assert "English for international buyers" in LANGUAGE_POLICY_BLOCK
+
+    def test_ui_language_wins_over_input_language(self):
+        """Hisham 2026-11-25: 界面选阿拉伯语/英语时，即使输入中文也按界面语言回。"""
+        from trade.prompt import detect_reply_language
+
+        zh_query = "请对 https://aldahra.com 做全面的客户背景调查"
+        assert detect_reply_language(zh_query, fallback="ar") == "ar"
+        assert detect_reply_language(zh_query, fallback="en") == "en"
+        assert detect_reply_language(zh_query, fallback="zh") == "zh"
+
+    def test_arabic_policy_keeps_customer_facing_content(self):
+        """阿拉伯语界面：正文阿语，给客户的内容仍按目标受众语言。"""
+        from trade.prompt import LANGUAGE_POLICY_BLOCK_AR
+
+        assert "MUST be in clear Arabic" in LANGUAGE_POLICY_BLOCK_AR
+        assert "language of the target audience" in LANGUAGE_POLICY_BLOCK_AR
+
+    def test_arabic_confidence_tags_exist(self):
+        from trade.prompt import TRADE_ACCURACY_BLOCK, TRADE_SYSTEM_PROMPT_OSINT
+
+        assert "[دقيق]/[مُستنتَج]/[غير مؤكد]" in TRADE_ACCURACY_BLOCK
+        assert "[دقيق]" in TRADE_SYSTEM_PROMPT_OSINT
 
 
 class TestAccuracyRulesAlwaysPresent:
