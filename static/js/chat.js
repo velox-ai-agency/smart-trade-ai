@@ -1206,13 +1206,33 @@ async function loadChatHistory() {
 
 // ═════════════════════ SSE STREAMING ═════════════════════
 const TOOL_NAMES = {
-    read_file:'📄 读取文件',list_files:'📂 列出文件',search_files:'🔎 搜索文件',
-    file_extract:'📋 提取文档',
-    web_search:'🌐 搜索',web_fetch:'📥 抓取',memory_recall:'🧠 回忆',
-    memory_retain:'💾 保存',execute_code:'💻 代码',terminal:'🖥️ 终端',
-    delegate_task:'🤖 委派',vision:'👁️ 图像',skill_load:'📦 技能',
+    zh: {
+        read_file:'📄 读取文件',list_files:'📂 列出文件',search_files:'🔎 搜索文件',
+        file_extract:'📋 提取文档',
+        web_search:'🌐 搜索',web_fetch:'📥 抓取',memory_recall:'🧠 回忆',
+        memory_retain:'💾 保存',execute_code:'💻 代码',terminal:'🖥️ 终端',
+        delegate_task:'🤖 委派',vision:'👁️ 图像',skill_load:'📦 技能',
+    },
+    en: {
+        read_file:'📄 Read file',list_files:'📂 List files',search_files:'🔎 Search files',
+        file_extract:'📋 Extract document',
+        web_search:'🌐 Web search',web_fetch:'📥 Fetch',memory_recall:'🧠 Recall',
+        memory_retain:'💾 Save',execute_code:'💻 Code',terminal:'🖥️ Terminal',
+        delegate_task:'🤖 Delegate',vision:'👁️ Image',skill_load:'📦 Skill',
+    },
+    ar: {
+        read_file:'📄 قراءة ملف',list_files:'📂 قائمة الملفات',search_files:'🔎 البحث في الملفات',
+        file_extract:'📋 استخراج مستند',
+        web_search:'🌐 بحث ويب',web_fetch:'📥 جلب',memory_recall:'🧠 استذكار',
+        memory_retain:'💾 حفظ',execute_code:'💻 تنفيذ كود',terminal:'🖥️ طرفية',
+        delegate_task:'🤖 تفويض',vision:'👁️ صورة',skill_load:'📦 مهارة',
+    },
 };
-function fmtTool(name) { return TOOL_NAMES[name] || `🔧 ${name.replace(/_/g,' ')}`; }
+function fmtTool(name) {
+    const lang = (typeof currentLang !== 'undefined' && currentLang) ? currentLang : 'en';
+    const map = TOOL_NAMES[lang] || TOOL_NAMES.en || {};
+    return map[name] || `🔧 ${name.replace(/_/g,' ')}`;
+}
 
 async function sendMsg() {
     if (!currentCompanyId) { toast('请先选择公司'); return; }
@@ -1496,11 +1516,8 @@ function _abortOsintJobReaders() {
 }
 
 function _osintStatusText(status) {
-    const map = {
-        queued: '排队中', running: '进行中', done: '已完成',
-        partial: '未完成', failed: '失败', cancelled: '已取消',
-    };
-    return map[status] || String(status || '');
+    const key = 'job.' + String(status || '');
+    return (typeof t === 'function' && I18N && I18N[currentLang] && I18N[currentLang][key]) ? t(key) : String(status || '');
 }
 
 async function loadOsintJobs(isPoll) {
@@ -1533,13 +1550,13 @@ async function loadOsintJobs(isPoll) {
         // 聊天还在生成回复：采集完成也先别结束动画，等 _flushPendingDockVerdicts
         if (job.status === 'done' && _chatStreamActive > 0 && p.wait && !p.wait.final) {
             p.pendingVerdict = p.pendingVerdict || {rating: ''};
-            p.wait.phase('composing', '采集完成，正在生成回复…');
+            p.wait.phase('composing', t('dock.composing'));
             p.wait.cancelBtn.disabled = true;
             return;
         }
         if (p.wait && !p.wait.final) {
             const phase = job.status === 'cancelled' ? 'aborted' : (job.status === 'failed' ? 'failed' : 'acquired');
-            const zh = job.status === 'partial' ? '未完成 · 已保存部分结果' : (phase === 'acquired' ? '采集完成' : undefined);
+            const zh = job.status === 'partial' ? t('dock.partial') : (phase === 'acquired' ? t('dock.collected') : undefined);
             p.wait.finish({phase: phase, zh: zh});
         }
     });
@@ -1624,7 +1641,7 @@ function _handleOsintJobSse(jobId, block) {
         if (type === 'verdict' && _chatStreamActive > 0 && panel.wait && !panel.wait.final) {
             panel.pendingVerdict = payload;
             panel.status = 'done';
-            panel.wait.phase('composing', '采集完成，正在生成回复…');
+            panel.wait.phase('composing', t('dock.composing'));
             panel.wait.cancelBtn.disabled = true;
             _updateDock();
             return;
@@ -1667,12 +1684,12 @@ function _flushPendingDockVerdicts() {
                             unverified: report.unverified || [],
                         });
                     } else {
-                        p.wait.finish({phase: 'acquired', zh: '采集完成'});
+                        p.wait.finish({phase: 'acquired', zh: t('dock.collected')});
                     }
                 }
             })
             .catch(function () {
-                if (p.wait && !p.wait.final) p.wait.finish({phase: 'acquired', zh: '采集完成'});
+                if (p.wait && !p.wait.final) p.wait.finish({phase: 'acquired', zh: t('dock.collected')});
             });
     });
 }
@@ -1745,8 +1762,8 @@ function _jobShortName(target) {
 }
 
 function _osintStatusZh(status) {
-    const map = {queued: '排队中', running: '进行中', done: '已完成', failed: '失败', cancelled: '已取消', partial: '未完成'};
-    return map[status] || '进行中';
+    const key = 'job.' + String(status || 'running');
+    return (typeof t === 'function' && I18N && I18N[currentLang] && I18N[currentLang][key]) ? t(key) : t('job.running');
 }
 
 function _updateDock() {
@@ -1764,15 +1781,15 @@ function _updateDock() {
         total += srcs.length;
         done += srcs.filter(function (s) { return s.status !== 'running'; }).length;
     });
-    parts.title.textContent = '后台任务 · ' + items.length + ' 项';
+    parts.title.textContent = t('dock.bg_tasks', {n: items.length});
     if (running.length) {
         // 只用真实 source_start / source_done 计数
-        parts.sub.textContent = '采集中 ' + done + ' / ' + total + ' · ' + running.length + ' 项进行中';
+        parts.sub.textContent = t('dock.collecting', {done: done, total: total, running: running.length});
     } else if (_chatStreamActive > 0) {
         // 采集完了但答复还在生成：明确说出来，避免“动画结束=背调结束”的误判
-        parts.sub.textContent = '采集完成，正在生成回复…';
+        parts.sub.textContent = t('dock.composing');
     } else {
-        parts.sub.textContent = '全部完成';
+        parts.sub.textContent = t('dock.all_done');
     }
 
     items.forEach(function (p) {
@@ -1853,8 +1870,8 @@ function _attachOsintTaskPanel(_container, job) {
     try {
         wait = TradeWait.mount(wrap, {
             mode: 'task',
-            title: '背调 · BACKGROUND CHECK',
-            statusLabel: '背调进行中',
+            title: t('dock.check_title'),
+            statusLabel: t('dock.check_status'),
             onCancel: function () { _cancelOsintJob(jobId); },
         });
     } catch (e) {
@@ -1881,7 +1898,8 @@ function _watchOsintJob(jobId) {
     (async function () {
         try {
             const resp = await fetch('/api/trade/osint/jobs/' + jobId + '/events?after=' +
-                (_osintJobCursors[jobId] || 0), {
+                (_osintJobCursors[jobId] || 0) + '&lang=' +
+                encodeURIComponent(typeof currentLang !== 'undefined' ? currentLang : 'en'), {
                 headers: {'X-Hermes-Session-Token': TOKEN, 'X-Company-ID': String(companyId)},
                 signal: controller.signal,
             });

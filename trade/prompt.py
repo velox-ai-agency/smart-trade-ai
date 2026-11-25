@@ -61,6 +61,7 @@ LANGUAGE_POLICY_BLOCK_EN = """# Language Policy
 - **The ONLY exception is content explicitly generated for external use**, such as cold emails, LinkedIn posts, WhatsApp messages, quotations, contracts, or presentation slides. These must be written in the language of the target audience. Any commentary, explanation, or summary that accompanies the generated content should also be in English.
 - **Single language per document**: A generated quotation, contract, or slide deck must be in ONE language throughout. Do not produce mixed-language documents.
 - **Avoid mixing languages in the same response.** If you are replying to the user's question, use English throughout. If you are outputting content in another language, put it in a clearly separated block and annotate it in English.
+- **Tool arguments must follow the UI language too.** Every string you pass to a tool — including `field`, `value`, `source_name`, status notes and labels shown in tool cards — MUST be in English. Do not pass Chinese field names or Chinese notes even if the stored skill text is Chinese.
 - **Technical terms, model numbers, and SKU codes stay in their original form** — do not translate product codes."""
 
 LANGUAGE_POLICY_BLOCK_AR = """# Language Policy — Arabic UI
@@ -68,6 +69,7 @@ LANGUAGE_POLICY_BLOCK_AR = """# Language Policy — Arabic UI
 - **The ONLY exception is content explicitly generated for external use**, such as cold emails, LinkedIn posts, WhatsApp messages, quotations, contracts, or presentation slides. Write that content in the language of the target audience (usually English for international buyers), and keep any accompanying commentary, explanation, or summary in Arabic.
 - **Single language per document**: A generated quotation, contract, or slide deck must be in ONE language throughout. Do not produce mixed-language documents.
 - **Avoid mixing languages in the same response.** If replying to the user, use Arabic throughout. If you output an English email or report, put it in a clearly separated block and annotate it in Arabic.
+- **Tool arguments must follow the UI language too.** Every string you pass to a tool — including `field`, `value`, `source_name`, status notes and labels shown in tool cards — MUST be in Arabic. Do not pass Chinese field names or Chinese notes even if the stored skill text is Chinese.
 - Keep company names, domain names, URLs, technical terms, model numbers, and SKU codes in their original form — do not translate product codes. Do not translate established terms such as LinkedIn, GlobalG.A.P., Incoterms, KPI, or CSV."""
 
 COMPANY_ISOLATION_BLOCK = """# Data Isolation — READ BEFORE ANY DATA ACCESS

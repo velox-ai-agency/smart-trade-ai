@@ -49,6 +49,7 @@ from trade.partial_report import (
     build_partial_report,
     build_summary_prompt,
 )
+from trade.osint.ui_l10n import localize_for_ui, sanitize_for_ui
 from trade.prompt import detect_reply_language
 from trade.read_evidence import ReadEvidenceCollector
 
@@ -1181,13 +1182,18 @@ async def trade_chat_stream(
             except asyncio.QueueFull:
                 _log.warning("SSE event queue full, dropping event: %s", ev_type)
 
-        loop.call_soon_threadsafe(_safe_put, event_type, data or {})
+        loop.call_soon_threadsafe(_safe_put, event_type, sanitize_for_ui(data or {}, reply_lang))
 
     def _tool_start(tc_id, name, args):
         tools.on_start(name, args)
         if evidence is not None:
             evidence.on_start(tc_id, name, args)
-        _emit_threadsafe("tool_start", {"tool_call_id": tc_id, "name": name, "args": args})
+        # UI cards must follow the selected UI language, not the skill's source language.
+        _emit_threadsafe(
+            "tool_start",
+            {"tool_call_id": tc_id, "name": name,
+             "args": localize_for_ui(args, reply_lang)},
+        )
 
     def _tool_complete(tc_id, name, args, result):
         # 证据收集与 SSE 推送解耦：队列满丢事件不影响完整性判定。
@@ -1196,9 +1202,11 @@ async def trade_chat_stream(
             evidence.on_complete(tc_id, name, args, result)
         preview = ""
         if isinstance(result, str):
-            preview = result[:300]
+            preview = str(localize_for_ui(result, reply_lang))[:300]
         elif isinstance(result, (list, dict)):
-            preview = _json.dumps(result, ensure_ascii=False)[:300]
+            preview = _json.dumps(
+                localize_for_ui(result, reply_lang), ensure_ascii=False
+            )[:300]
         _emit_threadsafe("tool_complete", {
             "tool_call_id": tc_id, "name": name, "result_preview": preview,
         })
@@ -1248,10 +1256,11 @@ async def trade_chat_stream(
     def _emit_partial_response(text: str | None, conv_id: int | None) -> None:
         """把未完成报告作为 response 事件下发（前端据此显示半成品）。"""
         if not text:
-            _emit_threadsafe("error", {"message": "Agent 未能产出结果，请稍后重试。"})
+            _emit_threadsafe("error", {"message": localize_for_ui(
+                "Agent 未能产出结果，请稍后重试。", reply_lang)})
             return
         _emit_threadsafe("response", {
-            "text": text,
+            "text": localize_for_ui(text, reply_lang),
             "elapsed_sec": 0.0,
             "conversation_id": conv_id,
             "partial": True,
@@ -1259,7 +1268,8 @@ async def trade_chat_stream(
 
     def _summarize_after_tools(reason: str) -> str | None:
         """工具已跑过：只基于已有结果做**一次**总结（工具禁用，不重跑）。"""
-        _emit_threadsafe("thinking", {"message": "正在根据已完成的工具结果整理答复..."})
+        _emit_threadsafe("thinking", {"message": localize_for_ui(
+            "正在根据已完成的工具结果整理答复...", reply_lang)})
         try:
             agent = create_agent(
                 ephemeral_system_prompt=skill_hint,
@@ -1390,17 +1400,20 @@ async def trade_chat_stream(
             # 不能静默：回答能显示但 conversation_id 为空，评分/引用链路
             # 会断，用户却不知道（审计 P2-33）。发一条警告事件让前端提示。
             _emit_threadsafe("warning", {
-                "message": f"对话已回复，但保存到历史失败（{type(exc).__name__}），"
-                           "本轮无法评分或后续引用。",
+                "message": localize_for_ui(
+                    f"对话已回复，但保存到历史失败（{type(exc).__name__}），"
+                    "本轮无法评分或后续引用。", reply_lang),
             })
 
         resp_payload = {
-            "text": reply_text,
+            # Display-only: keep stored/history text untouched, but never show
+            # Chinese scraps in an English or Arabic UI session.
+            "text": localize_for_ui(reply_text, reply_lang),
             "elapsed_sec": round(elapsed, 1),
             "conversation_id": conv_id,
         }
         if reply_blocks:
-            resp_payload["blocks"] = reply_blocks
+            resp_payload["blocks"] = localize_for_ui(reply_blocks, reply_lang)
         if partial:
             resp_payload["partial"] = True
         # 先置 delivered 再发 response（审计 P1-1）：反过来的话，事件循环
@@ -1419,9 +1432,10 @@ async def trade_chat_stream(
                 return None
             try:
                 if attempt == 0:
-                    _emit_threadsafe("thinking", {"message": "正在分析问题..."})
+                    _emit_threadsafe("thinking", {"message": localize_for_ui("正在分析问题...", reply_lang)})
                 else:
-                    _emit_threadsafe("thinking", {"message": f"正在重试（第 {attempt} 次）..."})
+                    _emit_threadsafe("thinking", {"message": localize_for_ui(
+                        f"正在重试（第 {attempt} 次）...", reply_lang)})
                 agent = create_agent(
                     tool_start_callback=_tool_start,
                     tool_complete_callback=_tool_complete,
@@ -1479,7 +1493,8 @@ async def trade_chat_stream(
 
                 return _finalize(result, elapsed)
             except ImportError:
-                _emit_threadsafe("error", {"message": "AI Agent 模块未加载。"})
+                _emit_threadsafe("error", {"message": localize_for_ui(
+                    "AI Agent 模块未加载。", reply_lang)})
                 return None
             except RuntimeError as e:
                 last_error = str(e)
@@ -1514,10 +1529,12 @@ async def trade_chat_stream(
                 )
                 _emit_threadsafe(
                     "error",
-                    {"message": f"⚠️ Agent 异常终止（{type(e).__name__}）：{e}"},
+                    {"message": localize_for_ui(
+                        f"⚠️ Agent 异常终止（{type(e).__name__}）：{e}", reply_lang)},
                 )
                 return None
-        _emit_threadsafe("error", {"message": "Agent 重试耗尽，请稍后重试。"})
+        _emit_threadsafe("error", {"message": localize_for_ui(
+            "Agent 重试耗尽，请稍后重试。", reply_lang)})
         return None
 
     async def _event_stream():

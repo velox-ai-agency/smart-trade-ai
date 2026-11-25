@@ -17,6 +17,7 @@ from pydantic import BaseModel
 
 from trade import osint_jobs
 from trade.api.deps import require_company
+from trade.osint.ui_l10n import sanitize_for_ui
 
 router = APIRouter(tags=["osint-jobs"])
 
@@ -73,6 +74,7 @@ async def osint_job_events(
     request: Request,
     job_id: int,
     after: int = 0,
+    lang: str = "",
     cid: int = Depends(require_company),
 ):
     job = await asyncio.to_thread(osint_jobs.get_job, cid, job_id)
@@ -92,7 +94,10 @@ async def osint_job_events(
             for event in events:
                 cursor = event["seq"]
                 idle = 0
-                data = json.dumps(event["payload"], ensure_ascii=False)
+                data = json.dumps(
+                    sanitize_for_ui(event["payload"], lang) if lang in ("ar", "en") else event["payload"],
+                    ensure_ascii=False,
+                )
                 yield (
                     f"id: {event['seq']}\n"
                     f"event: {event['type']}\n"

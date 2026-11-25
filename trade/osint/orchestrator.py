@@ -304,6 +304,9 @@ async def osint_full_check(
             ),
             on_event=on_event,
         )
+    # Python 3.14 起 asyncio.wait() 不再接受裸 coroutine；显式转成 Task，
+    # 让 should_cancel 分支与 gather 分支行为一致（后台 OSINT 任务才能取消）。
+    tasks = {name: asyncio.ensure_future(coro) for name, coro in tasks.items()}
     results = await _await_layers(tasks, should_cancel)
     report["sources"] = {name: results[name] for name in public_planned}
 

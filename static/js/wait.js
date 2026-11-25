@@ -12,24 +12,89 @@
 
   var INK = '12,13,14', RED = '210,40,30';
   var PHASES = {
-    searching:   { en: 'SEARCHING',       zh: '检索中' },
-    analyzing:   { en: 'ANALYZING',       zh: '分析中' },
-    correlating: { en: 'CORRELATING',     zh: '关联比对中' },
-    composing:   { en: 'COMPOSING',       zh: '整理答复中' },
-    working:     { en: 'PROCESSING',      zh: '处理中' },
-    acquired:    { en: 'TARGET ACQUIRED', zh: '已完成' },
-    partial:     { en: 'INCOMPLETE',      zh: '未完成 · 已保存部分结果' },
-    aborted:     { en: 'ABORTED',         zh: '已停止' },
-    failed:      { en: 'ERROR',           zh: '失败' }
+    searching:   { en:'SEARCHING',   zh:'检索中',     ar:'جارٍ البحث' },
+    analyzing:   { en:'ANALYZING',   zh:'分析中',     ar:'جارٍ التحليل' },
+    associating: { en:'CORRELATING', zh:'关联比对中', ar:'جارٍ الربط والمقارنة' },
+    summarizing: { en:'COMPOSING',   zh:'整理答复中', ar:'جارٍ صياغة الرد' },
+    working:     { en:'WORKING',     zh:'处理中',     ar:'جارٍ المعالجة' },
+    acquired:    { en:'DONE',        zh:'已完成',     ar:'اكتمل' },
+    partial:     { en:'PARTIAL',     zh:'未完成 · 已保存部分结果', ar:'غير مكتمل · تم حفظ نتائج جزئية' },
+    aborted:     { en:'ABORTED',     zh:'已停止',     ar:'تم الإيقاف' },
+    error:       { en:'ERROR',       zh:'错误',       ar:'خطأ' },
   };
+  var L = {
+    title_chat:  ['TRADE · ASSISTANT  ///  等待回复', 'TRADE · ASSISTANT  ///  WAITING FOR REPLY', 'TRADE · ASSISTANT  ///  بانتظار الرد'],
+    title_task:  ['背调 · BACKGROUND CHECK', 'BACKGROUND CHECK', 'فحص الخلفية'],
+    surveillance:['/// SURVEILLANCE · 监视画面', '/// SURVEILLANCE · LIVE VIEW', '/// SURVEILLANCE · بث مباشر'],
+    abort:       ['停止 · ABORT', 'STOP · ABORT', 'إيقاف · ABORT'],
+    tool:        ['工具', 'TOOL', 'أداة'],
+    calling:     ['正在调用：', 'CALLING: ', 'جارٍ الاستدعاء: '],
+    files_ok:    ['已完整读取 {n} 个文件', 'Read {n} files in full', 'تمت قراءة {n} ملفًا بالكامل'],
+    files_fail:  ['读取文件失败', 'File read failed', 'فشل قراءة الملفات'],
+    files_read_fail: ['完整读取未通过', 'Full read check failed', 'فشل التحقق من القراءة الكاملة'],
+    budget:      ['预算', 'TOOL BUDGET', 'الميزانية'],
+    task_started:['任务已启动', 'TASK STARTED', 'تم بدء المهمة'],
+    target:      ['目标', 'TARGET', 'الهدف'],
+    querying:    ['正在查询：', 'QUERYING: ', 'جارٍ الاستعلام: '],
+    query:       ['查询', 'QUERY', 'استعلام'],
+    unverified:  ['项未核验', 'item(s) unverified', 'عنصر غير موثّق'],
+    all_returned:['全部来源已返回', 'ALL SOURCES RETURNED', 'عادت كل المصادر'],
+    rating:      ['评级', 'RATING', 'التقييم'],
+    unknown:     ['未知', 'UNKNOWN', 'غير معروف'],
+    error:       ['错误', 'ERROR', 'خطأ'],
+    cancelled:   ['已取消', 'CANCELLED', 'ملغي'],
+    aborted:     ['已停止', 'STOPPED', 'متوقف'],
+    done:        ['完成', 'DONE', 'تم'],
+    limited:     ['仅完成制裁筛查', 'SANCTIONS SCREEN ONLY', 'تم فحص العقوبات فقط'],
+    done_unverified: ['已完成 · {n} 项未核验', 'DONE · {n} item(s) unverified', 'اكتمل · {n} عنصر غير موثّق'],
+    done_plain:  ['已完成', 'DONE', 'اكتمل'],
+    conclusion:  ['CONCLUSION:', 'CONCLUSION:', 'الخلاصة:'],
+    bg_task:     ['后台任务', 'BACKGROUND TASK', 'مهمة في الخلفية'],
+    more_wait:   ['另有 {n} 项等待', '+{n} more waiting', '+{n} بانتظار'],
+    chat_busy:   ['对话处理中', 'PROCESSING CHAT', 'جارٍ معالجة المحادثة'],
+    email_hidden:['[邮箱已隐藏]', '[email hidden]', '[تم إخفاء البريد]'],
+    searching_dots:['查询中…', 'QUERYING…', 'جارٍ الاستعلام…'],
+    all_sources: ['全部来源', 'ALL SOURCES', 'كل المصادر'],
+    partial_sources:['部分来源', 'PARTIAL SOURCES', 'مصادر جزئية'],
+  };
+  function uiLang() {
+    try { return (typeof currentLang !== 'undefined' && typeof I18N !== 'undefined' && I18N[currentLang]) ? currentLang : 'zh'; }
+    catch (e) { return 'zh'; }
+  }
+  function pick(row, lang) {
+    if (!row) return '';
+    if (typeof row === 'string') return row;
+    return row[lang] || row.zh || row.en || '';
+  }
+  function wl(key, params) {
+    var lang = uiLang(), row = L[key] || [], i = lang === 'en' ? 1 : lang === 'ar' ? 2 : 0;
+    var text = row[i] || row[0] || key;
+    if (params) for (var k in params) text = text.replace('{'+k+'}', params[k]);
+    return text;
+  }
+  var CJK_RE = /[\u4e00-\u9fff]/;
+  function localizedOrFallback(text, fallback) {
+    var t = String(text || '');
+    return (uiLang() === 'zh' || (!CJK_RE.test(t) && t)) ? t : (fallback || '');
+  }
+
   var SRC_STATUS = {
-    hit: '命中', candidate: '同名候选', miss: '未命中',
-    error: '出错', timeout: '超时', skipped: '跳过', done: '完成'
+    hit: {zh:'命中', en:'HIT', ar:'مطابقة'},
+    candidate: {zh:'同名候选', en:'SAME-NAME CANDIDATE', ar:'مرشح بالاسم نفسه'},
+    miss: {zh:'未命中', en:'MISS', ar:'لا مطابقة'},
+    error: {zh:'出错', en:'ERROR', ar:'خطأ'},
+    timeout: {zh:'超时', en:'TIMEOUT', ar:'انتهت المهلة'},
+    skipped: {zh:'跳过', en:'SKIPPED', ar:'تم التخطي'},
+    done: {zh:'完成', en:'DONE', ar:'تم'}
   };
-  // 评级代号 → 中文（审计 P0-B：limited = 只跑过制裁层，不是低风险）
+  // Rating codes → localized labels (limited = sanctions layer only, not a low-risk verdict)
   var RATING_ZH = {
-    low: '低风险', medium: '中风险', high: '高风险',
-    incomplete: '未完成核验', limited: '仅完成制裁筛查', unknown: '未知'
+    low: {zh:'低风险', en:'LOW RISK', ar:'مخاطر منخفضة'},
+    medium: {zh:'中风险', en:'MEDIUM RISK', ar:'مخاطر متوسطة'},
+    high: {zh:'高风险', en:'HIGH RISK', ar:'مخاطر عالية'},
+    incomplete: {zh:'未完成核验', en:'INCOMPLETE', ar:'تحقق غير مكتمل'},
+    limited: {zh:'仅完成制裁筛查', en:'SANCTIONS SCREEN ONLY', ar:'تم فحص العقوبات فقط'},
+    unknown: {zh:'未知', en:'UNKNOWN', ar:'غير معروف'}
   };
   var MAX_ANIMATED = 2;          // 同屏最多 2 个实例在动，其余静态
   var FRAME_MS = 1000 / 30;      // 30fps 上限
@@ -37,7 +102,7 @@
   // ── 隐私兜底：读数里屏蔽邮箱/长数字（电话、证件号）。真正的白名单在后端，见工单 ─────
   function redact(s) {
     s = String(s == null ? '' : s);
-    s = s.replace(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g, '[邮箱已隐藏]');
+    s = s.replace(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g, wl('email_hidden'));
     s = s.replace(/\+?\d[\d\s-]{6,}\d/g, '[号码已隐藏]');
     return s.length > 80 ? s.slice(0, 77) + '…' : s;
   }
@@ -116,7 +181,7 @@
     var r = el('div', 'sw ' + (this.mode === 'task' ? 'sw-task' : 'sw-chat'));
     r.setAttribute('data-sw', this.mode);
     var self = this;
-    var cancel = el('button', 'sw-btn', this.opts.cancelText || '停止 · ABORT');
+    var cancel = el('button', 'sw-btn', this.opts.cancelText || wl('abort'));
     cancel.type = 'button';
     cancel.addEventListener('click', function () {
       if (self.final) return;
@@ -142,7 +207,7 @@
     if (this.mode === 'chat') {
       var top = el('div', 'sw-top');
       var l = el('span', 'lbl'); var t1 = el('span', 'tri'); t1.style.marginRight = '8px';
-      l.appendChild(t1); l.appendChild(document.createTextNode(this.opts.title || 'TRADE · ASSISTANT  ///  等待回复'));
+      l.appendChild(t1); l.appendChild(document.createTextNode(this.opts.title || wl('title_chat')));
       this.clockEl = el('span', 'sw-elapsed', 'T+00:00');
       top.appendChild(l); top.appendChild(this.clockEl);
       this.toolsEl = el('div', 'sw-tools');
@@ -153,13 +218,13 @@
       var stage = el('div', 'sw-stage'); stage.appendChild(this.cv);
       var hud = el('div', 'sw-hud');
       var hl = el('span', 'lbl'); var t2 = el('span', 'tri'); t2.style.marginRight = '8px';
-      hl.appendChild(t2); hl.appendChild(document.createTextNode('/// SURVEILLANCE · 监视画面'));
+      hl.appendChild(t2); hl.appendChild(document.createTextNode(wl('surveillance')));
       this.countEl = el('span', 'lbl', '0 / 0 SOURCES');
       hud.appendChild(hl); hud.appendChild(this.countEl);
       stage.appendChild(hud); stage.appendChild(center);
       var side = el('div', 'sw-side');
       var bar = el('div', 'sw-bar'); var bl = el('span'); var t3 = el('span', 'tri'); bl.appendChild(t3);
-      bl.appendChild(document.createTextNode(this.opts.title || '背调 · BACKGROUND CHECK'));
+      bl.appendChild(document.createTextNode(this.opts.title || wl('title_task')));
       this.clockEl = el('span', '', 'T+00:00'); bar.appendChild(bl); bar.appendChild(this.clockEl);
       var kv = el('div', 'sw-kv');
       kv.appendChild(el('span', 'k', 'TARGET')); this.targetEl = el('span', 'v', '—'); kv.appendChild(this.targetEl);
@@ -377,10 +442,13 @@
     // W15 O-24：finish 之后再调 phase 不得改文案（finish 内部先调 phase 再置 final）
     if (this.final) return;
     var p = PHASES[key] || PHASES.working;
-    var zhText = zh ? redact(zh) : p.zh;
+    var lang = uiLang();
+    var fallback = pick(p, lang) || p.zh || key;
+    var zhText = localizedOrFallback(zh ? redact(zh) : '', fallback);
+    zhText = zhText || fallback;
     if (key === this.phaseKey && this.zhEl.textContent === zhText) return;
     this.phaseKey = key; this.zhEl.textContent = zhText;
-    if (this.statusEl) this.statusEl.textContent = p.en + ' · ' + zhText;
+    if (this.statusEl) this.statusEl.textContent = p.en + (lang === 'en' ? '' : ' · ' + zhText);
     var words = p.en.split(' '), self = this, i = 0;
     clearTimeout(this._wt);
     var reveal = function () {
@@ -417,7 +485,7 @@
 
   Wait.prototype._progress = function () {
     var n = this.sources.length, d = this.sources.filter(function (s) { return s.status !== 'running'; }).length;
-    if (this.countEl) this.countEl.textContent = d + ' / ' + n + ' SOURCES';
+    if (this.countEl) this.countEl.textContent = d + ' / ' + n + ' ' + (uiLang() === 'ar' ? 'مصادر' : 'SOURCES');
     if (this.progTxt) this.progTxt.textContent = d + ' / ' + n;
     if (this.progFill) this.progFill.style.width = (n ? (d / n) * 100 : 0) + '%';
   };
@@ -427,58 +495,59 @@
     if (!ev || this.final) return;
     var type = ev.type;
     if (this.mode === 'chat') {
-      if (type === 'thinking') this.phase(/整理|答复/.test(ev.message || '') ? 'composing' : 'analyzing', ev.message);
+      if (type === 'thinking') this.phase(/整理|答复|compos|compon|صياغة/i.test(ev.message || '') ? 'composing' : 'analyzing', ev.message);
       else if (type === 'tool_start') {
-        var lab = redact(stripEmoji(ev.label || ev.name || '工具'));
+        var lab = redact(stripEmoji(ev.label || ev.name || wl('tool')));
         this.tools[ev.id] = { label: lab, status: 'run' };
         var n = Object.keys(this.tools).length;
-        this.phase(n > 1 ? 'correlating' : 'searching', '正在调用：' + lab); this.curTool = lab;
+        this.phase(n > 1 ? 'correlating' : 'searching', wl('calling') + lab); this.curTool = lab;
       } else if (type === 'tool_complete' || type === 'tool_failed') {
         if (this.tools[ev.id]) this.tools[ev.id].status = type === 'tool_failed' ? 'err' : 'ok';
       } else if (type === 'analysis_gate') {
-        this.phase('analyzing', ev.ok ? '已完整读取 ' + (ev.files || 0) + ' 个文件' : '完整读取未通过');
+        this.phase('analyzing', ev.ok ? wl('files_ok', { n: ev.files || 0 }) : wl('files_read_fail'));
       }
       this._renderTools();
     } else {
       if (type === 'job_start') {
         var tgt = redact(ev.target || '—');
         this.targetEl.textContent = tgt;
-        this._log('预算 ' + (ev.budget || '?') + ' 秒', '', '任务已启动');
-        this.phase('searching', '目标：' + tgt);
+        this._log(wl('budget') + ' ' + (ev.budget || '?') + 's', '', wl('task_started'));
+        this.phase('searching', wl('target') + '：' + tgt);
       }
       else if (type === 'source_start') {
         var key = String(ev.source || ''), s = this._src(key);
         if (!s) { s = { key: key, label: redact(ev.label || key), status: 'running' }; this.sources.push(s); }
         s.status = 'running';
-        this._log('查询中…', '', s.label);
+        this._log(wl('searching_dots'), '', s.label);
         // 大动画文案跟随当前真实来源，而不是只显示阶段名
-        this.phase('correlating', '正在查询：' + s.label);
+        this.phase('correlating', wl('querying') + s.label);
       } else if (type === 'source_done') {
         var s2 = this._src(String(ev.source || ''));
         if (s2) {
           s2.status = ev.status || 'done';
           var bad = s2.status === 'error' || s2.status === 'timeout';
-          var st = SRC_STATUS[s2.status] || s2.status;
+          var st = pick(SRC_STATUS[s2.status], uiLang()) || s2.status;
           this._log(st + (ev.ms != null ? ' · ' + (ev.ms / 1000).toFixed(1) + 's' : ''), s2.status === 'hit' ? 'hit' : (bad ? 'bad' : ''), s2.label);
           var running = this.sources.some(function (x) { return x.status === 'running'; });
           // 完成一个来源后，文案停在刚返回的来源与结果上；全部返回才进入整理阶段
-          this.phase(running ? 'correlating' : 'composing', st + '：' + s2.label);
+          var sep = String(uiLang()).indexOf('zh') === 0 ? '：' : ' · ';
+    this.phase(running ? 'correlating' : 'composing', st + sep + s2.label);
         }
       } else if (type === 'verdict') {
         var un = (ev.unverified || []).length;
-        var ratingZh = RATING_ZH[ev.rating] || ev.rating || '未知';
-        this._log(un ? un + ' 项未核验' : '全部来源已返回', 'hit', '评级 ' + ratingZh);
+        var ratingZh = pick(RATING_ZH[ev.rating], uiLang()) || ev.rating || wl('unknown');
+        this._log(un ? un + ' ' + wl('unverified') : wl('all_returned'), 'hit', wl('rating') + ' ' + ratingZh);
         // limited：只完成制裁筛查，终态文案不能写成「已完成」让人误读为查全了
         this.finish({
           phase: 'acquired',
           zh: ev.rating === 'limited'
-            ? '仅完成制裁筛查'
-            : (un ? '已完成 · ' + un + ' 项未核验' : '已完成'),
+            ? wl('limited')
+            : (un ? wl('done_unverified', { n: un }) : wl('done_plain')),
           verdict: ev.rating
         });
         return;
-      } else if (type === 'error') { this._log(ev.message || '', 'bad', '错误'); this.finish({ phase: 'failed' }); return; }
-      else if (type === 'cancelled') { this._log('', 'bad', '已取消'); this.finish({ phase: 'aborted' }); return; }
+      } else if (type === 'error') { this._log(ev.message || '', 'bad', wl('error')); this.finish({ phase: 'failed' }); return; }
+      else if (type === 'cancelled') { this._log('', 'bad', wl('cancelled')); this.finish({ phase: 'aborted' }); return; }
       this._progress();
     }
     if (this.three) this.three.sync(ev);
@@ -499,10 +568,15 @@
     this.phase(o.phase || 'acquired', o.zh);
     this.final = true;
     this.root.classList.add('is-final');
-    this.cancelBtn.disabled = true; this.cancelBtn.textContent = o.phase === 'aborted' ? '已停止' : '完成';
+    this.cancelBtn.disabled = true; this.cancelBtn.textContent = o.phase === 'aborted' ? wl('aborted') : wl('done');
     if (this.verdictEl && o.verdict) {
-      this.verdictEl.textContent = 'CONCLUSION:';
-      var tag = el('span', 'tag' + (/高|严重|high/i.test(o.verdict) ? '' : ' neutral'), redact(o.verdict));
+      this.verdictEl.textContent = wl('conclusion');
+      var vtext = redact(o.verdict || '');
+      if (uiLang() !== 'zh' && CJK_RE.test(vtext)) {
+        var vk = /低风险/.test(vtext) ? 'low' : /中风险/.test(vtext) ? 'medium' : /高风险/.test(vtext) ? 'high' : /严重/.test(vtext) ? 'critical' : 'unknown';
+        vtext = pick(RATING_ZH[vk], uiLang());
+      }
+      var tag = el('span', 'tag' + (/high|critical|عالية|جسيم|高风险|严重/i.test(vtext) ? '' : ' neutral'), vtext);
       this.verdictEl.appendChild(tag);
     }
     this._progress && this.mode === 'task' && this._progress();
@@ -562,12 +636,12 @@
           n += w.sources.length;
           d += w.sources.filter(function (s) { return s.status !== 'running'; }).length;
         });
-        var label = tasks.length === 1 ? (tasks[0].opts.statusLabel || '后台任务') : '后台任务';
+        var label = tasks.length === 1 ? (tasks[0].opts.statusLabel || wl('bg_task')) : wl('bg_task');
         var extra = this.list.length - tasks.length;
-        return label + (n ? ' ' + d + '/' + n : '') + (extra > 0 ? ' · 另有 ' + extra + ' 项等待' : '');
+        return label + (n ? ' ' + d + '/' + n : '') + (extra > 0 ? ' · ' + wl('more_wait', { n: extra }) : '');
       }
       var c = this.list[0];
-      return '对话处理中' + (c.curTool ? ' · 正在调用：' + c.curTool : '');
+      return wl('chat_busy') + (c.curTool ? ' · ' + wl('calling') + c.curTool : '');
     },
     update: function () {
       var text = this.active() ? this.text() : '';
