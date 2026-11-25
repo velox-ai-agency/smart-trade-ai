@@ -10,6 +10,12 @@
 [dir="rtl"] .sidebar { border-left: 1px solid rgba(255,255,255,0.03); }
 [dir="rtl"] .lang-select { padding-left: 18px; }
 [dir="rtl"] .sidebar-footer button::after { right: 50%; transform: translateX(50%); }
+/* Arabic footer tooltips: Noto Sans Arabic reads smaller at 12px; enlarge for legibility */
+[dir="rtl"] .sidebar-footer button::after {
+    font-size: 14px !important;
+    line-height: 1.6 !important;
+    padding: 6px 12px !important;
+}
 [dir="rtl"] .msg-body th, .msg-body td { text-align: right; }
 [dir="rtl"] .msg-body blockquote { border-right: 2px solid var(--primary); padding-right: 14px; }
 [dir="rtl"] .chat-input-area { right: 0; left: 0; }
