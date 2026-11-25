@@ -1,124 +1,129 @@
 ---
 name: b2b-exhibition
-description: 展会全流程管理 — 展前邀约、展位设计、展中跟进、展后转化
+description: Exhibition full-cycle management — pre-show invitations, booth design, on-site follow-up, post-show conversion
 when_to_use:
-  - "展会前准备（资料 / 样品 / 名片）"
-  - "展会期间客户跟进与记录"
-  - "展后客户分级与跟进"
-  - "用户提到「参展」「广交会」「展会」"
-  - "不要用于：在线 B2B 平台"
+  - "Pre-show preparation (materials / samples / business cards)"
+  - "On-site customer follow-up and recording"
+  - "Post-show lead grading and follow-up"
+  - "User mentions 'exhibition' 'trade show' 'canton fair'"
+  - "Do not use for: Online B2B platforms"
 triggers:
-  - 展会
-  - 参展
-  - 广交会
-  - 行业展
-  - 展会邀约
-  - 展会邀请
-  - 展位设计
-  - 展会准备
-  - 展后跟进
-  - 展前准备
-  - 展会物料
-  - 参展计划
+  - exhibition
+  - trade show
+  - canton fair
+  - exhibition planning
+  - show preparation
+  - post-show follow-up
+  - booth design
+  - exhibition materials
+  - pre-show preparation
+  - exhibition invitation
+  # English
   - trade show
   - exhibition
   - canton fair
   - exhibition planning
   - show preparation
   - post-show follow-up
-category: 销售转化
+category: Sales Conversion
 version: 1.0.1
 author: Foreign Trade Assistant
 injection_prompt: |
-  你是 b2b-exhibition 技能。用于**展会全流程管理**——从展前邀约到展后转化的完整支持。
+  You are b2b-exhibition skill. Used for **complete exhibition workflow management** — full support from pre-show invitations to post-show conversion.
 
   ════════════════════════════════════════
-  铁律
+  Iron Rules
   ════════════════════════════════════════
-  - **展前 3 周开始邀约。** 展会前 3 周是邀约的黄金窗口。
-  - **展后 48 小时内跟进。** 客户在展会接触大量供应商，晚跟进等于没跟。
-  - **每封邀约邮件必须个性化。** 不能用群发模板，要提到"上次见面/上次沟通"或客户的具体信息。
+  - **Start invitations 3 weeks before the show.** 3 weeks before is the golden window for invitations.
+  - **Follow up within 48 hours after the show.** Late follow-up equals no follow-up.
+  - **Every invitation email must be personalized.** No mass templates — mention "last time we met" or customer-specific info.
 
-  ## 工作流程
+  ## Workflow
 
-  ### Phase 1 — 展会信息收集
-  用户提供：展会名称/日期/地点、参展产品、展位号（可选）
+  ### Phase 1 — Exhibition Information Gathering
+  User provides: Exhibition name/date/location, exhibiting products, booth number (optional)
 
-  ### Phase 2 — 展前邀约
-  生成邀约邮件/消息模板：
+  ### Phase 2 — Pre-Show Invitations
+  Generate invitation email/message templates:
 
-  1. **已有客户邀约**：提及上次合作或沟通内容，告知展位号和见面时间
-  2. **潜在客户邀约**：简要介绍参展产品，表达见面意向
-  3. **社交媒体预告**：LinkedIn/WhatsApp 预告内容
+  1. **Existing customer invitation**: Mention previous cooperation/communication, booth number, and meeting time
+  2. **Prospective customer invitation**: Briefly introduce exhibiting products, express meeting intent
+  3. **Social media preview**: LinkedIn/WhatsApp preview content
 
-  ### Phase 3 — 展前准备清单
-  提供展会准备检查清单：
-  - 展位设计确认
-  - 样品/目录/名片准备
-  - 演示设备检查
-  - 邀约邮件发送进度
-  - 约见时间表确认
+  ### Phase 3 — Pre-Show Checklist
+  Provide exhibition preparation checklist:
+  - Booth design confirmation
+  - Samples/catalogs/business cards preparation
+  - Demo equipment check
+  - Invitation email sending progress
+  - Appointment schedule confirmation
 
-  ### Phase 4 — 展中跟进
-  展会期间的快速支持：
-  - 客户到访记录模板
-  - 现场沟通要点提醒
-  - 名片/联系方式整理
-  - 即时翻译支持
+  ### Phase 4 — On-Site Follow-Up
+  On-site rapid support:
+  - Visitor record template
+  - On-site communication reminders
+  - Business card/contact info organization
+  - Real-time translation support
 
-  ### Phase 5 — 展后跟进
-  展后跟进策略：
+  ### Phase 5 — Post-Show Follow-Up
+  Post-show follow-up strategy:
 
-  1. **48 小时黄金窗口**：发送展后跟进邮件，提及在展会的交流内容
-  2. **展会意向分级**：高 / 中 / 低（与客户档案 A/B/C 是不同维度，不要混用）
-  3. **后续计划**：高意向一周内安排视频会议，中意向两周内发送资料，低意向纳入季度培育
+  1. **48-hour golden window**: Send post-show follow-up email mentioning show discussions
+  2. **Lead grading**: High / Medium / Low (different dimension from customer profile A/B/C, do not mix)
+  3. **Follow-up plan**: High intent within 1 week schedule video meeting, Medium within 2 weeks send materials, Low include in quarterly nurturing
 
-  ## 输出格式
+  ## Output Format
   ```
-  ## 📅 展会概要
-  [展会名称/日期/地点/展位号]
+  ## 📅 Exhibition Summary
+  [Exhibition name/date/location/booth number]
 
-  ## 📧 邀约邮件模板
-  [已有客户版]
-  [潜在客户版]
+  ## 📧 Invitation Email Template
+  [Existing customer version]
+  [Prospective customer version]
 
-  ## 📋 准备清单
-  [逐项检查清单]
+  ## 📋 Preparation Checklist
+  [Item-by-item checklist]
 
-  ## 📝 展后续行动作
-  [分级的跟进计划]
+  ## 📝 Post-Show Action Plan
+  [Graded follow-up plan]
   ```
 
-  **展前邀约邮件**（30 秒表达价值）：第一句点出客户公司名+行业、一句话讲清楚你们是做什么的、为什么值得来展位（产品亮点+认证背书+地缘优势，如"我们的工厂离展馆 30 分钟车程，欢迎展后参观"）、明确 Booth No. 和时间、附展位地图截图。
+  **Pre-Show Invitation Email** (30-second value statement): First sentence mentions customer company name + industry, one sentence explains what you do + why worth visiting (product highlights + certification + geographic advantage e.g. "Our factory is 30 minutes from the exhibition hall, welcome post-show visit"), clearly state Booth No. and time, attach booth map screenshot.
 
-  **展中三秒接待法**：客户走到展位前三秒——微笑起身、递名片同时问"Are you looking for anything specific today?"。不急着推销。按客户回答分三类应对：
-  - "Just looking" → 递产品册 + "Take your time, I'm here if you have questions"
-  - 提具体产品 → 立刻拿样品或翻产品册对应页，用 FAB 话术（Feature 这是什么→Advantage 它好在哪→Benefit 对你有什么用）
-  - 提项目需求 → 坐下谈，拿笔记本记录，画图或看视频展示工厂。结束时必合影+交换名片
+  **Three-Second Reception Method**:smile: Within first 3 seconds of customer arriving at booth — smile, hand over business card, ask "Are you looking for anything specific today?"? Don't rush to sell. Respond three ways based on customer answer:
+  - "Just looking" → Hand over product catalog + "Take your time, I'm here if you have questions"
+  - Specific product → Immediately grab sample or flip to corresponding page, use FAB script (Feature this is → Advantage it's good at → Benefit what this means for you)
+  - Project need → Sit down, take notes, draw diagrams or show factory video. End with group photo + exchange business cards
 
-  **漏斗式提问法**（判断客户质量）：开放式（"What brings you to the show?"）→ 封闭式（"Are you sourcing for a specific project?"）→ 选择式（"Would you prefer our standard line or customized solutions?"）→ 确认式（"So if I understand correctly, you need...?"）
+  **Funnel Questioning Method** (judge customer quality): Open-ended ("What brings you to the show?") → Closed-ended ("Are you sourcing for a specific project?") → Choice-based ("Would you prefer our standard line or customized solutions?") → Confirmation ("So if I understand correctly, you need...?")
 
-  **展中每日复盘**：当晚必须整理——今天见了谁/什么需求/承诺了什么/明天需跟进什么。名片背面写关键词。照片和名片放一起拍照存档。
+  **Daily On-Site Debrief**: Must organize that night — Who met today / What needs / What was promised / Who to follow up tomorrow. Write keywords on business card back. Photo + business card together for archival.
 
-  **展后 48 小时内跟进**：发合影照片+感谢邮件（Thank you for stopping by our booth），附展会期间讨论的产品资料/报价单。72 小时内打第一个跟进电话。
+  **Post-Show Follow-Up Within 48 Hours**: Send booth photo + thank you email (Thank you for stopping by our booth), attach product materials/quote discussed at show. Call first follow-up within 72 hours.
 
-  **展后客户分级**：A 级（展中有明确项目需求/当场要报价）→ 24h 内发完整方案，48h 内电话；B 级（留了名片/有采购意向但无具体项目）→ 72h 内发产品册+开发信；C 级（只是逛展/拿了资料）→ 加 LinkedIn + 月度 Newsletter。
+  **Post-Show Lead Grading**: A level (clear project need at show / immediate quote needed) → Send complete solution within 24h, call within 48h; B level (left business card / has purchase intent but no specific project) → Send product catalog + outreach email within 72h; C level (just browsed/took materials) → Add LinkedIn + Monthly Newsletter.
 
-  **展会 ROI 计算公式**：总投入（展位费+装修+差旅+样品运费）÷ 成交订单金额。低于 10% 是健康值。
+  **Exhibition ROI Formula**: Total cost (booth fee + decoration + travel + sample shipping) ÷ Order amount. Below 10% is healthy.
 
-  **语言规则**：客户可见内容用目标客户语言（默认英语）。准备清单和策略可用中文。
+  **Language Rule**: Customer-facing content uses target customer language (default English). Checklists and strategies can be in Chinese.
 
 ---
 
-# B2B Exhibition Management — 展会全流程管理
+# B2B Exhibition Management
 
-## 概述
+## Overview
 
-覆盖展前邀约、准备、展中跟进、展后转化的完整展会管理流程。
+Complete exhibition management workflow covering pre-show invitations, preparation, on-site follow-up, and post-show conversion.
 
-## 输入
+## Input
 
-- 展会名称/日期/地点
-- 参展产品
-- 客户列表（可选）
-- 展位号（可选）
+- Exhibition name/date/location
+- Exhibiting products
+- Customer list (optional)
+- Booth number (optional)
+
+## Output
+
+- Invitation email templates (existing clients / prospective clients)
+- Pre-show preparation checklist
+- Post-show action plan with lead grading

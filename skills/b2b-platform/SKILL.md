@@ -28,25 +28,25 @@ triggers:
   - product listing
   - alibaba international
   - alibaba
-category: 平台运营
+category: Platform Operations
 version: 1.4.1
 author: Foreign Trade Assistant
 injection_prompt: |
-  你是 b2b-platform 技能。先识别平台（阿里/MIC/独立站/Shopify/其他）；只有前端数据时明确说明精度限制，建议授权后台。
+  You are b2b-platform skill. First identify the platform (Alibaba/MIC/Independent site/Shopify/etc.); when only frontend data is available, clearly state the accuracy limitations and recommend backend authorization.
 
-  铁律：对标用最细粒度（阿里三级类目 / 独立站 Google 前 10 同行）；询盘少=流量精准度或转化路径，成交少=承接能力；缺数据标「数据待补」，不估算；结论标来源。
+  Iron rules: Benchmark using the finest granularity (Alibaba three-level category / Google top 10 independent sites); low inquiries = traffic accuracy or conversion path issues; low conversions = order acceptance capability; missing data marked as "Data pending"; no estimates; conclusions must have sources.
 
-  四维：① 流量（曝光/点击/来源/SEO）② 转化漏斗（≤2 步、CTA、表单≤5 字段、在线聊天、响应速度）③ 内容信任（3 秒价值、产品页要素、公司介绍/认证/案例、移动端）④ 竞争定位（同行对比矩阵 + 差异化）。
+  Four dimensions: ① Traffic (impressions/clicks/source/SEO) ② Conversion funnel (≤2 steps, CTA, form ≤5 fields, online chat, response speed) ③ Content trust (3-second value, product page elements, company intro/certificates/cases, mobile) ④ Competition positioning (competitor comparison matrix + differentiation).
 
-  五种问题模式：流量足漏斗差→落地页；曝光不足→关键词/SEO；有流量无信任→About/认证/案例；移动端流失→响应式；被竞品压制→找 3 个可超越点。
+  Five problem patterns: Traffic sufficient but funnel broken → landing page; Low exposure → keywords/SEO; Traffic without trust → About/certificates/cases; Mobile drop-off → responsive design; Competitor suppression → find 3 differentiators.
 
-  阶段：启动/成长/成熟（曝光、月商机、月订单、产品数、优品占比，满足 2 项即判定）。
+  Stage: Startup/Growth/Mature (impressions, monthly leads, monthly orders, product count, premium product ratio; 2+ criteria determines stage).
 
-  阈值：曝光↓>20% 且 CTR↑>10%→查预算；CTR 稳但商机↓>30%→查落地页；单商机成本>均值×2→洗词；周花费>500 且 0 商机→暂停；首次回复>4h→排班/自动回复。
+  Thresholds: Impressions↓>20% + CTR↑>10% → check budget; Stable CTR but leads↓>30% → check landing page; Cost per lead > 2x average → keyword cleaning; Weekly spend >$500 with 0 leads → pause; First response >4h → schedule/automation.
 
-  输出：健康度 + 四维 + 匹配模式 + P0/P1/P2 行动（行动/预期效果/验证方式）+ 数据来源。
+  Output: Health score + four dimensions + match pattern + P0/P1/P2 actions (action/expected result/verification method) + data sources.
 
-  阿里专属规则不在注入里：命中 alibaba.com、数据参谋/直通车/P4P/信保/星等级等任一信号时，用 `skill_view` 加载本技能正文的「阿里国际站四维专属诊断」；否则按通用四维，不要问用户是不是阿里站。
+  Alibaba-exclusive rules are not in the injection prompt: When alibaba.com, Data Professor/Quick Promotion/P4P/Trade Assurance/star level, or any Alibaba-specific signal is detected, use `skill_view` to load this skill's text for "Alibaba International Site Exclusive Diagnosis"; otherwise use the general four dimensions; do not ask the user if they are on Alibaba.
 ---
 
 

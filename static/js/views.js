@@ -705,7 +705,7 @@ async function onboardingStartOSINT() {
     $('onboarding-stop-btn').classList.remove('hidden');
     var resultsArea = $('onboarding-results-area');
     resultsArea.innerHTML = '';
-    var prompt = '请对 ' + query + ' 做全面的客户背景调查（OSINT），然后基于我的公司产品生成一封专业的 B2B 开发信。';
+    var prompt = t('onb.osint_prompt', { q: query });
     _onboardingStreamCtl = new AbortController();
     _chatStreamActive++;
     var progDiv = document.createElement('div');
@@ -717,12 +717,12 @@ async function onboardingStartOSINT() {
         if (typeof TradeWait !== 'undefined') {
             wait = TradeWait.mount(progDiv.querySelector('.wait-body'), {
                 mode: 'chat',
-                title: 'TRADE · ONBOARDING  ///  等待回复',
+                title: t('onb.wait_title'),
                 onCancel: function () { onboardingStopOSINT(); }
             });
         }
     } catch (e) {
-        console.warn('引导页等待界面挂载失败，使用旧样式', e);
+        console.warn('Onboarding wait panel failed to mount, falling back', e);
         wait = null;
     }
     if (!wait) progDiv.innerHTML = '<div class="thinking-msg">💭 '+t('misc.thinking')+'</div>';
@@ -740,7 +740,7 @@ async function onboardingStartOSINT() {
         var el = document.createElement('div');
         el.className = 'tool-item ' + status;
         el.id = 'onb-tool-' + tcId;
-        // 安全构建 DOM：textContent 防止注入
+        // Build DOM safely: textContent prevents injection
         var icon = document.createElement('span');
         icon.className = 'tool-icon';
         icon.textContent = status === 'running' ? '◌' : status === 'done' ? '✓' : '✗';
@@ -749,7 +749,7 @@ async function onboardingStartOSINT() {
         var nameEl = document.createElement('div');
         nameEl.className = 'tool-name';
         nameEl.textContent = fmtTool(name);
-        // 工具参数（args）可能含客户资料，不显示
+        // Do not display tool args — they may contain customer data
         body.appendChild(nameEl);
         el.appendChild(icon);
         el.appendChild(body);
@@ -773,12 +773,12 @@ async function onboardingStartOSINT() {
         var resp = await fetch('/api/trade/chat/stream', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-Hermes-Session-Token': TOKEN, 'X-Company-ID': String(currentCompanyId) },
-            body: JSON.stringify({ query: prompt }),
+            body: JSON.stringify({ query: prompt, language: currentLang }),
             signal: _onboardingStreamCtl.signal
         });
         if (!resp.ok) {
             progDiv.remove();
-            resultsArea.innerHTML = '<div class="onb-error">请求失败 (' + resp.status + ')</div>';
+            resultsArea.innerHTML = '<div class="onb-error">' + esc(t('onb.request_failed', { code: resp.status })) + '</div>';
             resetInputs();
             return;
         }
@@ -812,7 +812,7 @@ async function onboardingStartOSINT() {
                             if (wait) wait.push({type:'thinking', message:data.message});
                             break;
                         case 'job_attached':
-                            // 引导页背调同样挂 task 面板（后端 B1）
+                            // Attach the OSINT task panel on the onboarding screen too
                             _attachOsintTaskPanel(resultsArea, data);
                             break;
                         case 'response':
@@ -840,17 +840,17 @@ async function onboardingStartOSINT() {
             resultsArea.appendChild(respDiv);
             showOnboardingActions();
         } else {
-            resultsArea.innerHTML = '<div class="onb-error">AI 未返回有效回复，请重试。</div>';
+            resultsArea.innerHTML = '<div class="onb-error">' + esc(t('onb.no_response')) + '</div>';
         }
     } catch(e) {
         if (e.name === 'AbortError') {
-            // 有等待面板时留在原地显示 ABORTED
+            // Keep the panel in place to show ABORTED
             if (wait) { wait.finish({phase:'aborted'}); wait = null; }
-            else { progDiv.remove(); resultsArea.innerHTML = '<div class="onb-info">已停止生成。</div>'; }
+            else { progDiv.remove(); resultsArea.innerHTML = '<div class="onb-info">' + esc(t('onb.stopped')) + '</div>'; }
         } else {
             if (wait) { wait.finish({phase:'failed'}); wait = null; }
             progDiv.remove();
-            resultsArea.innerHTML = '<div class="onb-error">网络错误：' + esc(e.message) + '</div>';
+            resultsArea.innerHTML = '<div class="onb-error">' + esc(t('onb.network_error', { msg: e.message })) + '</div>';
         }
     } finally {
         if (wait && !wait.final) { try { wait.destroy(); } catch (_) {} }
@@ -868,7 +868,7 @@ function onboardingStopOSINT() {
 function showOnboardingActions() {
     var actionsDiv = $('onboarding-actions');
     actionsDiv.classList.remove('hidden');
-    actionsDiv.innerHTML = '<button class="btn btn-primary" data-act="onboardingSaveAndContinue">' + btnIcon('check') + ' 保存到客户库</button><button class="btn" data-act="onboardingFinish">进入主界面</button>';
+    actionsDiv.innerHTML = '<button class="btn btn-primary" data-act="onboardingSaveAndContinue">' + btnIcon('check') + ' ' + esc(t('onb.save_customer')) + '</button><button class="btn" data-act="onboardingFinish">' + esc(t('onb.enter_main')) + '</button>';
 }
 
 async function onboardingSaveAndContinue() {
@@ -883,26 +883,26 @@ async function onboardingSaveAndContinue() {
     var body = { name: customerName, note: _onboardingOsinResponse };
     if (website) body.company_website = website;
     var r = await api('POST', '/api/trade/customers', body);
-    if (r?.id) { toast('客户已保存到客户库'); onboardingFinish(); }
-    else toast(r?.detail || '保存失败，请重试');
+    if (r?.id) { toast(t('onb.saved_customer')); onboardingFinish(); }
+    else toast(r?.detail || t('onb.save_failed'));
 }
 
 function onboardingFinish() {
     try { localStorage.setItem('_onboarding_completed', '1'); } catch(_) {}
-    navToView('chat', 'daily', '今日简报');
+    navToView('chat', 'daily', t('nav.daily'));
 }
 
 function restartOnboarding() {
-    // 清除引导完成标记，重新启动新手引导
+    // Clear onboarding flag and restart the guide
     try { localStorage.removeItem('_onboarding_completed'); } catch(_) {}
     showOnboardingGuide();
 }
 
 function onboardingSkip(e) {
     if (e) e.preventDefault();
-    // 标记已完成 — 引导是可选的，跳过就不再显示
+    // Mark completed — the guide is optional and won't show again
     try { localStorage.setItem('_onboarding_completed', '1'); } catch(_) {}
-    navToView('chat', 'daily', '今日简报');
+    navToView('chat', 'daily', t('nav.daily'));
 }
 
 // ═════════════════════ COMPANY MANAGEMENT ═════════════════════
@@ -924,7 +924,7 @@ async function loadCompanies() {
     const prev = currentCompanyId;
     companies = await api('GET', '/api/trade/companies') || [];
     const sel = $('company-select');
-    sel.innerHTML = '<option value="">— 选择公司 —</option>' +
+    sel.innerHTML = '<option value="">' + esc(t('company.select') || 'Select company') + '</option>' +
         companies.map(c => `<option value="${c.id}" ${c.id===prev?'selected':''}>${esc(c.name)}</option>`).join('');
     if (prev && !companies.find(c=>c.id===prev)) {
         // Previously selected company was deleted
@@ -1415,7 +1415,7 @@ async function onCompanyChange(cid) {
             showOnboardingGuide();
             return;
         }
-        navToView('chat', 'daily', '今日简报');
+        navToView('chat', 'daily', t('nav.daily'));
     } else {
         currentCompanyId = null;
         saveState();

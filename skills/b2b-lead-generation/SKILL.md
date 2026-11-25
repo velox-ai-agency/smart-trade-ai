@@ -1,409 +1,152 @@
 ---
 name: b2b-lead-generation
-description: 多通道客户开发 — 搜索/开发信/询盘首响/报价异议与谈判
+description: Multi-channel customer development — searching, development letters, inquiry responses, quotation objection handling, and negotiations
 when_to_use:
-  - "用户提到「找客户」「开发客户」「开发信」"
-  - "需要多通道搜索客户（Google Maps / LinkedIn / Facebook / 海关数据）"
-  - "收到一条询盘，需要首封回复（不是训练/复盘）"
-  - "客户嫌贵、压价、比价，需要价格异议应对"
-  - "生成询盘回复 / 报价谈判 / 跟进邮件"
-  - "分析 B2B 平台（阿里国际站 / 中国制造网）的潜在客户"
-  - "用户粘贴产品 / 公司资料要求找潜在买家"
-  - "不要用于：单一客户深度画像（用 b2b-customer-intel）"
+  - "Users mention 'find customers', 'develop customers', 'development letters'"
+  - "Need multi-channel customer search (Google Maps / LinkedIn / Facebook / customs data)"
+  - "Received an inquiry and need to respond promptly (not training/review)"
+  - "Customer finds price too high, haggles, compares prices, needs price objection handling"
+  - "Generate inquiry replies / quotation negotiations / follow-up emails"
+  - "Analyze B2B platforms (AliInternational Station / China Manufacturing Network) for potential customers"
+  - "User pastes product/company info to find potential buyers"
+  - "Do not use for: single customer deep profiling (use b2b-customer-intel)"
 triggers:
-  - 找客户
-  - 开发客户
-  - 客户开发
-  - 找潜在客户
-  - 回复询盘
-  - 询盘怎么回
-  - 首封回复
-  - 询盘首响
-  - 询盘处理
-  - 报价策略
-  - 报价怎么谈
-  - 谈判技巧
-  - 推进成交
-  - 客户嫌贵
-  - 客户压价
-  - 价格太高
-  - 价格异议
-  - price is too high
+  - find customers
+  - develop customers
+  - customer development
+  - find potential customers
+  - inquiry reply
+  - how to reply to inquiry
+  - first response to inquiry
+  - inquiry handling
+  - quotation strategy
+  - how to negotiate price
+  - negotiation skills
+  - advance to deal
+  - customer finds price high
+  - customer haggles
   - price too high
+  - price objection
+  - price is too high
   # ... (see skill_registry.py for full list)
-category: 客户开发
+category: Customer Development
 version: 1.3.2
 author: Foreign Trade Assistant
+injection_prompt: |
+  You are b2b-lead-generation skills. Used for multi-channel customer development with three parallel search channels.
 
----
+  ════════════════════ ════════════════════
+  Iron Rule: Always use three-channel parallel search
+  ════════════════════ ════════════════════
 
-  ## Phase 0 — 三通道并行潜客搜索（找客户专用）
+  When users say "find customers", "find leads", "find buyers", enable three-channel parallel search. Single-channel search misses many quality customers, so three-channel parallel is mandatory.
 
-  当用户说「找客户」「找潜客」「找买家」时，启用三通道并行搜索。单通道搜索会漏掉大量优质客户，必须三通道并行。
+  **Three channels for customer search**:
 
-  ### 通道 A — Google Maps（本地分销商/批发商）
-
-  适合找有实体店/仓库的本地买家。这类客户决策快、订单稳定。
-
-  搜索 query 模板（按目标市场语言生成）：
+  **Channel A — Google Maps** (local distributors/wholesalers):
   - `{product} distributor in {country/city}`
   - `{product} wholesaler near {city}`
   - `{product} supplier {country}`
+  - Execution: `web_search` each query, then `browser_navigate` to Google Maps pages to extract business name/website/phone/address
 
-  执行方式：
-  1. `web_search` 搜索上述 query
-  2. 对前 10 条结果用 `browser_navigate` 访问 Google Maps 页面，提取商家名/官网/电话/地址
-  3. 注意：Google Maps 数据受地区限制，必要时用 `https://www.google.com/maps/search/{query}` 直接访问
-
-  ### 通道 B — Google Search（B2B 买家站点）
-
-  适合找品牌方/工厂/连锁超市的采购负责人。
-
-  搜索 query 模板：
+  **Channel B — Google Search** (B2B buyer sites):
   - `{product} buyer OR importer OR purchasing {country}`
   - `site:linkedin.com/in {product} procurement {country}`
   - `site:linkedin.com/company {product} {country}`
   - `{product} "purchasing manager" OR "procurement lead" {country}`
-  - `{product} trade shows {country} 2026` → 拿到展会参展商名单
+  - `{product} trade shows {country} 2026` → get exhibition exhibitor lists
+  - Execution: `web_search` for each query (top 20 results), `browser_navigate` to linkedin.com/company pages to extract website domain + employee size
 
-  执行方式：
-  1. 每个 query 用 `web_search` 取前 20 条
-  2. 用 `browser_navigate` 访问linkedin.com/company 页面，提取官网域名 + 员工规模
-  3. 对站点结果，从首页和 About/Contact 页面提取邮箱/电话
-
-  ### 通道 C — Facebook Pages / LinkedIn 公司页
-
-  适合找活跃在线的中小买家（FB）+ 中大型企业（LinkedIn）。
-
-  搜索 query 模板：
+  **Channel C — Facebook Pages / LinkedIn Company Pages**:
   - Facebook: `site:facebook.com {product} {country}`
   - Facebook: `site:facebook.com "{product brand}" {country}`
   - LinkedIn: `site:linkedin.com/company {product} {country} "1-10 employees" OR "11-50 employees"`
+  - Execution: `web_search` and extract company name/website/employee count/key people
 
-  执行方式：
-  1. `web_search` 搜索上述 query
-  2. 对前 10 条 FB 结果用 `browser_navigate` 访问，提取 Page 名/官网/联系方式（About 栏）
-  3. 对前 10 条 LinkedIn 结果，提取公司名/官网/员工数/关键人
+  **Cross-channel deduplication** (critical):
+  1. Extract `company_website` from each result (strip www./http://, normalize to domain.com)
+  2. Keep only the most complete entry for each domain (prefer contact+LinkedIn+phone)
+  3. No website → deduplicate by facebook.com/{page-id}
 
-  ### 跨通道去重规则
+  **Post-deduplication sorting**:
+  - Priority 1: Hits all 3 channels (strongest signal)
+  - Priority 2: Hits 2 channels
+  - Priority 3: Hits 1 channel but complete info (email+phone+LinkedIn)
 
-  **域名级去重**（关键）：
-  1. 对每条结果提取 `company_website`（去掉 www. / http:// 前缀，统一为 `domain.com` 形式）
-  2. 同一域名出现多次只保留信息最全的一条（首选有邮箱 + LinkedIn + 电话的）
-  3. 没有 `company_website` 的（仅有 FB Page）按 `facebook.com/{page-id}` 去重
+  **Blacklist filter** (remove these entirely):
+  | Category | Blacklist Pattern | Example |
+  |--------|------------------|---------|
+  | Platform directory pages | URL contains alibaba.com / made-in-china.com / tradekey.com / globalsources.com | Product pages are not buyers |
+  | Aggregation pages | URL contains yellowpages.com / yelp.com / opencorporates.com | These are directories not customers |
+  | Competitors | Same industry supplier websites (you sell same products) | Same product + manufacturer search results |
+  | Government institutions | URL contains .gov / .edu / .org (unless clearly procurement) | Usually not target customers |
+  | Broken links | browser_navigate returns 404 / 503 | Unreachable |
+  | Placeholder pages | Website uses Wix/Squarespace template with no business details | Usually hollow companies |
 
-  **去重后排序**：
-  - 优先级 1：同时命中 3 通道的（信号最强）
-  - 优先级 2：命中 2 通道
-  - 优先级 3：仅命中 1 通道但信息完整（有邮箱+电话+LinkedIn）
+  **Multi-language querying**:
+  For non-English target markets, must generate local language query variants:
+  - Spanish markets (Latin America/Spain): `{product} distribuidor {country}` / `{product} mayorista {country}`
+  - Arabic markets (Middle East): `{product} موزع {country}` / `{product} مستورد {country}`
+  - German markets (DACH): `{product} Händler {country}` / `{product} Großhändler {country}`
+  - French markets: `{product} distributeur {country}` / `{product} grossiste {country}`
+  - Russian markets: `{product} дистрибьютор {country}` / `{product} оптовый {country}`
+  - Portuguese markets (Brazil/Portugal): `{product} distribuidor {country}` / `{product} atacadista {country}`
 
-  ### 黑名单过滤
-
-  命中以下任一特征的条目直接剔除：
-
-  | 类别 | 黑名单特征 | 示例 |
-  |------|-----------|------|
-  | 平台目录页 | URL 含 alibaba.com / made-in-china.com / tradekey.com / globalsources.com | 阿里产品页本身不是买家 |
-  | 聚合页 | URL 含 yellowpages.com / yelp.com / opencorporates.com | 这类是目录不是客户 |
-  | 竞争对手 | 同行业供应商官网（你卖他卖的同一类产品） | 用产品名+manufacturer 搜出的同行 |
-  | 政府机构 | URL 含 .gov / .edu / .org（除非明确是采购方） | 一般非目标客户 |
-  | 死链 | browser_navigate 返回 404 / 503 | 不可达 |
-  | 占位页 | 官网为 Wix/Squarespace 模板页且无具体业务 | 通常是空壳公司 |
-
-  ### 多语言查询
-
-  目标市场非英语时，必须生成当地语言版本的 query：
-  - 西班牙语市场（拉美/西班牙）：`{product} distribuidor {country}` / `{product} mayorista {country}`
-  - 阿拉伯语市场（中东）：`{product} موزع {country}` / `{product} مستورد {country}`
-  - 德语市场（DACH）：`{product} Händler {country}` / `{product} Großhändler {country}`
-  - 法语市场：`{product} distributeur {country}` / `{product} grossiste {country}`
-  - 俄语市场：`{product} дистрибьютор {country}` / `{product} оптовый {country}`
-  - 葡语市场（巴西/葡萄牙）：`{product} distribuidor {country}` / `{product} atacadista {country}`
-
-  ### 输出格式
-
+  **Output format**:
   ```
-  ## 🔍 三通道搜索结果
+  ## 🔍 Three-channel Search Results
 
-  ### 通道分布
-  | 通道 | 原始结果 | 去重后 | 通过黑名单 |
-  |------|---------|--------|------------|
+  ### Channel Distribution
+  | Channel | Raw Results | After Deduplication | After Blacklist |
+  |-------|-------------|---------------------|-----------------|
   | A: Google Maps | N1 | N1' | N1'' |
   | B: Google Search | N2 | N2' | N2'' |
   | C: FB/LinkedIn | N3 | N3' | N3'' |
-  **最终候选**：N 家
+  **Final Candidates**: N companies
 
-  ### TOP 10 候选客户
-  | # | 公司名 | 官网 | 国家 | 通道 | 邮箱 | LinkedIn | 电话 |
-  |---|--------|------|------|------|------|----------|------|
+  ### TOP 10 Candidate Customers
+  | # | Company Name | Website | Country | Channel | Email | LinkedIn | Phone |
+  |---|--------------|---------|---------|---------|-------|----------|-------|
   | 1 | ... | ... | ... | A+B+C | ... | ... | ... |
   ```
 
-  ### 线索评分矩阵 (Lead Scoring Matrix)
+  **Lead Scoring Matrix**:
+  After search results, score each candidate on 6 dimensions (0-5 points each, 30 total):
 
-  搜索结果出来后，对每个候选客户按以下 6 维打分（每维 0-5 分），总分 30 分：
+  | Dimension | Weight | 0 points | 3 points | 5 points |
+  |-----------|--------|----------|----------|----------|
+  | **Industry Match** | Does product match customer's main business? | Unrelated industry | Relevant but not core | Perfect core business match |
+  | **Purchasing Power** | Company size/employee count/estimated annual revenue | Micro enterprise | Medium enterprise | Large enterprise/chain |
+  | **Decision Chain Reachability** | Found key contact email/LinkedIn | Only info@ | Found department head | Found decision maker+direct email |
+  | **Import Maturity** | Has import experience/multi-language site/certifications | Pure domestic | Some import traces | Active importer/multi-supplier |
+  | **Market Signal** | Recent news/hiring/expansion signals | No signal/contraction | Stable operation | Expansion/hiring/funding |
+  | **Competitive Barrier** | Does customer have stable China supplier? | Exclusive supplier | Multiple suppliers, no China | No China supplier/sourcing |
 
-  | 维度 | 权重 | 0分 | 3分 | 5分 |
-  |------|------|-----|-----|-----|
-  | **行业匹配度** | 产品是否匹配客户主营业务 | 无关行业 | 相关但非核心 | 完全匹配核心业务 |
-  | **采购能力** | 公司规模/员工数/年营收推断 | 微型企业 | 中型企业 | 大型企业/连锁 |
-  | **决策链可达性** | 是否找到关键联系人邮箱/LinkedIn | 仅 info@ | 找到部门负责人 | 找到决策人+直接邮箱 |
-  | **进口成熟度** | 是否已有进口经验/多语言官网/认证 | 纯本土企业 | 有进口痕迹 | 活跃进口商/多供应商 |
-  | **市场信号** | 近期新闻/招聘/扩张信号 | 无信号/收缩 | 稳定运营 | 扩张/招聘/融资 |
-  | **竞争壁垒** | 该公司是否已有稳定中国供应商 | 有独家供应商 | 多供应商但无中国 | 无中国供应商/在寻找 |
-
-  **评分输出格式**：
+  **Scoring output format**:
   ```
-  | # | 公司 | 行业匹配 | 采购能力 | 决策可达 | 进口成熟 | 市场信号 | 竞争壁垒 | 总分 | 等级 |
-  |---|------|---------|---------|---------|---------|---------|---------|------|------|
-  | 1 | XXX  | 5       | 4       | 3       | 4       | 5       | 3       | 24   | A    |
+  | # | Company | Industry Match | Purchasing Power | Decision Reach | Import Maturity | Market Signal | Competitive Barrier | Total | Tier |
+  |---|---------|----------------|------------------|----------------|-----------------|---------------|---------------------|-------|------|
+  | 1 | XXX | 5 | 4 | 3 | 4 | 5 | 3 | 24 | A |
   ```
 
-  分级标准：A级 ≥22分 | B级 16-21分 | C级 <16分
+  Tier standards: A-tier ≥22 points | B-tier 16-21 points | C-tier <16 points
 
-  对 A 级客户，优先调用 b2b-osint 做深度背调。对 B/C 级客户，标注「可批量开发」或「低优先级」。
-
-  ### STOP RULE
-
-  - 单次搜索总轮次上限 15 轮（每通道 5 轮）
-  - 达到上限或候选数 ≥ 30 家即停止
-  - 候选数 < 5 家时告知用户「信号不足，建议换关键词或扩大市场范围」
-  3. 按以下格式返回：
-     - 客户分类：高价值（A）/ 中等（B）/ 潜力（C）
-     - 具体行动建议：第一步做什么、第二步做什么
-     - 开发信/邮件模板（个性化，以客户痛点开头，非产品广告）
-     - 跟进时间表：Day1 / Day3 / Day7 / Day14 / Day30
-
-  如果用户没有明确说明产品或市场，请先询问这两个关键信息。
-
-  ## 邮件主题行优化（提升打开率）
-
-  邮件主题行决定 70%+ 的打开率。每次生成开发信时，同时提供 3-5 个主题行变体，使用不同策略：
-
-  - **Strategy A — 个性化引用**：包含客户公司名或行业关键词，如 "[Company] | [Pain Point Solution]"
-  - **Strategy B — 提问引发好奇**：以问题开头，如 "Quick question about [their specific challenge]"
-  - **Strategy C — 关联触发事件**：绑定最近事件（展会/行业新闻/客户动态），如 "Following up on [trigger event]"
-  - **Strategy D — 价值先行**：直接展示能带来的价值，如 "[Benefit] for [Company]"
-
-  主题行规则：保持 30-50 个字符（移动端预览 ≤7 词）、使用问句（Open rate +15-20%）、避免 SPAM 触发词、不要全部大写或过多感叹号、个性化标记（公司名/人名/行业）必须真实匹配客户信息。
-
-  ## 多语言邮件生成
-
-  当客户目标市场为非英语国家时，生成多语言邮件版本：
-
-  - **中东**（阿联酋/沙特/埃及等）→ English + Arabic 双语，阿拉伯语使用正式敬语（السيد المحترم）
-  - **拉美**（巴西/墨西哥/智利等）→ English + Spanish / Portuguese 双语
-  - **欧洲非英语**（德国/法国/意大利等）→ English + 本地语言双语
-  - **俄罗斯/独联体** → English + Russian 双语
-  - **日韩** → English + Japanese / Korean 双语
-
-  非英语版本规则：使用该语言的正式商业敬语格式（非直译中文/英文模板）、核心信息一致但本地化表达而非逐字翻译、日期格式/货币单位/计量单位本地化、主题行也提供本地化版本。始终以英语版本为主要版本，本地化版本为第二版本。如客户市场信息不明确，默认只生成英语版本。
-
-  4. 【重要】如果用户要求整理或保存客户信息到系统中，请使用 execute_code 工具执行以下 Python 代码：
-     from trade import customer as _cust
-     _cust.bulk_save(
-         company_id={当前公司ID},
-         customers=[
-             {"name": "公司名", "contact": "联系方式", "note": "备注",
-              "country": "国家", "tier": "A/B/C", "linkedin_url": "LinkedIn链接",
-              "company_website": "公司网站", "email": "邮箱", "backup_email": "备用邮箱",
-              "phone": "电话", "whatsapp": "WhatsApp", "wechat": "微信",
-              "social_media": {"facebook": "链接", "instagram": "链接", "tiktok": "链接",
-                                "youtube": "链接", "twitter": "链接"},
-              "source": "agent"},
-             ...
-         ],
-         library_id={当前文档库ID},  # 如果从文档库扫描得到，传 library_id 自动关联
-     )
-     执行后会返回 {"created": N, "skipped": N}。请告知用户保存结果。
-     提示：如果批量保存多客户，尽量使用 contact 存放主要邮箱/电话，email 存放邮箱，
-     country 存放国家，tier 存 A/B/C 等级。source 填 "agent"。
-
-  
-  ## 按目标市场定制开发信策略
-  不同地区的买家对沟通方式的偏好不同。生成开发信/回复/报价时，根据客户所在国家/地区调整语气和内容侧重。
-
-  ### 北美（美国/加拿大）
-  - **语气**：直截了当、结果导向
-  - **侧重**：时效性、成本节约、ROI 数据
-  - **Hook**：以行业数据或客户痛点开场
-  - **格式**：短段落、破折号列表、清晰 CTA
-
-  ### 欧洲（德国/法国/英国/北欧）
-  - **语气**：专业、正式、细节导向
-  - **侧重**：品质认证（CE/ISO/TUV）、技术参数、供应链稳定性
-  - **Hook**：以认证资质或技术指标开场
-
-  ### 中东（海湾国家/沙特/阿联酋）
-  - **语气**：关系导向、尊重/礼貌
-  - **侧重**：低价、详细产品描述、售后服务
-  - **Hook**：以对当地市场的了解或合作经历开场
-
-  ### 南美（巴西/墨西哥/阿根廷）
-  - **语气**：友好、耐心、简单英语
-  - **侧重**：免费样品、OEM/ODM 能力、灵活 MOQ
-  - **Hook**：以免费样品或定制能力开场
-
-  ### 澳洲/新西兰
-  - **语气**：直接、友好、非正式
-  - **侧重**：交期、性价比、服务响应
-
-  ### 东南亚
-  - **语气**：礼貌、灵活、关系建立
-  - **侧重**：价格竞争力、付款条件灵活性、交期
-
-  ## 报价与谈判 6 策略
-  当用户需要进行价格谈判时，根据客户反应选择合适的策略。不要只降价格，要转换谈判维度。
-
-  1. **话题转移型** -- 客户说贵，不正面应战，转移话题到其他维度
-  2. **价值主导型** -- 强调差异化价值而非价格
-  3. **间接让步型** -- 不降显性价格，在其他方面让步（打样/质保/运费）
-  4. **直接让步型** -- 小幅降价但换回条件（如提高订单量）
-  5. **客户背书型** -- 引用类似客户成交数据
-  6. **二选一型** -- 给客户两个选择，引导到期望方案
-
-  ## 失联客户重新接触 4 策略
-  当客户在报价/样品/谈判阶段突然失联时，根据不同时间间隔选择策略。
-
-  1. **直接询问型**（失联 3-7 天）
-  2. **业务角度型**（失联 1-2 周）：提供新的行业信息或市场变化
-  3. **朋友角度型**（失联 2-4 周）：以节日问候/出差为由重新接触
-  4. **解决方案列表型**（失联 1 个月以上）：逐条回应客户可能关心的问题
-
-  ## 发送前强制自检
-  每次生成任何邮件、报价、回复后，在输出给用户之前，**必须对照文末「Quality Gate Checklist」逐项检查**。这是强制步骤，不得跳过。漏掉一项意味着可能丢失客户。
-
-  **Google 高级搜索指令库**（直接复制使用）：
-  - 精准找客户官网：`"{行业关键词}" + site:.{国家后缀}`（如 `"LED lighting" site:.de`）
-  - 搜公司邮箱：`"{公司名}" mail` 或 `"@{公司域名}" email`
-  - 找 CEO/采购人：`site:linkedin.com "{公司名}" "CEO" OR "Purchasing Manager"`
-  - 找同行客户：`"{竞争对手名}" client OR customer`
-  - 产业集中地：`"{产品}" industrial park OR manufacturing zone`
-  - 找联系方式页：`"{产品} {国家后缀}" inurl:contact`
-  - 文档搜索：`"{产品} filetype:pdf"`
-  - 各国常用域名后缀：德国 .de、法国 .fr、英国 .co.uk、意大利 .it、日本 .co.jp、俄国 .ru、巴西 .com.br、澳洲 .com.au、印度 .co.in
-
-  **各国常用邮箱后缀**：
-  - 德国 @t-online.de、@web.de | 法国 @wanadoo.fr、@orange.fr | 日本 @docomo.ne.jp | 韩国 @naver.com | 俄国 @yandex.ru、@mail.ru | 意大利 @libero.it | 英国 @btinternet.com | 印度 @rediffmail.com
-
-  **领英十种免费获客方法**：
-  1. 同步邮箱导入（上传客户邮箱列表，领英自动匹配好友）
-  2. 系统推荐好友（完善档案后，People You May Know 更精准）
-  3. Who Viewed Your Profile（回访看过你资料的人）
-  4. People Also Viewed（竞争对手公司页面右侧推荐）
-  5. 搜索框关键词（Title + Company + Location 组合搜索）
-  6. 突破三度人脉——用公司名找员工，通过员工主页加同事
-  7. 搜索框 + Companies（看员工列表和 People Also Viewed）
-  8. Groups 群组（加同行群组，成员列表中全是潜在客户）
-  9. 动态和文章（SEO 权重高，长尾关键词可排谷歌首页）
-  10. 自建公司主页和 Group（followers 里全是精准客户）
-
-  **领英安全规则**：官方邀请限制数值不公开（超限后账号被限制发邀请约 1 周）；以下为经验安全值（非官方）：一天加好友不超过 100 个；新号先内部互加 50 人再开发；绝对不加国内同行（防举报封号）；界面语言切换为英文（功能更全）。连接邀请留言上限 200 字符。
-
-  **关键提醒**：任何搜索方法的第一步，永远是先完善领英档案——头像清晰、Headline 含产品关键词、Summary 含工厂优势和认证。
-
-  **发信前事实核查（强制，不可跳过）**：
-  每生成一封开发信/询盘回复/报价邮件后，逐条回答：
-  1. 有价格数字吗？→ 来源（报价单文件/数据库/用户告知）？推测的 → 删掉
-  2. 有认证/标准吗？→ 在文档库或公司资料中确认过？没确认 → 删掉
-  3. 承诺了交期吗？→ 数字来源？无来源 → 删掉
-  4. 有产品参数吗？→ 每个参数能对应到文档库文件？不能 → 删掉
-  5. 有为了"好看"编造的内容吗？→ 删掉
-  **宁愿邮件短，不发错误信息。**
+  For A-tier customers, prioritize b2b-osint for deep background check. B/C-tier customers, label as "batch developable" or "low priority".
 ---
 
-Subject: [Personalization — company name or recent news] + [Value prop]
+## Phase 4: Follow-up Sequences
 
-Hook (1-2 sentences):    ← Address their pain point
-    "I noticed [specific observation about their company]..."
+### Standard Follow-up Sequence
 
-Credibility (1 sentence): ← Brief why you
-    "[Your company] helps [similar companies] with [specific problem]."
-
-Value (2-3 bullets):     ← What they get
-    ✅ [Specific benefit 1]
-    ✅ [Specific benefit 2]
-    ✅ [Specific benefit 3]
-
-Social Proof (optional):  ← Evidence
-    "We've helped [X]+ companies in [industry]..."
-
-CTA (1 sentence):         ← Clear next step
-    "Would you be open to a 15-minute call this week to explore if this makes sense for you?"
-```
-
-### Cold Email Templates
-
-#### Template 1: Problem-Aware Outreach（客户痛点导向）
-
-```
-Subject: [Their company] + [their likely pain point]
-
-Hi [Name],
-
-[具体观察 — 不要泛泛而谈，要针对这个客户的实际情况]。
-比如："I noticed your product line requires CE-certified components, which many suppliers struggle to deliver consistently."
-
-我们帮 [X]+ 家 [industry] 公司解决了 [具体问题]，让他们：
-→ [客户得到的具体好处 1，如 "月度返工率从 8% 降到 1.5%"]
-→ [客户得到的具体好处 2，如 "验货通过率提升到 99%，不再被海关扣货"]
-
-关键是我们做了同行不做的：[你独有的服务/能力，如 "每批货附完整检测报告 + 实验室签字" 或 "48h 打样 + 免费寄样到您的手上"]
-
-想聊聊你们的 [具体话题] 吗？15 分钟就行。
-
-Best regards,
-[Your name]
-[Title] | [Company]
-```
-
-#### Template 2: Referral Warm Outreach
-
-```
-Subject: [Referrer name] suggested I reach out
-
-Hi [Name],
-
-[Referrer name] mentioned you're looking to [their goal/problem].
-
-I help companies like yours [what you do] — specifically for the [industry] sector.
-
-Would you be open to a quick conversation about your [topic]? Happy to share some relevant insights from our work with similar companies.
-
-Best,
-[Your name]
-```
-
-#### Template 3: LinkedIn Connection Note (≤200 chars — 官方上限)
-
-```
-Hi [Name]! I help [industry] buyers avoid [specific pain point — e.g., "inconsistent quality across shipments"]. Built a process that [your unique value]. Open to connecting!
-```
-
-### SPAM Filter Words to Avoid
-
-**Never use in subject lines or body**:
-```
-FREE           Guaranteed      No obligation
-100%           Winner          Limited time
-Act now        Urgent          As seen on
-Best price     Lowest price    Million
-Cash bonus     Extra income    Increase your
-```
-
-## Phase 4: Follow-Up Sequences
-
-### Standard Follow-Up Sequence
-
-| Day | Action | Channel | Content Type |
-|-----|--------|---------|--------------|
+| Day | Action | Channel | Content |
+|-----|--------|---------|---------|
 | Day 1 | Initial outreach | Email | Cold email |
 | Day 3 | Follow-up #1 | Email | Brief reminder + new value |
 | Day 7 | Follow-up #2 | LinkedIn | Connection note or InMail |
 | Day 14 | Follow-up #3 | Email | Different angle or question |
 | Day 30 | Final attempt | Email | Break-up email (last chance) |
 
-### Follow-Up Email Templates
+### Follow-up Email Templates
 
 #### Day 3 — Gentle Reminder
 
@@ -468,7 +211,7 @@ Best of luck with [their goals],
 
 **Strategy**: Fast response, competitive pricing, small MOQ options, focus on speed
 
-**Key phrase**: "快、准、狠" — fast, precise, aggressive
+**Key phrase**: "Fast, precise, aggressive"
 
 ### Type 2: Trading Company / Middleman
 
@@ -482,7 +225,7 @@ Best of luck with [their goals],
 
 **Strategy**: Find the real decision-maker, offer reasonable commission, be their preferred supplier
 
-**Key phrase**: "找对负责人，留出佣金空间"
+**Key phrase**: "Find the real decision-maker, leave room for commissions"
 
 ### Type 3: OEM / Brand Buyer
 
@@ -494,9 +237,9 @@ Best of luck with [their goals],
 | Communication | Technical, detailed |
 | Customization | Expects ODM/OEM capability |
 
-**Strategy**: Show R&D capability, certifications, quality systems, samples before commitment
+**Strategy**: Show R&D capability, certifications, quality control, samples before commitment
 
-**Key phrase**: "展示研发和认证能力"
+**Key phrase**: "Display R&D and certification capabilities"
 
 ### Type 4: Chain Supermarket / Big Box
 
@@ -510,7 +253,7 @@ Best of luck with [their goals],
 
 **Strategy**: Be patient, expect audits, prepare for strict compliance, long runway
 
-**Key phrase**: "持久战准备"
+**Key phrase**: "Prepare for prolonged battle"
 
 ## Phase 6: Inquiry Handling — The 30-Minute Rule
 
@@ -604,7 +347,7 @@ Unit Price: [Price] [Currency]
 Total (for MOQ): [Total]
 
 Price Terms: [FOB/CIF/EXW/DDP]
-Payment Terms: [T/T 30%/70%]
+Payment Terms: [T/T 30/70]
 Lead Time: [X] days
 Validity: [X] days
 
@@ -667,20 +410,22 @@ Best regards,
 5. **Follow-through**: If you promise something (quote, sample, call), deliver it
 6. **Documentation**: Log all customer interactions in the customer record
 
+---
+
 ## Subject Line Variants (Lavender.ai style)
 
 Generate 3-5 variants for every email. Apply to any email template above.
 
 **Example — For a hydraulic tool OEM reaching out to a distributor:**
 
-- Strategy A — Personalized Reference: `[客户公司名] | Streamlining Tooling Supply`
+- Strategy A — Personalized Reference: `[Company] | Streamlining Tooling Supply`
 - Strategy B — Question/Curiosity: `Quick question about your tooling lead times`
 - Strategy C — Trigger Event: `Re: Hannover Messe — hydraulic solutions for your lineup`
-- Strategy D — Value-First: `30% faster tooling delivery for [客户公司名]`
+- Strategy D — Value-First: `30% faster tooling delivery for [Company Name]`
 
 **Example — For a food packaging buyer in Germany:**
 
-- Strategy A — Personalized Reference: `[客户公司名] | Sustainable tray solutions`
+- Strategy A — Personalized Reference: `[Company] | Sustainable tray solutions`
 - Strategy B — Question/Curiosity: `Still struggling with moisture in meat packaging?`
 - Strategy C — Value-First: `15% lower leak rate vs industry average`
 - Strategy D — Trigger Event: `Following up on Anuga Food Fair`
@@ -692,37 +437,28 @@ When target market is non-English, generate dual-language versions with localize
 ### Arabic + English (Middle East buyers)
 
 ```
-Arabic:
-السيد [Name] المحترم،
-
-السلام عليكم ورحمة الله وبركاته،
-
-لاحظت أن [Company Name] تعمل في مجال [industry]، وقد يكون التحدي الأكبر لديكم هو [pain point].
-
-نحن في [Your Company] نساعد شركات قطاع [industry] على [solution]، من خلال:
-→ [Specific benefit 1]
-→ [Specific benefit 2]
-
-نتطلع إلى مناقشة كيف يمكننا دعم أعمالكم.
-
-مع خالص التحية،
-[Your name]
-
-English (same content):
 Subject: Supporting [Company]'s [pain point] with [solution]
 
 Dear [Name],
 
 [Same value proposition in English, not literal translation]
+
+We help companies in the [industry] sector [solution] through:
+→ [Specific benefit 1]
+→ [Specific benefit 2]
+
+Looking forward to discussing how we can support your business.
+
+Best regards,
+[Your name]
 ```
 
 ### Spanish + English (Latin American buyers)
 
 ```
-Spanish:
-Asunto: Optimización de [pain point] para [Company Name]
+Subject: Optimización de [pain point] para [Company Name]
 
-Estimado/a [Name],
+Estimateado/a [Name],
 
 Noté que [Company Name] enfrenta desafíos con [pain point]. En [Your Company] ayudamos a empresas del sector [industry] a [solution].
 
@@ -738,8 +474,7 @@ Saludos cordiales,
 ### German + English (DACH buyers)
 
 ```
-German:
-Betreff: Effizientere [solution] für [Company Name]
+Subject: Effizientere [solution] für [Company Name]
 
 Sehr geehrte/r Herr/Frau [Name],
 
@@ -765,159 +500,175 @@ Mit freundlichen Grüßen,
 | Germany/Austria | German + English | Direct, formal | Sehr geehrte/r |
 | France | French + English | Formal, polite | Madame/Monsieur |
 | Russia/CIS | Russian + English | Formal, direct | Уважаемый/ая |
-| Japan | Japanese + English | Very formal, humble | 拝啓 / Dear |
+| Japan | Japanese + English | Very formal, humble | 敬具 / Dear |
 | South Korea | Korean + English | Formal, respectful | 안녕하세요 / Dear |
 
 ## Common Pitfalls
 
-1. **Product-first mentality** 🔴 **最致命**: 开发信第一句就介绍公司和产品。正确做法：先谈客户的难处 → 你能怎么帮 → 最后才一句话带过产品
+1. **Product-first mentality** 🔴 **Most critical**: First sentence introduces company and product. Correct method: Talk about customer's difficulty → what you can do → briefly mention product
 2. **One-size-fits-all outreach**: Always personalize — mass messages get ignored
-3. **Giving up too early**: multiple follow-ups usually outperform a single touch; conversion varies by industry and client (no fixed percentage)
-4. **空洞话术**: 不说"质量好价格优服务好"，具体说"每批货附 X 项检测数据""从下单到出货最快 Y 天""欧美 CE/FDA 认证我们在行"
+3. **Giving up too early**: Multiple follow-ups usually outperform a single touch; conversion varies by industry and client (no fixed percentage)
+4. **Empty marketing speak**: Don't say "quality good price advantage service good" — specify "each batch has X inspection data" / "from order to shipment takes Y days" / "we are certified by CE/FDA in EU/US"
 5. **Ignoring time zones**: Respect the prospect's working hours
 6. **Weak subject lines**: The subject line determines if your email gets opened
 7. **No clear CTA**: Always tell the prospect what to do next
-8. **Price-only negotiation**: Never compete on price alone — compete on the unique value only you provide
+8. **Price-only negotiation**: Never compete on price alone — compete on unique value only you provide
 9. **Skipping sample phase**: Always insist on sample approval before bulk orders
 
-## 反营销腔自检（生成后强制执行）
+## Anti-Marketing Tone Self-Check (Must execute before delivery)
 
-> 每封开发信生成后、输出给用户前，必须对照以下清单逐项检查。任何一项 fail 必须重写后再检查，不得跳过。
+> After generating any development letter/email/reply, must check against the following checklist item by item. Any item that fails must be rewritten before checking again; cannot skip.
 
-### 禁用词清单（命中即重写）
+### Forbidden Words List (Rewrite if found)
 
-| 类别 | 禁用表达 | 替换为 |
-|------|---------|--------|
-| 空洞话术 | "质量好价格优服务好" | "每批货附 X 项检测数据 / 从下单到出货最快 Y 天 / 欧美 CE/FDA 认证我们在行" |
-| 营销硬卖 | "Best price / Lowest price / Best quality" | 具体数据 + 对比锚点（如 "MOQ 200 vs 行业 500"）|
-| 催促话术 | "Act now / Limited time / Don't miss out" | 客观时间窗口（如 "我们的 Q3 产能还剩 30%"）|
-| 自吹自擂 | "We are the leading / We are the best" | 客户背书（如 "X 公司用我们 3 年了，复购率 85%"）|
-| 模糊承诺 | "We can do anything / We support everything" | 明确边界（如 "我们做 X 不做 Y，因为 X 才是我们的强项"）|
+| Category | Forbidden Expression | Replace With |
+|----------|---------------------|--------------|
+| Empty marketing speak | "Quality good price advantage service good" | "Each batch has X inspection data / From order to shipment takes Y days / We are certified by CE/FDA" |
+| Marketing hard sell | "Best price / Lowest price / Best quality" | Specific data + comparison anchor (e.g., "MOQ 200 vs Industry 500")|
+| Pushy phrases | "Act now / Limited time / Don't miss out" | Objective time window (e.g., "Our Q3 production capacity is only 30% remaining")|
+| Boasting | "We are the leading / We are the best" | Customer endorsement (e.g., "X company has used us for 3 years, with 85% repeat rate")|
+| Vague promises | ""We can do anything / We support everything"" | Clear boundaries (e.g., "We do X do not do Y, because X is our strength")|
 
-### 反营销腔语气校验
+### Anti-Marketing Tone Grammar Check
 
-读一遍开发信，问自己 5 个问题：
+Read the development letter and ask yourself 5 questions:
 
-1. **第一句是在讲客户还是在讲自己？** — 必须是客户（"I noticed your..."）而非自己（"We are..."）
-2. **60% 篇幅在讲客户痛点还是在讲产品？** — 必须客户痛点为主
-3. **有没有具体到这个客户独有的细节？** — 必须有（客户网站/动态/产品线某一项）
-4. **删掉公司名后这封信是否适用任何同行？** — 如果适用则失败（说明太泛）
-5. **客户 5 秒内能否感受到"这封信和我有关"？** — 不能则重写
+1. **Does the first sentence talk about the customer rather than yourself?** — Must be customer ("I noticed your...") not yourself ("We are...")
+2. **Is 60% of the text about the customer's pain points rather than about the product?** — Must be customer pain points
+3. **Is there specific detail about this customer?** — Must have (customer website/dynamic/product line section)
+4. **If you remove the company name, is this email applicable to any industry?** — If yes, it fails (too generic)
+5. **Can the customer feel within 5 seconds that "this letter is about me"?** — Cannot if yes, rewrite
 
-### 反垃圾邮件规则（避免进垃圾箱）
+### Anti-Spam Rules (Avoid Junk Folder)
 
-**主题行**：
-- [ ] 不含 SPAM 触发词：FREE / GUARANTEED / 100% / WINNER / URGENT / ACT NOW / LIMITED TIME / NO OBLIGATION
-- [ ] 不全大写（如 "BUY NOW" → "Buy now"）
-- [ ] 不含过多感叹号（最多 1 个）
-- [ ] 字符数 30-50（移动端 5-7 词预览）
-- [ ] 不含过多特殊符号（$$$ / !!! / ???）
+**Subject line**:
+- [ ] No spam trigger words: FREE / GUARANTEED / 100% / WINNER / URGENT / ACT NOW / LIMITED TIME / NO OBLIGATION
+- [ ] No all caps (e.g., "BUY NOW" → "Buy now")
+- [ ] No excessive exclamation marks (max 1)
+- [ ] Character count 30-50 (mobile preview 5-7 words)
+- [ ] No excessive special characters ($$$ / !!! / ???)
 
-**正文**：
-- [ ] 大写单词 ≤1 个（专有名词除外）
-- [ ] 红色字体强调 ≤2 处
-- [ ] 图片面积 < 总面积 50%
-- [ ] 包含退订方式（"Reply STOP to unsubscribe"）
-- [ ] 附件 < 10MB
-- [ ] 收件人非 role email（info@/sales@/contact@ 提醒用户尝试找具体人名）
-- [ ] HTML 邮件必须同时带纯文本版本（multipart/alternative）
-- [ ] 字体使用 web-safe（Arial / Helvetica / Georgia）
+**Body**:
+- [ ] Max 1 capitalized word (proper nouns excepted)
+- [ ] Emphasis (bold) ≤2 places
+- [ ] Image area < 50% of total area
+- [ ] Include unsubscribe method ("Reply STOP to unsubscribe")
+- [ ] Attachment < 10MB
+- [ ] Recipient not role email (info@/sales@/contact@ reminds user to find specific person name)
+- [ ] HTML email must also have plain text version (multipart/alternative)
+- [ ] Font uses web-safe (Arial / Helvetica / Georgia)
 
-## 替换法 A/B 测试（每封开发信强制）
+## A/B Testing (Mandatory for every development letter)
 
-> 同一客户生成 2 个正文变体，择优发送。这不是可选项 — 99% 的开发信死于「我以为这封好」。
+> Generate 2 text variants for the same customer, choose one to send. This is not optional — 99% of development letters die because "I thought this was good".
 
-### 变体生成规则
+### Variant Generation Rules
 
-对同一背调结果，生成 2 个变体：
+For the same background research result, generate 2 variants:
 
-- **变体 A — 痛点先行型**：开头 1-2 句直接戳客户最可能的痛点，再用 2-3 个 bullet 给方案，最后 1 句 CTA
-- **变体 B — 价值先行型**：开头 1-2 句展示能给客户带来的具体价值（数字化），再用 1-2 个证据支撑，最后 1 句 CTA
+- **Variant A — Problem-first**: Open with 1-2 sentences that directly hit the customer's likely pain point, then 2-3 bullet points for solution, finally 1 CTA
+- **Variant B — Value-first**: Open with 1-2 sentences showing specific value they'll get (data), then 1-2 evidence supports, finally 1 CTA
 
-两个变体必须：
-- 基于同一背调结果（不能 A 用一套信息 B 用另一套）
-- 主题行不同（A 用策略 A 个性化引用，B 用策略 B 提问引发好奇）
-- CTA 相同（避免测试变量太多）
-- 字数差异 ≤20%
+The two variants must:
+- Be based on the same background research result (cannot use different info for A and B)
+- Have different subject lines (A uses strategy A personalization, B uses strategy B curiosity)
+- Have the same CTA (avoid testing too many variables)
+- Have word count difference ≤20%
 
-### 选择规则
+### Selection Rules
 
-默认推荐变体 A（痛点先行），原因：外贸买家痛点驱动 > 价值驱动。
-但以下场景选变体 B：
-- 客户是连锁超市 / 大品牌（已被各种供应商围着转，痛点信太多，价值信反而新鲜）
-- 客户在 LinkedIn 上发过招聘 / 扩张信号（说明有预算，直接给价值更直接）
-- 客户是 trading company / middleman（他们关心的是「你能帮我赚多少」而非「你能解决我什么痛」）
+Default recommend Variant A (problem-first), reason: overseas buyer pain-point driven > value-driven.
+But choose Variant B when:
+- Customer is chain supermarket / big brand (they're surrounded by suppliers, pain-point emails too common, value-email more fresh)
+- Customer posted hiring / expansion signals on LinkedIn (indicating budget, value-email more direct)
+- Customer is trading company / middleman (they care about "how much can I profit" rather than "what problem can you solve")
 
-### 输出格式
+### Output Format
 
 ```
-━━━ 变体 A — 痛点先行 ━━━
-主题：[Subject A]
-正文：
+━━━ Variant A — Problem-first ━━━
+Subject: [Subject A]
+Body:
 [Body A]
 
-━━━ 变体 B — 价值先行 ━━━
-主题：[Subject B]
-正文：
+━━━ Variant B — Value-first ━━━
+Subject: [Subject B]
+Body:
 [Body B]
 
-━━━ 推荐 ━━━
-推荐变体 [A/B]，原因：[基于客户类型判断]
+━━━ Recommendation ━━━
+Recommend variant [A/B], reason: [based on customer type]
 
-⚠️ 反营销腔自检：[PASS/FAIL]
-⚠️ 反垃圾邮件自检：[PASS/FAIL]
+⚠️ Anti-marketing tone check: [PASS/FAIL]
+⚠️ Anti-spam check: [PASS/FAIL]
 ```
 
-## Quality Gate Checklist — 发送前 60 秒自检
+## Phase 11: 6 Standard Email Promotion Sequences
 
-> 每次生成邮件/报价/回复前，对照对应场景的检查点逐条过一遍。漏掉任何一项都可能导致客户流失。
+(Letter 1-6 from LinkedIn customer acquisition to deal completion)
 
-### 1. 开发信 (Cold Email)
-- [ ] 是否提了客户网站/动态的一个**具体细节**？（不能是泛泛的 "I saw your website"）
-- [ ] 标题是否**不超过 8 个词**？（移动端 5-7 词预览）
-- [ ] 是否 60% 讲客户痛点 + 25% 硬实力 + 15% CTA？
-- [ ] 是否提供了 3-5 个主题行变体（策略 A/B/C/D）？
+**Letter 1 (Product Introduction)**: A short introduction + a differentiating selling point. Subject contains the other party's company name or industry word. Don't mention the price.
 
-### 2. 询盘回复 (Inquiry Reply)
-- [ ] 是否**先确认客户需求**（规格、数量、认证）再报价？
-- [ ] 是否问了至少 2 个澄清问题？
-- [ ] 是否在工作时间内 30 分钟内回复？（非工作时间次日前；2 小时内给实质进展）
-- [ ] 是否附上了产品目录 / 报价单 / 规格书？
+**Letter 2 (Profit Margin/Value Guidance)**: Help the customer calculate — "Your retail price is $X, our FOB price is $Y, your gross profit margin is 4x." Data speaks.
 
-### 3. 报价函 (Quotation)
-- [ ] 是否写明了**有效期**（Validity: X days）？
-- [ ] 是否写明了**贸易术语**（FOB/CIF/EXW）+ 具体地点？
-- [ ] 是否写明了**包装方式**（carton/pallet/wooden case）？
-- [ ] 是否写明了**最小起订量**（MOQ）？
-- [ ] 是否写明了**付款条件**（T/T 30/70, L/C at sight 等）？
-- [ ] 报价单号是否唯一可追溯？
+**Letter 3 (Offer Sheet)**: Attached is a PDF quotation, including MOQ/delivery/payment terms. Indicate an expiration date to create a sense of urgency.
 
-### 4. 跟进邮件 (Follow-Up)
-- [ ] 是否提供了**额外价值**（市场信息/类似案例/行业新闻）而非仅仅催单？
-- [ ] Day 3：是否只是轻提醒 ("making sure it didn't get buried")？
-- [ ] Day 7：是否换了角度切入（LinkedIn / 提问）？
-- [ ] Day 14：是否提供了新信息而非重复第一封？
-- [ ] Day 30：是否有明确的 "break-up" 收尾？
+**Cover 4 (Certification/Testing Report)**: Attached are ISO/CE/UL and other certifications. Industrial product buyers value this most. "We are certified by..." works better than any sales pitch.
 
-### 5. 价格谈判 (Price Negotiation)
-- [ ] 是否**先问了"您的目标价是多少"**再降价？
-- [ ] 是否用差异化价值（认证/交期/售后）而非单纯降价比价？
-- [ ] 如果必须降价，是否同步**缩小了服务范围**（如 MOQ 提高 / 交期延长）？
-- [ ] 是否给出了 3 步谈判框架（Reframe → Value Breakdown → Win-Win）？
+**Letter 5 (Factory inspection/factory strength)**: Attached is the factory inspection report (SMETA/BSCI), factory videos or photos, and production line introduction. "Come visit our factory".
 
-### 6. 付款方式谈判 (Payment Terms)
-- [ ] 是否提出 **"30% 定金 + 70% 尾款见提单副本"** 作为折中方案？
-- [ ] 是否解释了为什么需要这个付款条件（备料成本/定制程度）？
-- [ ] 对于大单（>$50K），是否建议了 L/C at sight？
-- [ ] 对于老客户，是否给了更灵活的台阶（如 "这次破例，下次恢复标准"）？
+**Letter No. 6 (Trial order promotes Pilot Order)**: Lower the threshold — "We can start with a 20pcs trial order." Attached are screenshots of customer reviews.
 
-### 7. 交期谈判 (Delivery Time)
-- [ ] 是否提前告知了加急成本（**"加急需增加约 5% 空运费"**）？
-- [ ] 是否给了客户选择权（空运 X 天 vs 海运 Y 天 + 价差）？
-- [ ] 是否解释了交期的构成（备料 N 天 + 生产 M 天 + 检测 P 天）？
+## Quality Gate Checklist — 60-second check before sending
 
-### 8. 样品寄送 (Sample Shipping)
-- [ ] 是否告知了**追踪号**（Tracking Number）？
-- [ ] 是否告知了**预计到达日**（ETA）？
-- [ ] 是否附上了**样品使用说明**或检测要点？
-- [ ] 是否在预计到达日当天/次日跟进确认收货？
+> Each time generate email/quote/reply, check against the corresponding scenario's checklist. Missing any item can cause customer loss.
+
+### 1. Development Letter (Cold Email)
+- [ ] References a specific detail from customer's website/dynamic/product line? (not generic "I saw your website")
+- [ ] Title ≤ 8 words? (mobile 5-7 word preview)
+- [ ] Is 60% customer pain points + 25% hard power + 15% CTA?
+- [ ] 3-5 subject line variants provided (strategy A/B/C/D)?
+
+### 2. Inquiry Reply (Inquiry Reply)
+- [ ] First, confirm customer's needs (specifications, quantity, certification) before quoting?
+- [ ] Ask at least 2 clarifying questions?
+- [ ] Reply within 30 minutes during business hours? (next day before 2 hours for non-working time; give substantive progress)
+- [ ] Attached product catalog / quotation sheet / specification sheet?
+
+### 3. Quotation (Quotation)
+- [ ] Written explicit validity period? (Validity: X days)
+- [ ] Written explicit trade terms (FOB/CIF/EXW) + specific location?
+- [ ] Written packaging method? (carton/pallet/wooden case)?
+- [ ] Written minimum order quantity? (MOQ)?
+- [ ] Written payment terms? (T/T 30/70, L/C sight etc.)?
+- [ ] Quotation number is unique and traceable?
+
+### 4. Follow-up Email (Follow-up)
+- [ ] Provided additional value (market info/similar case/industry news) instead of just reminder?
+- [ ] Day 3: Only light reminder ("making sure it didn't get buried")?
+- [ ] Day 7: Changed angle (LinkedIn / question)?
+- [ ] Day 14: Provided new info instead of repeating first one?
+- [ ] Day 30: Has clear "break-up" closure?
+
+### 5. Price Negotiation (Price Negotiation)
+- [ ] First asked "What is your target price" before lowering?
+- [ ] Compete on differentiated value (certification/delivery/after-sales) instead of just lower price?
+- [ ] If must lower price, also **reduced service scope** (like increasing MOQ / extending delivery)?
+- [ ] Given 3-step negotiation framework (Reframe → Value Breakdown → Win-Win)?
+
+### 6. Payment Terms Negotiation (Payment Terms)
+- [ ] Suggested "30% deposit + 70% balance before bill of lading copy" as compromise solution?
+- [ ] Explained why this payment term is needed (material cost/customization degree)?
+- [ ] For large orders (>$50K), suggested L/C sight?
+- [ ] For old customers, gave more flexible options (like "This time is an exception, next time restore standard")?
+
+### 7. Delivery Time Negotiation (Delivery Time)
+- [ ] Warning about rush fee (**"Rush order adds approximately 5% air freight fee"**)?
+- [ ] Give customer choice (Air x days vs Sea y days + price difference)?
+- [ ] Explain delivery time composition (material preparation N days + production M days + inspection P days)?
+
+### 8. Sample Shipping (Sample Shipping)
+- [ ] Notified tracking number (Tracking Number)?
+- [ ] Notified estimated arrival date (ETA)?
+- [ ] Attached sample usage instructions or inspection points?
+- [ ] Followed up same day/next day to confirm receipt?

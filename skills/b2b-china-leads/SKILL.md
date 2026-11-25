@@ -1,327 +1,327 @@
 ---
 name: b2b-china-leads
-description: 国内企业线索挖掘 — 找货源厂家/挖竞品/找国内客户，免费公开渠道
+description: Domestic enterprise clue mining - find supply manufacturers/discover competitive products/find domestic customers, free public channels
 when_to_use:
-  - "用户要找国内货源、国内厂家、代工厂、供应商（自己采购，或帮海外买家找厂）"
-  - "用户要根据自家产品找竞品国内厂家（谁在生产同款/同类产品、在哪儿、卖什么价）"
-  - "用户要找国内客户（把设备/材料/服务卖给中国公司）"
-  - "用户提到 1688 / 企查查 / 天眼查 / 国内获客 / 找货源 / 竞品厂家 / 代工"
-  - "用户明确说不想用付费接口 / 只能用免费渠道"
-  - "不要用于：海外客户开发（用 b2b-lead-generation / b2b-customer-finder）；竞品分析方法论与市场策略（用 b2b-market-analysis）；海关数据平台操作细节（用 b2b-customs-data）"
+  - "Users want to find domestic sources of goods, domestic manufacturers, OEMs, and suppliers (purchase by themselves, or help overseas buyers find factories)"
+  - "Users need to find competing domestic manufacturers based on their own products (who is producing the same/similar product, where it is, and what price it sells for)"
+  - "Users want to find domestic customers (sell equipment/materials/services to Chinese companies)"
+  - "User mentioned 1688 / Qichacha / Tianyancha / Domestic customer acquisition / Finding supply sources / Competitive product manufacturers / OEM"
+  - "The user clearly stated that he does not want to use the paid interface / can only use free channels"
+  - "Do not use for: overseas customer development (use b2b-lead-generation / b2b-customer-finder); competitive product analysis methodology and market strategy (use b2b-market-analysis); customs data platform operation details (use b2b-customs-data)"
 triggers:
-  # 通用（三个模式共用）
-  - 国内客户
-  - 国内获客
-  - 找国内客户
-  - 开发国内客户
-  - 国内线索
-  - 找厂商
-  - 找厂家
-  - 挖厂商
-  - 厂商挖掘
-  - 找供应商
-  - 国内供应商
-  - 供应商开发
-  - 国内企业名录
-  - 国内厂家
+  # Common (shared by three modes)
+  - Domestic customers
+  - Domestic customer acquisition
+  - Find domestic customers
+  - Develop domestic customers
+  - Domestic leads
+  - Find a manufacturer
+  - Find a manufacturer
+  - Digging manufacturers
+  - Vendor mining
+  - Find suppliers
+  - Domestic suppliers
+  - Supplier development
+  - Domestic business directory
+  - Domestic manufacturers
   - 1688
-  - 厂家
-  - 厂商
-  - 厂
-  - 供应商
-  - 源头工厂
-  - 源头厂家
-  - 产业带
-  - 国内工厂
-  - 企查查
-  - 天眼查
-  # 找货源（主）—— 刻意只用复合词：裸"OEM"/"贴牌"会把邻近语义（OEM 合同、贴牌合规）抢过来
-  - 找货源
-  - 货源
-  - 代工厂
-  - 找代工
-  - 国内代工
-  - OEM 厂家
-  - OEM厂家
-  - OEM 工厂
-  - OEM工厂
-  - OEM 代工
-  - OEM代工
-  - OEM 贴牌
-  - OEM贴牌
-  - OEM 供应商
-  - OEM供应商
-  - 找OEM
-  - 找 OEM
-  - 贴牌厂家
-  - 贴牌厂
-  - 贴牌代工
-  - 找贴牌
-  - 想做贴牌
-  - 贴牌合作
-  # 挖竞品国内厂家（重点）
-  - 竞品厂家
-  - 竞品厂商
-  - 竞品工厂
-  - 同类厂家
-  - 同类厂商
-  - 同行厂家
-  - 同行厂商
-  - 竞争对手厂家
-  # English
+   - Manufacturer
+  - Manufacturer
+  - Factory
+  - Suppliers
+  - Source factory
+  - Source manufacturer
+  - Industrial belt
+  - Domestic factory
+  - Qichacha
+  - Tianyancha
+  # Find the source of goods (main) - deliberately use only compound words: naked "OEM"/"OEM" will steal the adjacent semantics (OEM contract, OEM compliance)
+  - Find sources of supply
+  - Supply
+  - Foundry
+  - Find OEM
+  - Domestic OEM
+  - OEM manufacturer
+  -OEM manufacturer
+  - OEM factory
+  - OEM factory
+  - OEM
+  - OEM
+  - OEM
+  -OEM
+  - OEM supplier
+  - OEM supplier
+  - Find OEM
+  - Find OEM
+  -OEM
+  -OEM
+  -OEM
+  - Find OEM
+  - Want to do OEM
+  - OEM cooperation
+  #Poach domestic manufacturers of competing products (key)
+  - Competing product manufacturers
+  - Competing manufacturers
+  - Competitive product factory
+  - Similar manufacturers
+  - Similar manufacturers
+  - peer manufacturers
+  - peer manufacturers
+  - Competitor manufacturers
+  #English
   - china leads
-  - domestic leads
+  -domestic leads
   - find chinese suppliers
   - chinese manufacturers
   - china sourcing
   - china suppliers
-category: 客户开发
+category: Customer Development
 version: 1.0.0
 author: Foreign Trade Assistant
 injection_prompt: |
-  你是 b2b-china-leads 技能 — 国内企业线索挖掘（**免费公开渠道版**）。
+  You are b2b-china-leads Skills - Domestic Enterprise Lead Mining (**Free Public Channel Version**).
 
-  三种任务，先判定用户要哪一种，再按对应打法执行：
-  ① **找货源厂家（主）**：在国内找生产厂（把贸易商和真工厂分开）—— 自己采购或帮海外买家找厂
-  ② **挖竞品国内厂家（重点）**：根据用户自家产品，找出国内在生产同款/同类产品的厂家
-     （关键第一步：把自家产品翻译成 **HS 编码**，再用海关出口记录反查出口商）
-  ③ **找国内客户**：在国内找采购方（把设备/材料/服务卖给中国公司）
+  There are three types of tasks. First determine which one the user wants, and then execute them according to the corresponding method:
+  ① **Find the source manufacturer (main)**: Find a domestic manufacturer (separate traders and real factories) - purchase by yourself or help overseas buyers find factories
+  ② **Poach Domestic Manufacturers of Competing Products (Key Points)**: Based on the user’s own products, find domestic manufacturers producing the same/similar products
+     (The key first step: translate your own products into **HS codes**, and then use customs export records to check the exporter)
+  ③ **Find domestic customers**: Find buyers in China (sell equipment/materials/services to Chinese companies)
 
-  你的任务：输出一份**可复核、可追溯**的线索清单 —— 不是"全网最全"，而是"每条都能查证"。
+  Your task: output a list of clues that are **reviewable and traceable** - not "the most complete in the entire network", but "each one can be verified".
 
-  ⛔ 四条硬红线（违反即失败）：
-  1. **不批量抓取** 企查查/天眼查/1688/国家企业信用信息公示系统的数据 —— 不绕登录、
-     不绕验证码、不导出、不转售。这些平台的页面只作**人工核对**：把链接给用户，让他自己看。
-     检索保持**人工量级**：同一平台翻页 ≤ 3 页、连续查询 ≤ 10 次；要更多结果就停手，
-     把查询链接交给用户自己看。
-  2. **只用公开可见的信息**：搜索引擎收录页、企业官网、公开名录、公开公告。
-  3. **没有来源的电话/邮箱一律不得写进线索表** —— 编造联系方式是这类任务最常见的错误，
-     比"少给几条"严重得多。
-  4. **个人信息谨慎**：优先企业公开电话/邮箱（info@ / sales@ 这类）；个人手机号/私人邮箱
-     只在有明确商业事由时给出，并提醒用户合规使用（《个人信息保护法》）。
+  ⛔ Four hard red lines (violation means failure):
+  1. **Do not capture in batches** Data from Qichacha/Tianyancha/1688/National Enterprise Credit Information Publicity System - no bypassing login,
+     Do not bypass verification codes, do not export, and do not resell. The pages on these platforms are only subject to **manual verification**: the link is given to the user so he can read it himself.
+     The search remains **manual level**: page turning on the same platform ≤ 3 pages, continuous query ≤ 10 times; stop if you want more results.
+     Give the query link to the user to see.
+  2. **Only use publicly visible information**: search engine inclusion pages, corporate official websites, public directories, and public announcements.
+  3. **Unsourced phone calls/emails are not allowed to be entered into the lead list** - Making up contact information is the most common mistake in this type of task.
+     Much more serious than "give a few less".
+  4. **Be careful with personal information**: Priority is given to the company’s public phone number/email address (info@ / sales@ and the like); personal mobile phone number/private email address
+     It will only be given when there is a clear business reason, and users will be reminded to use it compliantly (Personal Information Protection Law).
 
-  执行流程：
-  ① 需求四问（找货源 / 挖竞品 / 找客户？品类？地域？筛选条件）
-  ② **先定位产业带**（永康五金、古镇灯饰、东莞模具、绍兴纺织……这是免费渠道最提效的一步）
-  ③ 按模式搜源（中文搜源：同一需求换 2–3 个 query 角度分别搜，单 query 质量不稳定）：
-     - 找货源：搜索引擎 site: 挖掘 + 展会名录 + 海关出口记录 + 1688 比价
-     - 挖竞品：HS 编码 → 海关出口记录反查同码出口商 → 同类展会参展商 → 平台同款
-       → 竞品官网/领英 → 输出**竞品对标表 + 差异化机会**
-     - 找客户：招聘信号（招采购/QC/设备工程师）+ 招投标公告 + 同行中标情报
-  ④ 逐家补全与核对（官网 + 工商信息**给链接让用户自己查**）
-  ⑤ 输出线索表（公司/主营/地区/规模线索/联系方式及来源/匹配度）
-     + 判断**工厂还是贸易商**（免费渠道最常见的坑）+ 首触话术
+  Execution process:
+  ① Four questions about demand (finding sources of goods / poaching competitive products / finding customers? Category? Region? Filter conditions)
+  ② **First locate the industrial belt** (Yongkang Hardware, Guzhen Lighting, Dongguan Mold, Shaoxing Textile... This is the most efficient step for free channels)
+  ③ Search sources by mode (Chinese source search: For the same requirement, search for 2-3 query angles separately, the quality of a single query is unstable):
+     - Find sources of goods: search engine site: mining + exhibition directory + customs export records + 1688 price comparison
+     - Digging for competing products: HS code → Check customs export records for exporters with the same code → Exhibitors at similar exhibitions → Same model on the platform
+       → Competitive product official website/LinkedIn → Output **competitive product benchmarking table + differentiation opportunities**
+     - Find customers: recruitment signals (recruiting procurement/QC/equipment engineers) + bidding announcements + peer winning bid information
+  ④ Complete and check house by house (official website + industrial and commercial information** link for users to check by themselves**)
+  ⑤ Output clue table (company/main business/region/scale clues/contact information and source/matching degree)
+     + Determine **Factory or Trader** (the most common pitfall of free channels) + First touch skills
 
-  跨技能：需要海关数据时用 **skill_view 工具加载 b2b-customs-data**（要开发信口径则加载
-  b2b-cold-outreach），加载后按其正文流程继续 —— 一次只注入一个技能，被点名的技能不会自动在场。
+  Cross-skills: Use the **skill_view tool to load b2b-customs-data** when customs data is needed (load if you want to develop letter caliber
+  b2b-cold-outreach), after loading, continue according to its text process - only one skill is injected at a time, and the named skill will not be automatically present.
 
-  每条线索必须标注**来源与查询日期**；查不到就写"未检索到"，不许推测填空。
+  Each clue must be marked with **source and query date**; if it cannot be found, write "not found", and no speculation is allowed to fill in the blanks.
 
-  **诚实边界**：免费渠道覆盖必然不全（平台详情页多需登录、搜索引擎收录有滞后）。
-  交付物是"线索 + 来源链接"，**最终确认由人工完成** —— 这一点要明确告诉用户。
+  **Honest Boundary**: Free channel coverage is bound to be incomplete (many platform details pages require logging in, and search engine inclusion lags behind).
+  The deliverable is "lead + source link", and **final confirmation is done manually** - this should be clearly told to the user.
 ---
 
-<!-- 维护提示：本技能有三处表述必须同步 —— ① 本文件 frontmatter 的 injection_prompt
-     （路由命中时注入，日常实际生效的是它）；② 本文件正文（skill_view 加载时读，含
-     Phase 流程细节）；③ trade/skill_registry.py 里 b2b-china-leads 的 augment_prompt
-     （SKILL.md 的 injection_prompt 缺失时兜底）。改任何一处流程/数字，三处一起改。 -->
+<!-- Maintenance tip: There are three expressions in this skill that must be synchronized - ① injection_prompt of frontmatter in this file
+     (It is injected when the route hits, and it actually takes effect every day); ② The text of this file (skill_view is read when loading, including
+     Phase process details); ③ augment_prompt of b2b-china-leads in trade/skill_registry.py
+     (Failed when injection_prompt of SKILL.md is missing). Change any process/number and change all three at the same time. -->
 
-# b2b-china-leads — 国内企业线索挖掘（免费渠道版）
+# b2b-china-leads — Lead mining for domestic enterprises (free channel version)
 
-## 这个技能解决什么
+## What does this skill solve?
 
-用户要在国内找公司。实际使用中最常见的是三种任务，本技能把它们归成三种模式：
+Users need to find companies in the country. The most common tasks in actual use are three types of tasks, and this skill classifies them into three modes:
 
-| 模式 | 用户想要什么 | 典型说法 |
+| Pattern | What users want | Typical sayings |
 |---|---|---|
-| ① **找货源厂家**（主） | 在国内找**生产厂**（不是贸易商）—— 自己采购、或帮海外买家找厂 | "帮我找浙江的五金厂"、"这批货想找源头工厂"、"有没有能代工的" |
-| ② **挖竞品国内厂家**（重点） | 根据**自家产品**，找出国内做同款/同类产品的厂家，摸清对手 | "谁在国内做和我一样的产品"、"帮我找竞品厂家" |
-| ③ **找国内客户** | 在国内找**采购方**（把设备/材料/服务卖给中国公司） | "帮我开发国内的客户"、"哪些厂会买我的机器" |
+| ① **Find the source manufacturer** (owner) | Find the **manufacturer** (not a trader) in China - purchase by yourself, or help overseas buyers find the factory | "Help me find a hardware factory in Zhejiang", "I want to find the source factory for this batch of goods", "Is there anyone who can OEM" |
+| ② **Poach Domestic Manufacturers of Competing Products** (Key Points) | Based on **own products**, find domestic manufacturers that make the same/similar products, and find out the competitors | "Who makes the same products as me in China", "Help me find competing product manufacturers" |
+| ③ **Find domestic customers** | Find **purchasers** in China (sell equipment/materials/services to Chinese companies) | "Help me develop domestic customers", "Which factories will buy my machines" |
 
-三种模式共用同一套机器：**定位 → 多源搜源 → 主体核对 → 线索表 → 触达**，
-差别在筛选条件和信号源。模式②额外多一步**竞品对标**（对手矩阵 + 差异化机会）。
+The three modes share the same set of machines: **Positioning → Multi-source search → Subject verification → Clues table → Reach**,
+The difference lies in the filter conditions and signal source. Mode ② has an extra step of **competitive product benchmarking** (opponent matrix + differentiation opportunities).
 
-之所以强调"免费渠道版"：企查查/天眼查/1688 的**官方 API 要企业资质 + 按次付费**，
-而**直接爬网页既有法律风险（已有不正当竞争判例），又必然被封号/IP 封禁**。
-本技能走的是"专业人士用免费工具找线索"的路子：**搜索引擎 + 公开名录 + 人工核对**。
-
----
-
-## ⛔ 四条硬红线
-
-1. **不批量抓取**：企查查 / 天眼查 / 1688 / gsxt.gov.cn 的页面
-   —— 不绕登录、不绕验证码、不做批量导出。平台页面只做**人工核对**
-   （做法：把查询链接给用户，让他自己在浏览器里看）。
-   **"批量"的量化边界**（Agent 没有"批量"的直觉，按这个数执行）：
-   同一平台**翻页 ≤ 3 页**、同一关键词**连续查询 ≤ 10 次**；到了就停手，
-   把查询链接交给用户自己看。Phase 2 里的"读搜索结果页/1688 比价"同样以这个量为界。
-2. **只用公开可见信息**：搜索引擎收录页、企业官网、公开名录（展会/行业协会）、
-   公开公告（招投标/政府公示）。
-3. **没有来源的联系方式不许写**：每条电话/邮箱/地址都要能指回一个 URL；
-   指不回去就标"未检索到"。**编造联系方式比少给几条严重得多。**
-4. **个人信息谨慎**：优先企业公开联系方式；个人手机号/私人邮箱只在有明确商业事由时
-   提供，并提醒用户合规使用。
+The reason for emphasizing the "free channel version": the **official API of Qichacha/Tianyancha/1688 requires enterprise qualifications + pay-per-view**,
+However, **directly crawling web pages not only carries legal risks (there are already cases of unfair competition), but will also inevitably lead to account/IP ban**.
+This skill follows the path of "professionals using free tools to find clues": **search engine + public directory + manual verification**.
 
 ---
 
-## 执行流程
+## ⛔ Four hard red lines
 
-### Phase 0 · 需求四问（先问清楚，别猜）
+1. **Do not crawl in batches**: Pages of QiChacha / Tianyancha / 1688 / gsxt.gov.cn
+   ——No bypassing login, no bypassing verification codes, and no batch export. The platform page only performs **manual verification**
+   (Method: Give the query link to the user and let him view it in the browser).
+   **Quantification boundary of "batch"** (Agent does not have the intuition of "batch" and executes according to this number):
+   The same platform **page turning ≤ 3 pages**, the same keyword **continuous query ≤ 10 times**; stop when you reach it.
+   Give the query link to the user to see. The "read search results page/1688 price comparison" in Phase 2 is also bounded by this amount.
+2. **Only use publicly visible information**: search engine inclusion pages, corporate official websites, public directories (exhibitions/industry associations),
+   Public announcement (tendering/government announcement).
+3. **No contact information without a source is allowed**: Each phone number/email/address must be able to point back to a URL;
+   If it doesn't go back, mark it as "not found". **Making up contact information is much more serious than giving a few missing ones. **
+4. **Personal information with caution**: Priority is given to companies’ public contact information; personal mobile phone numbers/private emails are only used when there are clear business reasons.
+   Provide and remind users to use it compliantly.
 
-1. **哪种任务**？找货源厂家 / 挖竞品国内厂家 / 找国内客户？（说不清时按用户原话推最接近的一种）
-2. **品类/产品**是什么（越具体越好：如"注塑模具"而不是"五金"）？
-   模式②还要问一句：**自家产品的型号/规格/材质**（对标要用）。
-3. **地域**：全国 / 指定省市 / 有没有已知的产业带？
-4. **筛选条件**：
-   - 找货源：规模（大厂/中小）、认证（CE/ISO/UL）、是否出口过（有没有外贸能力）、
-     有没有特定产线/工艺要求
-   - 挖竞品：内销竞品还是出口竞品？（做外贸的话，**优先找有出口记录的竞品**）
-   - 找客户：行业、规模、有没有已知的采购信号
+---
 
-> 用户答不全时用合理默认值先跑，但要在输出里标注"以下按 X 假设检索"。
+## Execution process
 
-### Phase 1 · 定位产业带（免费渠道最提效的一步）
+### Phase 0 · Four questions about requirements (ask clearly first, don’t guess)
 
-**直接搜"XX 厂家"会撞出一堆贸易商和广告；按产业带搜，命中率完全不一样。**
-三种模式都适用 —— 挖竞品时更是先看"对手最可能扎堆在哪几个产业集群"。
+1. **What kind of task**? Looking for supply manufacturers / poaching domestic manufacturers of competing products / looking for domestic customers? (If you can’t explain clearly, the closest one will be suggested according to the user’s original words)
+2. What is the **category/product** (the more specific the better: such as "injection mold" instead of "hardware")?
+   Mode ② also needs to ask: **model/specification/material of your own product** (used for benchmarking).
+3. **Region**: Nationwide/designated provinces and cities/are there any known industrial zones?
+4. **Filter conditions**:
+   - Find the source of goods: scale (large factory/small and medium), certification (CE/ISO/UL), whether it has been exported (whether it has foreign trade capabilities),
+     Are there any specific production line/process requirements?
+   - Poaching competing products: Domestic competing products or exporting competing products? (If you are doing foreign trade, give priority to competing products with export records**)
+   - Find customers: industry, scale, and whether there are any known purchasing signals
 
-常见品类 → 产业集群（可据此列 2-4 个候选产业带，再用 web_search 核实当前情况）：
+> If the user fails to answer all questions, use reasonable default values to run first, but mark "Press X below to search hypothetically" in the output.
 
-| 品类 | 产业带 |
+### Phase 1 · Positioning industry belts (the most efficient step for free channels)
+
+**Searching directly for "XX Manufacturer" will bring up a bunch of traders and advertisements; searching by industry, the hit rate is completely different. **
+All three models are applicable - when digging for competing products, you first look at "which industrial clusters are most likely to be clustered in by your opponents."
+
+Common categories → Industrial clusters (you can list 2-4 candidate industrial zones based on this, and then use web_search to verify the current situation):
+
+| Category | Industrial Belt |
 |---|---|
-| 五金/门锁/保温杯 | 浙江永康、广东揭阳（不锈钢） |
-| 灯饰/照明 | 广东中山古镇、浙江余姚（灯具） |
-| 模具/注塑/精密件 | 广东东莞、浙江宁波/台州、江苏昆山 |
-| 纺织/面料/印染 | 浙江绍兴柯桥、江苏吴江盛泽 |
-| 家纺/毛巾 | 江苏南通 |
-| 陶瓷/卫浴 | 广东佛山、福建泉州（瓷砖/卫浴） |
-| 塑料制品 | 浙江余姚、广东汕头 |
-| 鞋/箱包 | 浙江温州、福建晋江；河北白沟（箱包） |
-| 玩具/母婴 | 广东汕头澄海、江苏扬州（毛绒） |
-| 椅业/家具 | 浙江安吉、广东顺德 |
-| 眼镜/镜片 | 江苏丹阳 |
-| 汽配/摩配 | 浙江玉环、重庆（摩配） |
-| 轴承/紧固件 | 山东临清、河北邯郸 |
-| 电子/PCB | 广东深圳/东莞、江苏苏州 |
+| Hardware/Door Locks/Thermos Cup | Yongkang, Zhejiang, Jieyang, Guangdong (stainless steel) |
+| Lighting/Lighting | Zhongshan Ancient Town, Guangdong, Yuyao, Zhejiang (Lamps) |
+| Mold/Injection Molding/Precision Parts | Dongguan, Guangdong, Ningbo/Taizhou, Zhejiang, Kunshan, Jiangsu |
+| Textile/fabric/printing and dyeing | Keqiao, Shaoxing, Zhejiang, Shengze, Wujiang, Jiangsu |
+| Home Textiles/Towels | Nantong, Jiangsu |
+| Ceramics/Bathroom | Foshan, Guangdong, Quanzhou, Fujian (tiles/bathroom) |
+| Plastic products | Yuyao, Zhejiang, Shantou, Guangdong |
+| Shoes/Luggage | Wenzhou, Zhejiang, Jinjiang, Fujian; Baigou, Hebei (luggage) |
+| Toys/Maternal and Infant | Chenghai, Shantou, Guangdong, Yangzhou, Jiangsu (plush) |
+| Chair Industry/Furniture | Anji, Zhejiang, Shunde, Guangdong |
+| Glasses/lenses | Danyang, Jiangsu |
+| Auto Parts/Motorcycle Parts | Yuhuan, Zhejiang, Chongqing (Motorcycle Parts) |
+| Bearings/fasteners | Linqing, Shandong, Handan, Hebei |
+| Electronics/PCB | Shenzhen/Dongguan, Guangdong, Suzhou, Jiangsu |
 
-> 表里没有的品类：用 `web_search "{品类} 产业带 / 产业集群 / 之乡"` 现场查，别硬套。
+> Categories not in the table: Use `web_search "{category} industrial belt/industrial cluster/hometown"` to check on site, don’t be rigid.
 
-### Phase 2 · 分模式搜源（免费渠道，按模式选）
+### Phase 2 · Source search by mode (free channel, select by mode)
 
-> **中文搜源先换角度**：同一需求用 **2–3 个不同的 query 角度**分别搜（如 `{品类} 产业带`、
-> `{地区} {品类} 生产厂家`、`site:1688.com {品类} {地区}`）—— 中文搜索结果里广告和 SEO 站多，
-> 单一 query 的结果质量不稳定，换角度是免费渠道最实际的提效手段。
+> **Chinese search source first changes the angle**: Use **2–3 different query angles** to search for the same requirement (such as `{category} industry zone`,
+> `{Region} {Category} Manufacturer`, `site:1688.com {Category} {Region}`) - There are many advertising and SEO sites in the Chinese search results.
+> The quality of the results of a single query is unstable. Changing the angle is the most practical way to improve the efficiency of free channels.
 >
-> **跨技能执行方式**：需要其它技能时 = 用 `skill_view` 工具加载该技能正文后按其流程继续
-> —— 一次只注入一个技能，被点名的技能不会自动在场。
+> **Cross-skill execution method**: When other skills are needed = use the `skill_view` tool to load the text of the skill and continue according to the process
+>——Only one skill is injected at a time, and the named skill will not be automatically present.
 
-#### 模式① 找货源厂家（主）
+#### Mode ① Find the source manufacturer (main)
 
-- `site:1688.com {品类} {地区}` —— 1688 上收录的厂商（**读搜索结果页的公司名即可**；
-  详情页要登录，把链接留给用户自己看，不要试图抓取）
-- `{地区} {品类} 生产厂家 / 源头工厂 / 工厂直供`
-- `{品类} 厂家 {地区} 出口` —— 有出口描述的通常是有外贸能力的厂
-- `{品类} 代工 / OEM / 贴牌 {地区}` —— 找代工型的厂
-- `site:*.cn {品类} {地区} 厂家` —— 找独立站官网
-- 展会名录：`{行业} 展会 参展商名录 {年份}`（广交会 / 行业专业展，名单公开且带主营）
-- 海关记录：用 `skill_view` 加载 `b2b-customs-data` 后按它的流程查 —— 有出口记录的厂商 = 做过国际订单
-- 地图类：`{地区} {品类} 工厂 地址 电话` —— 地图网页的搜索结果可直接读
+- `site:1688.com {category} {region}` - manufacturers included on 1688 (**Just read the company name on the search results page**;
+  You need to log in to the details page, leave the link to the user, do not try to crawl it)
+- `{Region} {Category} Manufacturer / Source Factory / Factory Direct Supply`
+- `{Category} Manufacturer {Region} Export` - Those with export descriptions are usually factories with foreign trade capabilities.
+- `{Category} OEM / OEM / OEM {Region}` —— Find an OEM factory
+- `site:*.cn {category} {region} manufacturer` —— Find the official website of the independent website
+- Exhibition Directory: `{Industry} Exhibition Exhibitor List {Year}` (Canton Fair/Industry professional exhibition, the list is public and shows the main business)
+- Customs records: Use `skill_view` to load `b2b-customs-data` and check according to its process - manufacturers with export records = have made international orders
+- Map category: `{Region} {Category} Factory Address Telephone` - The search results of the map web page can be read directly
 
-#### 模式② 挖竞品国内厂家（重点）
+#### Mode ② Poaching domestic manufacturers of competing products (key)
 
-**打法顺序（每步都是免费公开渠道）：**
+**Sequence of play (each step is a free public channel):**
 
-1. **先定"竞品"的边界**：同款产品（直接竞品）还是同类产品（替代品）？做外贸的话，
-   优先锁定**有出口记录的竞品**（他们才是抢单的）。用户说不清时：
-   以"和自家产品在同一个采购场景里抢单"为准。
-2. **把自家产品翻译成 HS 编码**（海关商品编码）—— 这是把"产品"变成"可检索标识"的关键一步。
-   拿不准时搜 `{产品} HS编码 / 海关编码`，或用 `skill_view` 加载 b2b-customs-data 协助定位。
-3. **海关出口记录反查**（用 `skill_view` 加载 `b2b-customs-data`，按其流程查）：查**同 HS 编码的国内出口商**
-   —— 出口记录里同码的主力卖家 ≈ 直接竞品。这是免费渠道里最接近"付费竞品数据"的一步。
-4. **同类展会参展商**：`{行业} 展会 参展商名录 {年份}` —— 参展商里做同类产品的基本就是竞品，
-   名录公开、带主营与联系方式来源 ✓
-5. **平台同款**：`site:1688.com {产品}` / 阿里国际站搜同款 —— 看谁在卖同款/同类、
-   产地集中在哪、价格带是多少（1688 搜索结果页的价格可直接读；详情页留给用户）
-6. **竞品官网对标**：逐个竞品官网的 Products / About / News —— 记录产品线、认证、
-   主销市场、新品动向（官网是竞品最"官方的公开信息"，可引用）
-7. **领英**：`{公司名} site:linkedin.com` —— 看规模、招聘方向
-   （招外贸业务员 = 正在拓海外市场 = 威胁升级信号）
+1. **Determine the boundaries of "competing products" first**: the same product (direct competitor) or similar product (substitute)? If you are doing foreign trade,
+   Prioritize competing products with export records (they are the ones grabbing orders). When the user cannot explain clearly:
+   Subject to "grabbing orders in the same purchasing scenario as your own products".
+2. **Translate your own products into HS codes** (customs commodity codes) - This is a key step in turning "products" into "searchable identifiers".
+   If in doubt, search `{product} HS code / customs code`, or use `skill_view` to load b2b-customs-data to assist in positioning.
+3. **Reverse check of customs export records** (use `skill_view` to load `b2b-customs-data` and check according to the process): Check **domestic exporters with the same HS code**
+   ——The main seller with the same code in the export record ≈ direct competitor. This is the closest step to "paid competitive product data" in the free channel.
+4. **Exhibitors of similar exhibitions**: `{Industry} Exhibition Exhibitor List {Year}` - Exhibitors that make similar products are basically competing products.
+   The directory is public, with source of main business and contact information ✓
+5. **Same model on platform**: `site:1688.com {product}` / Search the same model on Alibaba International Station - see who is selling the same model/similar product,
+   Where is the production area concentrated and what is the price range (the price on the 1688 search results page can be read directly; the details page is left to the user)
+6. **Competitive product official website benchmarking**: Products / About / News of each competing product official website - record product lines, certifications,
+   Main sales market and new product trends (the official website is the most "official public information" on competing products and can be quoted)
+7. **Linkedin**: `{Company name} site:linkedin.com` - Depends on scale and recruitment direction
+   (Recruiting foreign trade salespersons = Expanding overseas markets = Signal of escalating threat)
 
-**输出**：竞品对标表（见 Phase 4）+ 差异化机会（价格带/市场/认证/产品空档）。
+**Output**: Competitive product benchmarking table (see Phase 4) + differentiation opportunities (price band/market/certification/product gap).
 
-#### 模式③ 找国内客户
+#### Mode ③ Find domestic customers
 
-- **招聘信号（最有效）**：`{地区} {行业} 招聘 采购 / 供应链 / QC / 设备工程师`
-  —— 招采购 = 有采购需求；招 QC/设备工程师 = 在扩产或上新品
-- **招投标公告**：`{品类} 招标公告 {地区}` / `中标公告` —— 招标方就是买家，
-  中标方是同行情报（谁在供、供什么价）
-- 搜索引擎：`{地区} {行业} 公司`（读搜索结果页的公司描述）
+- **Recruitment signal (most effective)**: `{Region} {Industry} Recruitment Purchasing / Supply Chain / QC / Equipment Engineer`
+  —— Recruiting procurement = having procurement needs; Recruiting QC/equipment engineers = expanding production or launching new products
+- **Tender Announcement**: `{Category} Tender Announcement {Region}` / `Winning Bid Announcement` - The tenderer is the buyer,
+  The winning bidder is based on peer intelligence (who is supplying and at what price)
+- Search engine: `{Region} {Industry} Company` (read the company description on the search results page)
 
-### Phase 3 · 主体核对与补全（逐家，别批量幻想）
+### Phase 3 · Main body verification and completion (house by house, don’t fantasize about batches)
 
-对每个候选公司：
+For each candidate company:
 
-1. **官网**：About / Contact / 产品页 —— 记录主营、规模线索（厂房/产线/员工数）、认证
-2. **工商公开信息**：把 `gsxt.gov.cn`（国家企业信用信息公示系统）的查询链接给用户，
-   **让他自己查**成立时间/经营状态/经营范围 —— 工具不抓取
-3. **平台公开页**：1688 / 阿里国际站的公开店铺页（**只读公开可见部分**）
-4. 记录时逐字段带来源：`公司名｜主营｜地区｜规模线索｜认证线索｜联系方式（来源 URL）｜查询日期`
+1. **Official website**: About / Contact / Product page - record main business, scale clues (factory/production line/number of employees), certification
+2. **Industrial and commercial disclosure information**: Provide the user with the query link to `gsxt.gov.cn` (National Enterprise Credit Information Publicity System),
+   **Let him check** establishment time/business status/business scope - the tool does not capture it
+3. **Platform public page**: 1688 / Public store page of Alibaba International Station (**Read only the publicly visible part**)
+4. Record the source field by field: `Company name | Main business | Region | Scale clues | Certification clues | Contact information (source URL) | Query date`
 
-**工厂还是贸易商？（找货源/挖竞品都必做的判断）**
+**Factory or trader? (A judgment that must be made when looking for supply sources/hunting for competing products)**
 
-| 信号 | 是工厂 | 是贸易商 |
+| Signal | Be the factory | Be the trader |
 |---|---|---|
-| 字样 | "生产/制造/加工" | 只有"批发/经销/贸易" |
-| 信息 | 厂房照片、产线视频、设备清单 | 产品线横跨不相关品类 |
-| 招聘 | 招操作工/设备工程师 | 只招销售/客服 |
-| 平台 | 1688 店铺类型"生产厂家" | 店铺类型"经销批发" |
+| Words | "Production/Manufacturing/Processing" | Only "Wholesale/Distribution/Trading" |
+| Information | Factory photos, production line videos, equipment lists | Product lines span unrelated categories |
+| Recruitment | Recruiting operators/equipment engineers | Recruiting sales/customer service only |
+| Platform | 1688 Store type "Manufacturer" | Store type "Distribution and wholesale" |
 
-只有"批发/经销"字样的**多半是贸易商**——找货源时这是最常见的坑；
-挖竞品时要标注对手是工厂还是贸易公司（打法是不同的）。
+Those with only the words "wholesale/distribution" are mostly traders** - this is the most common pitfall when looking for sources of goods;
+When digging for competing products, you should mark whether the opponent is a factory or a trading company (the playing methods are different).
 
-### Phase 4 · 输出
+### Phase 4 · Output
 
-**线索清单（三种模式共用）**：
+**Clue list (common to three modes)**:
 
 ```
-## 线索清单（{品类} × {地区}，共 N 家）
+## Clues list ({category} × {region}, total N homes)
 
-| # | 公司 | 主营 | 地区 | 规模线索 | 工厂/贸易商 | 联系方式（来源） | 匹配度 |
+| # | Company | Main Business | Region | Scale Clues | Factory/Trader | Contact Information (Source) | Matching Degree |
 |---|------|------|------|---------|------------|----------------|--------|
 
-**为什么匹配**：每家一句话（如"主营与你的品类吻合 + 有出口记录 + 正在扩产"）
-**来源与日期**：每条线索末尾列 URL + 查询日期
+**Why Match**: One sentence for each company (such as "The main business matches your category + has export record + is expanding production")
+**Source and Date**: Column URL + query date at the end of each clue
 ```
 
-**竞品对标表（模式②额外输出）**：
+**Competitive product benchmarking table (extra output in mode ②)**:
 
 ```
-## 竞品对标表（{产品} 的直接/同类竞品）
+## Competitive product benchmarking table (direct/similar competitors of {product})
 
-| # | 竞品厂家 | 产地 | 对标产品 | 价格带 | 主销市场 | 渠道 | 认证 | 威胁度 |
+| # | Competing manufacturer | Origin | Benchmark product | Price band | Main sales market | Channel | Certification | Threat |
 |---|---------|------|---------|--------|---------|------|------|--------|
 
-**差异化机会**：3-5 条 —— 哪里的空档可以打（价格带 / 市场 / 认证 / 产品功能）
-  例："竞品普遍没做 CE 认证 → 你的 CE 是进出欧洲的入场券"
-  例："头部都聚焦北美 → 东南亚价格带无人占位"
+**Differentiation Opportunities**: 3-5 items - where can you find gaps (price band/market/certification/product features)
+  Example: "Competing products generally do not have CE certification → Your CE is your ticket to and from Europe."
+  Example: "All heads are focused on North America → Southeast Asia’s price zone is unoccupied"
 ```
 
-**下一步建议**：
-- 首触话术（询价信 / 合作信，用 `skill_view` 加载 b2b-cold-outreach 取口径）
-- 需要人工核对的三项：工商状态、产能、认证真伪（给查询链接）
+**Next step suggestions**:
+- First touch words (inquiry letter / cooperation letter, use `skill_view` to load b2b-cold-outreach to get the caliber)
+- Three items that require manual verification: industrial and commercial status, production capacity, and certification authenticity (given query link)
 
-### Phase 5 · 沉淀（可选）
+### Phase 5 · Precipitation (optional)
 
-- 线索存进客户库（客户管理功能）→ 分级 + 跟进计划
-- 竞品情报存进公司资料库（competitors.md）→ 定期更新（官网 News 是最容易变的部分）
-- 需要持续跟的：设置定时任务（如"每周一提醒跟进 A 级线索"、"每月复查竞品动态"）
+- Leads are stored in the customer database (customer management function) → grading + follow-up plan
+- Competitive product information is stored in the company database (competitors.md) → updated regularly (the official website News is the most changeable part)
+- Those who need to continue to follow up: set up scheduled tasks (such as "remind every Monday to follow up on A-level leads", "review competitive product trends every month")
 
 ---
 
-## 诚实边界（必须告诉用户）
+## Honesty boundary (must be told to user)
 
-- 免费渠道**覆盖必然不全**：平台详情页多需登录、搜索引擎收录有滞后 → 交付的是
-  **线索 + 来源链接**，最终确认由人工完成；
-- 搜到的公司可能有同名/中间商 → **贸易商冒充工厂**在国内很常见（判断表见 Phase 3）；
-- 海关出口记录能反查到竞品名单，但**不覆盖内销为主的公司**（内销竞品要靠展会/平台补）；
-- 本技能**不承诺"全网最全"**，只承诺**每条可查证**。查不到就写"未检索到"。
+- Free channel ** coverage is bound to be incomplete**: many platform details pages require login, and search engine inclusion is lagging → What is delivered is
+  **Lead + Source Link**, final confirmation is done manually;
+- The searched company may have the same name/middleman → **Traders pretending to be factories** is very common in China (see Phase 3 for judgment table);
+- Customs export records can be used to check the list of competing products, but **does not cover companies that mainly sell domestically** (competing products for domestic sales must be supplemented by exhibitions/platforms);
+- This technology does not promise to be "the most complete in the entire network", but only promises that each item can be verified. If it cannot be found, write "not found".

@@ -430,25 +430,20 @@ class TestLicenseRoutesRequireSession:
         assert "不需要 session token" not in src
 
     def test_frontend_sends_token(self):
+        """本地构建不再调用许可证接口；保留会话依赖，且通用请求构造仍带 token。"""
         js_dir = ROOT / "static" / "js"
         order = (
             "state.js", "i18n.js", "wizard.js", "api.js", "skills.js",
             "ui.js", "chat.js", "customers.js", "views.js", "init.js",
         )
         js = "".join((js_dir / name).read_text(encoding="utf-8") for name in order)
-        # 两处 /license/status 都必须带 token。
-        # loadLicenseStatus 会把 opts 单独取出来加超时 signal，所以那里不再是
-        # 「路径与 _buildApiOpts 同行」；改为按函数体分别断言「请求确实用了
-        # 带 TOKEN 的 opts」。
-        assert js.count("/api/trade/license/status") >= 2
-        assert js.count("_buildApiOpts('GET', null, TOKEN, currentCompanyId)") >= 2
-
-        start = js.index("async function loadLicenseStatus()")
-        body = js[start:js.index("function showLicenseExpired", start)]
-        assert "_buildApiOpts('GET', null, TOKEN, currentCompanyId)" in body
-        assert "fetch('/api/trade/license/status', opts)" in body
-
-        assert "_buildApiOpts('POST', {code}, TOKEN, currentCompanyId)" in js
+        # 前端不再拉取许可证状态，也不再提交激活码 —— 自然不存在泄漏 token 的调用。
+        assert "/api/trade/license/status" not in js
+        assert "/api/trade/license/activate" not in js
+        assert "loadLicenseStatus" not in js
+        assert "doActivate" not in js
+        # 其余 API 仍统一通过 _buildApiOpts 附加会话 token。
+        assert "opts.headers['X-Hermes-Session-Token'] = token" in js
 
 
 class TestConversationSaveScope:

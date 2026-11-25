@@ -17,9 +17,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     } catch(_) {}
 
-    // 许可证状态检查（等结果再恢复视图：避免试用用户先把付费页渲染出来）。
-    // loadLicenseStatus 内部有 2 秒超时，到点走 fail-open，不会无限拖住初始化。
-    await loadLicenseStatus();
+    // 本地构建无许可证门禁：直接恢复所有入口的可见性。
+    _applyLicenseGates();
 
     try {
         await loadCompanies();
@@ -48,15 +47,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             startVersionCheck();
             return;
         }
-        // 恢复之前的视图或默认打开今日简报；付费视图对试用用户回落到简报
+        // 恢复之前的视图或默认打开今日简报（所有入口均可直接访问）
         let restoreView = reloadState?.view || 'chat';
         let restoreCtx = reloadState?.chatCtx || 'daily';
         let restoreName = reloadState?.chatName || '今日简报';
-        if (_isPaidDestination(restoreView, restoreCtx) && !_licenseGateAllowsPaid()) {
-            restoreView = 'chat';
-            restoreCtx = 'daily';
-            restoreName = '今日简报';
-        }
         navToView(restoreView, restoreCtx, restoreName);
         // 恢复滚动位置（等 DOM 渲染完成后）
         if (reloadState?.scrollY > 0) {
@@ -72,23 +66,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 // 页面关闭时清理轮询
 window.addEventListener('beforeunload', () => { stopCronPolling(); stopVersionCheck(); });
 
-// 许可证是整机一份：license.json 被删除/替换后，回到页面时重新判定。
-// 后端会按 trial/expired 返回，前端据此立即隐藏付费入口，不需要刷新页面。
-window.addEventListener('focus', () => { loadLicenseStatus(); });
-document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) loadLicenseStatus();
-});
-
 function renderNoCompanyPage() {
     // 清除视图缓存
     for (const key in viewCache) {
         viewCache[key].element.remove();
         delete viewCache[key];
     }
-    // 「创建公司」始终保留（试用用户也要能建第一家公司）；导入是付费能力
-    const importBtn = _licenseGateAllowsPaid()
-        ? '<button data-act="showImportCompanyDialog">' + btnIcon('upload') + ' 导入已有公司数据</button>'
-        : '';
+    // 「创建公司」与「导入公司数据」均可用；导入不再受许可证限制。
+    const importBtn = '<button data-act="showImportCompanyDialog">' + btnIcon('upload') + ' 导入已有公司数据</button>';
     _replaceMainContent('<div class="empty-state"><div class="empty-icon">🏢</div>'
         + '<h2>请先选择或创建公司</h2><p>Trade AI 为多公司隔离架构</p>'
         + '<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">'
@@ -181,7 +166,6 @@ function renderNoCompanyPage() {
         'deleteConversation',
         'deleteCustomTemplate',
         'deleteOrder',
-        'doActivate',
         'doRestartTrade',
         'doTradeUpdate',
         'editTemplatePrompt',
@@ -219,7 +203,6 @@ function renderNoCompanyPage() {
         'saveCustomerDetail',
         'saveOrder',
         'sendMsg',
-        'showActivateModal',
         'showAddCompanyModal',
         'showAddCustomTemplateModal',
         'showAddLibraryModal',

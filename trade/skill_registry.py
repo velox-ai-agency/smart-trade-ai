@@ -741,24 +741,24 @@ STOP RULE（防止无效搜索）:
             "采购商列表（按进口量排序）+ 供应商列表 + "
             "市场趋势分析 + 价格区间 + 目标客户优先级排序"
         ),
-        "augment_prompt": """你是 b2b-customs-data 技能。当用户需要分析海关进出口数据、找采购商、做市场调研或竞品分析时，请执行以下步骤：
+        "augment_prompt": """You are b2b-customs-data skill. When users need to analyze customs import/export data, find buyers, conduct market research, or competitor analysis, follow this workflow:
 
-1. 加载 skill: b2b-customs-data
-2. 确认输入：
-   - 有数据文件（CSV/Excel）：读取并分析
-   - 无数据文件：从用户提供的产品/市场信息给出分析方法论
-3. 分析维度：
-   - 采购商分析：按进口量排序，找出TOP10买家，分析购买频率和价格敏感度
-   - 供应商分析：按出口量排序，分析主要竞争者市场份额
-   - 市场趋势：近N个月进口量变化，判断是增长还是萎缩
-   - 价格区间：该产品的CIF/FOB价格分布
-   - 目标客户优先级：A级（高频率大批量）/ B级（稳定中等）/ C级（低频小量）
-4. 返回：
-   - 采购商表格：公司名 | 国家 | 进口量 | 频率 | 价格敏感度 | 推荐等级
-   - 市场洞察：3个关键发现
-   - 具体行动：如何接触A类客户 + 差异化话术建议
+1. Load skill: b2b-customs-data
+2. Confirm input:
+   - Has data file (CSV/Excel) → Read and analyze completely
+   - No data file → Based on user-provided product/market info, give analytical methodology
+3. Analyze dimensions:
+   - Buyer analysis: Sort by import volume, identify TOP10 buyers, analyze purchase frequency and price sensitivity
+   - Supplier analysis: Sort by export volume, analyze main competitors' market share
+   - Market trends: Import volume changes past N months, determine growth or decline
+   - Price range: CIF/FOB price distribution for this product
+   - Target customer priority: Class A (high frequency/bulk) / Class B (stable medium) / Class C (low frequency/small volume)
+4. Return:
+   - Buyer table: Company | Country | Import volume | Frequency | Price sensitivity | Recommended level
+   - Market insights: 3 key findings
+   - Specific actions: How to reach Class A customers + Differentiated messaging suggestions
 
-**数据溯源（强制）**：每条关键发现必须标注来源——数据文件的分析注明文件名+列名+行号；无文件时的市场判断注明来源 URL 或明确标注「分析推断，非实际数据」。绝不编造具体数字或公司名。""",
+**Data provenance (Mandatory)**: Every key finding must be attributed → Data file analysis → filename + column name + row number; Market judgment without file → source URL or explicitly marked "analytical inference, not actual data". No fabricating specific numbers or company names.""",
     },
     {
         "name": "b2b-onboarding",
@@ -1616,49 +1616,37 @@ STOP RULE（防止无效搜索）:
         "aliases": ["b2b-lead-generation", "b2b-customs-data"],
         "input_fmt": "任务（找货源 / 挖竞品国内厂家 / 找国内客户）+ 品类 + 地域 + 筛选条件（规模/认证/是否出口）",
         "output_fmt": "线索清单（公司/主营/地区/规模线索/工厂或贸易商/联系方式及来源/匹配度）+ 挖竞品模式额外输出竞品对标表与差异化机会 + 首触话术 + 人工核对项",
-        "augment_prompt": """你是 b2b-china-leads 技能 — 国内企业线索挖掘（**免费公开渠道版**）。
+        "augment_prompt": """You are b2b-china-leads skill - Domestic Enterprise Lead Mining (**Free Public Channel Version**).
 
-三种任务，先判定用户要哪一种，再按对应打法执行：
-① **找货源厂家（主）**：在国内找生产厂（把贸易商和真工厂分开），自己采购或帮海外买家找厂。
-② **挖竞品国内厂家（重点）**：根据用户自家产品找国内同款/同类产品厂家 —— 关键第一步是把
-   产品翻译成 **HS 编码**，再用海关出口记录（b2b-customs-data）反查同码出口商。
-③ **找国内客户**：在国内找采购方（卖给中国公司）。
+There are three types of tasks. First determine which one the user wants, and then execute them according to the corresponding method:
+① **Find the source manufacturer (main)**: Find a domestic manufacturer (separate traders and real factories) - purchase by yourself or help overseas buyers find factories.
+② **Poach Domestic Manufacturers of Competing Products (Key)**: Based on user's own products, find domestic manufacturers producing the same/similar products —— the key first step is to translate the product into **HS code**, and then use customs export records (b2b-customs-data) to check exporters with the same code.
+③ **Find domestic customers**: Find buyers in China (sell equipment/materials/services to Chinese companies).
 
-⛔ 四条硬红线（违反即失败）：
-1. **不批量抓取**企查查/天眼查/1688/国家企业信用信息公示系统 —— 不绕登录、不绕验证码、
-   不导出、不转售；平台页面只作**人工核对**（把链接给用户，让他自己看）。
-   检索保持人工量级：同一平台翻页 ≤ 3 页、连续查询 ≤ 10 次，超了就停手、把链接交给用户。
-2. **只用公开可见信息**：搜索引擎收录页、企业官网、公开名录、公开公告。
-3. **没有来源的电话/邮箱一律不得写进线索表** —— 编造联系方式比少给几条严重得多。
-4. 个人信息谨慎：优先企业公开联系方式；个人手机号/私人邮箱只在有明确商业事由时给出。
+⛔ Four hard red lines (violation means failure):
+1. **Do not crawl in batches** Qichacha/Tianyancha/1688/National Enterprise Credit Information Publicity System —— no bypassing login, no bypassing verification codes, no exporting, no reselling; platform pages only perform **manual verification** (give the link to the user so they can view it themselves).
+   Search remains at manual level: same platform page turning ≤ 3 pages, continuous queries ≤ 10 times; stop when you reach it, give the link to the user.
+2. **Only use publicly visible information**: search engine inclusion pages, corporate official websites, public directories, and public announcements.
+3. **No phone/email without a source may be added to the lead list** — making up contact information is much more serious than giving a few less.
+4. Personal information with caution: priority to corporate public contact information; personal mobile phone/private email only provided when there is a clear business reason.
 
-跨技能：需要海关数据时用 **skill_view 工具加载 b2b-customs-data**（要开发信口径则加载
-b2b-cold-outreach），加载后按其正文流程继续 —— 一次只注入一个技能，被点名的技能不会自动在场。
+Cross-skill: When customs data is needed, use the `skill_view` tool to load b2b-customs-data (load b2b-cold-outreach for outreach letter style); after loading, continue according to its text process — only one skill is injected at a time, the named skill will not be automatically present.
 
-执行流程：
-0. 需求四问：哪种任务（找货源/挖竞品/找客户）？品类？地域？筛选条件？
-   —— 挖竞品还要问自家产品的型号/规格/材质（对标用）。
-1. **先定位产业带**（永康五金/古镇灯饰/东莞模具/绍兴纺织/南通家纺/佛山陶瓷/汕头玩具/
-   安吉椅业/丹阳眼镜…）—— 按产业带搜比泛搜"厂家"命中率高一个量级；表外品类先
-   web_search "{品类} 产业带/产业集群" 现场查。
-2. 按模式搜源（免费。中文搜源：同一需求换 2–3 个 query 角度分别搜，单 query 质量不稳定）：
-   - 找货源：搜索引擎 site: 挖掘（`site:1688.com {品类} {地区}`，只读搜索结果页）
-     ＋ 展会名录 ＋ 海关出口记录 ＋ 1688 比价（详情页留给用户）
-   - 挖竞品：HS 编码 → b2b-customs-data 反查同码出口商 → 同类展会参展商 → 平台同款
-     → 竞品官网（Products/News）→ 领英（招外贸业务员=在拓海外=威胁升级）
-   - 找客户：招聘信号（招采购/QC/设备工程师=采购与扩产信号）＋ 招投标公告（招标方=买家）
-3. 逐家核对补全：官网 About/Contact → 规模/认证线索；工商信息**给 gsxt.gov.cn 查询链接
-   让用户自己查**，工具不抓取；判断**工厂还是贸易商**（"批发/经销"字样、产品线跨品类、
-   无厂房/招工信息 → 多半是贸易商）。
-4. 输出线索表（公司/主营/地区/规模线索/工厂或贸易商/联系方式及来源 URL/匹配度 A/B/C）
-   + 每家一句"为什么匹配"；挖竞品模式额外输出**竞品对标表**（产地/对标产品/价格带/
-   主销市场/认证/威胁度）+ **差异化机会** 3-5 条（价格带/市场/认证/产品空档）
-   + 首触话术（参照 b2b-cold-outreach）+ 需人工核对的三项。
+Execution process:
+0. Four questions about requirements: which task (find source/analyze competitors/find customers)? Category? Region? Filter conditions?
+   —— For competitor analysis, also ask your product's model/specification/material (for benchmarking).
+1. **First locate the industrial belt** (Yongkang Hardware/Guzhen Lighting/Dongguan Mold/Shaoxing Textile/Nantong Home Textiles/Foshan Ceramics/Shantou Toys/Anji Furniture/Danyang Glasses...)—— searching by industrial belt has much higher hit rate for "manufacturer"; for categories not in the table, use web_search "{category} industrial belt/industrial cluster" to check on site.
+2. Search by mode (free channel, change 2–3 query angles for the same requirement, single query quality is unstable):
+   - Find sources: search engine + exhibition directory + customs export records + 1688 price comparison
+   - Digging competitors: HS code → reverse check customs export records for domestic exporters with same code → exhibitors at similar exhibitions → same models on platforms → competitor official websites (Products/News) → LinkedIn (recruiting foreign trade sales = expanding overseas = escalation threat)
+   - Find customers: recruitment signals (recruiting procurement/QC/equipment engineers = procurement and expansion signal) + tender announcements
+3. Verify and complete house by house: official website About/Contact → scale/certification clues; industrial and commercial information **give query link to gsxt.gov.cn for user to check**, tool does not capture; judge **factory or trader** ("wholesale/distribution" wording, product lines spanning categories, no factory/garden recruitment info = mostly trader).
+4. Output clue table (company/main business/region/scale clues/factory or trader/contact info and source URL/match degree A/B/C)
+   + One sentence for each company "why it matches"; competitor analysis mode additionally outputs **competitive product benchmarking table** (origin/dominated product/price range/main sales market/certification/threat level) + **differentiation opportunities** 3-5 items (price range/market/certification/product gap)
+   + First-touch script (reference b2b-cold-outreach) + three items for manual verification.
 
-每条线索必须标注来源与查询日期；查不到写"未检索到"，不许推测填空。
-**诚实边界要说清**：免费渠道覆盖不全（详情页多需登录、收录有滞后），交付的是
-"线索 + 来源链接"，最终确认由人工完成；海关记录反查不到内销为主的竞品（靠展会/平台补）；
-国内贸易商常冒充工厂，判断线索是厂房/产线/招工信息的有无。""",
+Each clue must be marked with source and query date; if not found, write "not found", no speculation filling.
+**Honest boundary**: Free channel coverage is incomplete (many detail pages require login, inclusion lags), deliverable is "clues + source links", final confirmation is done manually; customs export records reverse check does not cover domestic-focused competitors (supplemented by exhibitions/platforms); domestic traders often impersonate factories, judging clues depends on presence of factory/garden information.""",
     },
     {
         "name": "b2b-tender-mail",

@@ -30,11 +30,6 @@ def _init_db():
     return _do_init()
 
 
-def _check_license():
-    """检查许可证，返回 (ok, message)。"""
-    from trade.license import check_license
-    return check_license()
-
 
 # ── Session token ────────────────────────────────────────────────────────────
 
@@ -1159,12 +1154,7 @@ def create_app() -> FastAPI:
     if _running_version:
         print(f"  Version:  v{_running_version}")
 
-    # 许可证检查：到期不影响服务启动（chat 端点在每次请求时校验），
-    # 但打印醒目提示引导用户激活
-    lic_ok, lic_msg = _check_license()
-    if not lic_ok:
-        print(f"\n  ⚠️  {lic_msg}")
-        print("  Chat 接口已限制，请通过前端获取激活码。\n")
+    # 本地构建不需要许可证检查：所有功能默认可用。
 
     # 注入 session token
     from trade.api.deps import set_session_token
@@ -1181,39 +1171,7 @@ def create_app() -> FastAPI:
     from trade.api import router as trade_router
     app.include_router(trade_router, prefix="/api/trade")
 
-    # ── 到期软着陆：只读浏览保留，业务写入被挡 ─────────────────────────────
-    # 允许的写入：激活/许可证状态、系统维护（更新/重启/备份/skills）、切公司。
-    # GET 一律放行 —— 历史、产品库、已生成草稿仍然可看。
-    _READ_ONLY_EXEMPT_PREFIXES = (
-        "/api/trade/license/",
-        "/api/trade/system/",
-    )
-
-    def _write_allowed_when_read_only(path: str) -> bool:
-        if path.startswith(_READ_ONLY_EXEMPT_PREFIXES):
-            return True
-        if path.endswith("/switch"):  # 切公司是 POST，但只影响浏览
-            return True
-        if path == "/api/trade/skills/update":  # 维护动作，不产生业务价值
-            return True
-        return False
-
-    @app.middleware("http")
-    async def _license_read_only_guard(request: Request, call_next):
-        if request.method in {"POST", "PUT", "PATCH", "DELETE"}:
-            path = request.url.path
-            if path.startswith("/api/trade/") and not _write_allowed_when_read_only(path):
-                # 与 check_license 共用自恢复：假 tampered（升级签名格式漂移）
-                # 不能只挡写接口，否则小白只会觉得「建客户全失败」。
-                from trade.license import ensure_license_state
-
-                state, message = ensure_license_state()
-                if state in ("expired", "tampered"):
-                    return JSONResponse(
-                        status_code=402,
-                        content={"detail": message},
-                    )
-        return await call_next(request)
+    # 本地构建已移除到期只读门禁：所有写入请求正常放行。
 
     # Health check
     @app.get("/api/status", include_in_schema=False)

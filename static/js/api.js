@@ -94,7 +94,6 @@ async function api(method, path, body, extraHeaders, options) {
                 if (recovered !== null) return recovered;
                 if (!silent) toast(t('toast.no_company'));
             }
-            else if (r.status === 402) { if (!silent) showLicenseExpired(msg); }
             else if (r.status === 404) { if (!silent) toast(msg); }
             else if (r.status === 409) { if (!silent) toast(msg); }
             // 5xx / 429 是「用户需要看清原因」的失败，常驻显示
@@ -111,230 +110,31 @@ async function api(method, path, body, extraHeaders, options) {
 
 // ── 许可证 ──
 
-// #region license-gate
-// 是否已付费激活（整机一份，见 trade/license.py）。
-// 试用 / 到期 / tampered / license.json 被删 → activated=false，付费入口隐藏。
-let _licenseActivated = false;
-// 许可证状态读取失败/超时：付费界面 fail-open（可用性优先；界面隐藏不是安全边界）。
-// 注意：license.json 被删时接口会正常返回 trial/expired，走成功分支，不会置这个标记。
+// #region license-gate (本地构建：始终开放)
+// 原来的试用期/激活门禁已移除。所有入口默认可见，所有判定一律返回「允许」。
+let _licenseActivated = true;
 let _licenseGateUnknown = false;
 
-// 与左侧被 data-paid 隐藏的三组栏目保持一致：
-// 销售转化（customers/docs/docgen）、工具（osint/tasks）、历史（history）。
-const _PAID_VIEWS = new Set(['customers', 'tasks', 'history']);
-const _PAID_CHAT_CTX = new Set(['docs', 'docgen', 'osint']);
-
 function _isPaidDestination(view, chatCtx) {
-    return _PAID_VIEWS.has(view) || (view === 'chat' && _PAID_CHAT_CTX.has(chatCtx || ''));
+    // 兼容旧调用方；本地构建不再区分付费/免费入口，永远返回 false。
+    return false;
 }
 
 function _licenseGateAllowsPaid() {
-    return _licenseActivated || _licenseGateUnknown;
+    return true;
 }
 
-/**
- * 按许可证状态开关付费功能的界面入口。
- * - 所有 [data-paid] 元素：默认 hidden，付费激活（或状态读取失败 fail-open）后显示；
- * - 「导入公司数据」那一行与公司列表「导出」按钮沿用同一判定；
- * - 状态变化时若公司弹窗正开着就重画一次。
- */
+/** 兼容旧调用方：只负责把可能被旧 HTML 隐藏的入口恢复显示。 */
 function _applyLicenseGates() {
-    const showPaid = _licenseGateAllowsPaid();
-    document.querySelectorAll('[data-paid]').forEach(el => {
-        el.classList.toggle('hidden', !showPaid);
-    });
+    document.querySelectorAll('[data-paid]').forEach(el => el.classList.remove('hidden'));
     const row = document.getElementById('import-company-row');
-    if (row) row.classList.toggle('hidden', !showPaid);
+    if (row) row.classList.remove('hidden');
     const modal = document.getElementById('company-modal');
-    if (modal && !modal.classList.contains('hidden')) loadCompanyListUI();
-    // 运行中失去付费权限（例如 license.json 被删除后窗口重新聚焦）：如果当前正停在
-    // 付费视图上，退回今日简报，避免内容继续可见。初始化阶段 currentCompanyId 还是
-    // 空，不会在这里触发跳转。
-    if (!showPaid
-            && typeof currentCompanyId !== 'undefined' && currentCompanyId
-            && typeof currentView !== 'undefined'
-            && _isPaidDestination(currentView, currentChatContext)
-            && typeof navToView === 'function') {
-        navToView('chat', 'daily', '今日简报');
+    if (modal && !modal.classList.contains('hidden') && typeof loadCompanyListUI === 'function') {
+        loadCompanyListUI();
     }
 }
 // #endregion license-gate
-
-// #region license-bar
-/** 剩余多少天以内算「即将到期」（与后端 trade/license.py 同一口径）。 */
-const LICENSE_EXPIRING_DAYS = 7;
-
-/**
- * 许可证状态条文案（纯函数，不碰 DOM）。
- * 返回 { text: 内嵌 HTML, tone: 'ok'|'warn'|'danger'|'info' }；未知状态 text 为空。
- */
-function _licenseBarText(data) {
-    const d = data || {};
-    const status = d.status || '';
-    const days = (typeof d.days_remaining === 'number') ? d.days_remaining : 999;
-    const expires = d.expires_at ? String(d.expires_at).slice(0, 10) : '';
-    const isExpired = status === 'expired';
-    const isTampered = status === 'tampered';
-    const isExpiring = status === 'active' && days <= LICENSE_EXPIRING_DAYS;
-    const codeBg = (isExpired || isTampered || (status === 'active' && days === 0))
-        ? '#FEE2E2'
-        : (days <= LICENSE_EXPIRING_DAYS ? '#FEF3C7' : '#DBEAFE');
-    const reqCodeHtml = d.request_code
-        ? ' · ' + t('license.req_code') + ': <code style="background:' + codeBg + ';padding:1px 6px;border-radius:3px;font-size:11px;user-select:all;cursor:text;" data-act="copySelf">' + esc(d.request_code) + '</code>'
-        : '';
-
-    if (isExpired) {
-        // 软着陆：说明数据还在、只是起草暂停，并保留激活入口
-        return {
-            text: '⚠️ ' + t('license.expired') + ' · ' + t('license.expired_soft')
-                + ' · <a href="#" data-act="showActivateModal" style="color:#DC2626;text-decoration:underline;">' + t('license.activate_btn') + '</a>' + reqCodeHtml,
-            tone: 'danger',
-        };
-    }
-    if (isExpiring) {
-        return {
-            text: '✅ ' + t('license.active') + ' · ' + t('license.expiring') + (expires ? ' ' + expires : '')
-                + ' · <a href="#" data-act="showActivateModal" style="color:' + (days === 0 ? '#DC2626' : '#D97706') + ';text-decoration:underline;font-weight:600;">' + t('license.activate_btn') + '</a>' + reqCodeHtml,
-            tone: days === 0 ? 'danger' : 'warn',
-        };
-    }
-    if (status === 'active') {
-        // >7 天：写「有效期至」，不再误标「即将到期」
-        return {
-            text: '✅ ' + t('license.active') + (expires ? ' · ' + t('license.valid_until') + ' ' + expires : ''),
-            tone: 'ok',
-        };
-    }
-    if (status === 'trial') {
-        let text = '<span class="i i-16" style="--i:url(\'/static/icons/lucide-clock.svg\')"></span> ' + t('license.trial') + ' ' + t('license.days_left', { n: days })
-            + ' · <a href="#" data-act="showActivateModal" style="color:' + (days <= LICENSE_EXPIRING_DAYS ? '#D97706' : '#2563EB') + ';text-decoration:underline;">' + t('license.activate_btn') + '</a>' + reqCodeHtml;
-        // 第 20 天起显示价值小结（只报真实事件数，不估算）
-        if (d.trial_summary) {
-            const ts = d.trial_summary;
-            text += '<div style="margin-top:4px;font-size:11px;opacity:.9;">📊 '
-                + esc(t('license.trial_summary')
-                    .replace('{drafts}', String(ts.drafts || 0))
-                    .replace('{inquiries}', String(ts.inquiries || 0))
-                    .replace('{lookups}', String(ts.product_lookups || 0)))
-                + '</div>';
-        }
-        return { text: text, tone: days <= LICENSE_EXPIRING_DAYS ? 'warn' : 'info' };
-    }
-    if (isTampered) {
-        return {
-            text: '⚠️ License Error · <a href="#" data-act="showActivateModal" style="color:#DC2626;text-decoration:underline;font-weight:600;">Reactivate</a>' + reqCodeHtml,
-            tone: 'danger',
-        };
-    }
-    return { text: '', tone: 'info' };
-}
-
-/** tone → 状态条底色/文字色（保持改动前的配色）。 */
-function _licenseBarStyle(tone) {
-    if (tone === 'danger') return { background: '#FEF2F2', color: '#991B1B' };
-    if (tone === 'warn') return { background: '#FFFBEB', color: '#92400E' };
-    if (tone === 'ok') return { background: '#F0FDF4', color: '#166534' };
-    return { background: '#EFF6FF', color: '#1E40AF' };
-}
-// #endregion license-bar
-
-async function loadLicenseStatus() {
-    const ctrl = new AbortController();
-    // 本地接口正常是毫秒级；超时也不锁界面，走下面的 fail-open。
-    // 2 秒：初始化会 await 这个调用，不能让许可证接口把整个界面拖住。
-    const timeoutId = setTimeout(() => ctrl.abort(), 2000);
-    try {
-        const opts = _buildApiOpts('GET', null, TOKEN, currentCompanyId);
-        opts.signal = ctrl.signal;
-        const r = await fetch('/api/trade/license/status', opts);
-        if (!r.ok) throw new Error('license status ' + r.status);
-        const data = await r.json();
-        _licenseActivated = !!data.activated;
-        _licenseGateUnknown = false;
-        const bar = document.getElementById('license-bar');
-        if (!bar) return;
-
-        const _lb = _licenseBarText(data);
-        if (!_lb.text) { bar.style.display = 'none'; return; }
-        bar.style.display = 'block';
-        const _tone = _licenseBarStyle(_lb.tone);
-        bar.style.background = _tone.background;
-        bar.style.color = _tone.color;
-        bar.innerHTML = _lb.text;
-    } catch(e) {
-        // 读不到状态（网络/401/超时）：付费 UI fail-open，不能因为本地接口抖动
-        // 把付费用户的栏目全部藏掉。license.json 被删时接口正常返回 trial/expired，
-        // 走上面的成功分支，会隐藏付费入口。
-        _licenseGateUnknown = true;
-    } finally {
-        clearTimeout(timeoutId);
-        _applyLicenseGates();
-    }
-}
-
-function showLicenseExpired(msg) {
-    const div = document.createElement('div');
-    div.className = 'modal-backdrop';
-    div.innerHTML = '<div class="modal" style="text-align:center;max-width:420px;">' +
-        '<h3>⏰ ' + esc(msg || t('license.expired')) + '</h3>' +
-        '<p style="margin:8px 0;color:var(--text-secondary);">' + (currentLang==='en'?'Contact Roger Lococo for activation':'请联系 Roger Lococo 获取激活码继续使用') + '</p>' +
-        '<img src="/static/wechat-contact.jpeg" alt="WeChat QR" style="width:200px;border-radius:8px;margin:8px 0;">' +
-        '<p style="font-size:11px;color:var(--text-muted);">' + (currentLang==='en'?'WeChat QR · Note "Trade"':'微信扫码 · 备注「Trade」') + '</p>' +
-        '<p style="font-size:11px;color:var(--text-muted);">📧 lauroge@gmail.com</p>' +
-        '<button class="btn btn-primary" data-act="showActivateModal">' + t('license.activate_btn') + '</button>' +
-        '<button class="btn" data-act="closeBackdrop" style="margin-top:8px;">' + t('btn.close') + '</button>' +
-    '</div>';
-    document.body.appendChild(div);
-}
-
-async function showActivateModal() {
-    _removeDynamicModals();
-    var reqCode = '';
-    try {
-        var s = await fetch('/api/trade/license/status', _buildApiOpts('GET', null, TOKEN, currentCompanyId));
-        var sd = await s.json();
-        reqCode = sd.request_code || '';
-    } catch(e) {}
-    const div = document.createElement('div');
-    div.className = 'modal-backdrop';
-    div.innerHTML = '<div class="modal" style="text-align:center;">' +
-        '<h3>🔑 ' + (currentLang==='en'?'Activate Trade Assistant':'激活 Trade Assistant') + '</h3>' +
-        '<p style="margin:8px 0;color:var(--text-secondary);">' + (currentLang==='en'?'Send the code below to the author to get an activation code':'请将下方申请码发送给作者获取激活码') + '</p>' +
-        (reqCode ? '<div style="background:var(--bg-secondary);padding:10px 14px;border-radius:var(--radius-sm);font-family:monospace;font-size:16px;letter-spacing:2px;margin:8px 0;cursor:pointer;user-select:all;" data-act="copySelf" title="' + (currentLang==='en'?'Click to copy':'点击复制') + '">' + reqCode + '</div>' : '') +
-        '<input type="text" id="activate-code-input" aria-label="Activation code" placeholder="' + (currentLang==='en'?'Paste activation code':'粘贴作者提供的激活码') + '" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:monospace;font-size:14px;text-align:center;text-transform:uppercase;margin:12px 0;">' +
-        '<button class="btn btn-primary" data-act="doActivate" style="margin-top:8px;">' + btnIcon('check') + ' ' + (currentLang==='en'?'Activate':'激活') + '</button>' +
-        '<button class="btn" data-act="closeBackdrop">' + t('btn.cancel') + '</button>' +
-        '<p id="activate-msg" style="margin-top:10px;font-size:12px;"></p>' +
-    '</div>';
-    document.body.appendChild(div);
-    setTimeout(() => document.getElementById('activate-code-input')?.focus(), 100);
-}
-
-async function doActivate() {
-    const input = document.getElementById('activate-code-input');
-    const msg = document.getElementById('activate-msg');
-    const code = input.value.trim();
-    if (!code) { msg.textContent = currentLang === 'en' ? 'Please enter the activation code' : '请输入激活码'; msg.style.color = 'var(--accent-red)'; return; }
-    try {
-        const r = await fetch('/api/trade/license/activate',
-            _buildApiOpts('POST', {code}, TOKEN, currentCompanyId));
-        const data = await r.json();
-        if (data.ok) {
-            msg.textContent = data.message;
-            msg.style.color = 'var(--accent-green)';
-            setTimeout(() => {
-                _removeDynamicModals();
-                loadLicenseStatus();
-            }, 1500);
-        } else {
-            msg.textContent = data.error || t('toast.activate_fail');
-            msg.style.color = 'var(--accent-red)';
-        }
-    } catch(e) {
-        msg.textContent = t('toast.network_retry');
-        msg.style.color = 'var(--accent-red)';
-    }
-}
 
 // ── 重启协调 ──
 // 清理前端运行时缓存，但保留用户上下文（trade_cid 让重启后不必重新选公司）

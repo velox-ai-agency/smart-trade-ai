@@ -14,12 +14,12 @@ async function renderCustomersViewInto(container) {
     container.innerHTML = `
         <div class="cust-page">
             <div class="cust-head">
-                <h2 class="cust-title">${currentLang === 'en' ? 'Customers' : '客户列表'}<span class="cust-idx">ASSET INDEX</span>${coName ? '<span class="cust-co">'+esc(coName)+'</span>' : ''}</h2>
+                <h2 class="cust-title">${langText('客户列表','Customers')}<span class="cust-idx">ASSET INDEX</span>${coName ? '<span class="cust-co">'+esc(coName)+'</span>' : ''}</h2>
                 <div id="cust-summary-bar" class="cust-summary"></div>
                 <div class="cust-head-actions">
-                    <button class="btn" id="cust-import-btn">${typeof iconHtml==='function'?iconHtml('download',15):''} ${currentLang==='en'?'Import CSV':'导入 CSV'}</button>
+                    <button class="btn" id="cust-import-btn">${typeof iconHtml==='function'?iconHtml('download',15):''} ${langText('导入 CSV','Import CSV')}</button>
                     <input type="file" id="cust-bulk-file" accept=".csv" style="display:none;" data-onchange="bulkImportCustomers">
-                    <button class="btn primary" data-act="showCustomerEditModal">＋ ${currentLang==='en'?'New customer':'新建客户'}</button>
+                    <button class="btn primary" data-act="showCustomerEditModal">＋ ${langText('新建客户','New customer')}</button>
                 </div>
             </div>
             <div class="cust-filters">
@@ -32,22 +32,22 @@ async function renderCustomersViewInto(container) {
                     <button type="button" data-tier="C">C</button>
                     <button type="button" data-tier="none">${t('cust.field.tier_none')}</button>
                 </div>
-                <span class="flt-lbl">${currentLang==='en'?'Country':'国家'}</span>
+                <span class="flt-lbl">${langText('国家','Country')}</span>
                 <select id="cust-country-filter" aria-label="国家" data-onchange="filterCustomers">
-                    <option value="">${currentLang==='en'?'All Countries':'全部国家'}</option>
+                    <option value="">${langText('全部国家','All Countries')}</option>
                 </select>
-                <span class="flt-lbl">${currentLang==='en'?'Buyer type':'买家类型'}</span>
+                <span class="flt-lbl">${langText('买家类型','Buyer type')}</span>
                 <select id="cust-buyer-filter" aria-label="买家类型" data-onchange="filterCustomers">
-                    <option value="">${currentLang==='en'?'All Buyer Types':'全部类型'}</option>
+                    <option value="">${langText('全部类型','All Buyer Types')}</option>
                 </select>
                 <div class="cust-seg" id="cust-stage-seg" role="group" aria-label="商机阶段"></div>
-                <button type="button" class="cust-star-toggle" id="cust-starred-toggle" data-act="toggleStarredFilter">${btnIcon('star')} ${currentLang==='en'?'Starred only':'只看星标'}</button>
-                <button type="button" class="cust-star-toggle" id="cust-overdue-toggle" data-act="toggleOverdueFilter">${btnIcon('triangle-exclamation-point')} ${currentLang==='en'?'Overdue only':'只看逾期'}</button>
-                <span class="flt-lbl">${currentLang==='en'?'Sort':'排序'}</span>
+                <button type="button" class="cust-star-toggle" id="cust-starred-toggle" data-act="toggleStarredFilter">${btnIcon('star')} ${langText('只看星标','Starred only')}</button>
+                <button type="button" class="cust-star-toggle" id="cust-overdue-toggle" data-act="toggleOverdueFilter">${btnIcon('triangle-exclamation-point')} ${langText('只看逾期','Overdue only')}</button>
+                <span class="flt-lbl">${langText('排序','Sort')}</span>
                 <select id="cust-sort" aria-label="排序" data-onchange="filterCustomers">
-                    <option value="follow_up">${currentLang==='en'?'Follow-up first':'待跟进优先'}</option>
-                    <option value="name">${currentLang==='en'?'By name':'按名称排序'}</option>
-                    <option value="updated_at">${currentLang==='en'?'Recently updated':'按最近跟进'}</option>
+                    <option value="follow_up">${langText('待跟进优先','Follow-up first')}</option>
+                    <option value="name">${langText('按名称排序','By name')}</option>
+                    <option value="updated_at">${langText('按最近跟进','Recently updated')}</option>
                 </select>
             </div>
             <div class="cust-table-wrap">
@@ -283,14 +283,14 @@ function _refreshCustomerFilterOptions() {
     const bSel = $('cust-buyer-filter');
     if (cSel) {
         const cur = cSel.value;
-        cSel.innerHTML = '<option value="">' + (currentLang === 'en' ? 'All Countries' : '全部国家') + '</option>' +
+        cSel.innerHTML = '<option value="">' + (langText('全部国家','All Countries')) + '</option>' +
             [...countries].sort().map(function (v) {
                 return '<option value="' + esc(v) + '"' + (cur === v ? ' selected' : '') + '>' + esc(v) + '</option>';
             }).join('');
     }
     if (bSel) {
         const cur = bSel.value;
-        bSel.innerHTML = '<option value="">' + (currentLang === 'en' ? 'All Buyer Types' : '全部买家类型') + '</option>' +
+        bSel.innerHTML = '<option value="">' + (langText('全部买家类型','All Buyer Types')) + '</option>' +
             [...buyers].sort().map(function (v) {
                 return '<option value="' + esc(v) + '"' + (cur === v ? ' selected' : '') + '>' + esc(v) + '</option>';
             }).join('');
@@ -366,14 +366,14 @@ function renderCustomersTable(data) {
         if (c.order_total_amount != null && c.order_total_currency) {
             amt = esc(c.order_total_currency + ' ' + _custFmtMoney(c.order_total_amount));
         } else if (Object.keys(byCur).length > 1) {
-            amt = currentLang === 'en' ? 'Multi' : '多币种';
+            amt = langText('多币种','Multi');
         }
         let followHtml = '<span class="muted">—</span>';
-        if (overdue) followHtml = '<span class="od">⚠ ' + (currentLang === 'en' ? 'Overdue ' : '逾期 ') + od + (currentLang === 'en' ? 'd' : ' 天') + '</span>';
-        else if (follow) followHtml = '<span>' + esc(follow === today ? (currentLang === 'en' ? 'Today' : '今天') : _custShortDate(follow)) + '</span>';
+        if (overdue) followHtml = '<span class="od">⚠ ' + (langText('逾期 ','Overdue ')) + od + (langText(' 天','d')) + '</span>';
+        else if (follow) followHtml = '<span>' + esc(follow === today ? (langText('今天','Today')) : _custShortDate(follow)) + '</span>';
         const processBtn = overdue
             ? (' <button type="button" class="cust-process" data-act="openFollowUpModal" data-stop="1" data-arg="' + c.id + '">' +
-                (currentLang === 'en' ? 'Resolve' : '处理') + '</button>')
+                (langText('处理','Resolve')) + '</button>')
             : '';
         let dots = '';
         for (let i = 1; i <= 4; i++) dots += '<i class="' + (i <= si ? 'on' : '') + '"></i>';
@@ -386,7 +386,7 @@ function renderCustomersTable(data) {
             '<div class="rsub">' + esc([contact, title].filter(Boolean).join(' · ') || '—') + '</div></td>' +
             '<td class="c-tier">' + (tier
                 ? '<span class="tchip tier-' + esc(String(tier).toLowerCase()) + '">' + esc(tier) + '</span>'
-                : '<span class="tchip none">' + (currentLang === 'en' ? 'n/a' : '未分级') + '</span>') + '</td>' +
+                : '<span class="tchip none">' + (langText('未分级','n/a')) + '</span>') + '</td>' +
             '<td>' + esc(country || '—') + '</td>' +
             '<td>' + esc(buyer || '—') + '</td>' +
             '<td class="c-stage"><span class="stage-dots">' + dots + '</span><span class="stage-tx">' + esc(stage) + '</span></td>' +
@@ -405,11 +405,11 @@ function renderCustomersTable(data) {
 function _custRenderFoot(start, end, total, pages, sortBy) {
     const f = $('cust-foot');
     if (!f) return;
-    if (!total) { f.innerHTML = '<span class="foot-range">' + (currentLang === 'en' ? 'No customers' : '暂无客户') + '</span>'; return; }
+    if (!total) { f.innerHTML = '<span class="foot-range">' + (langText('暂无客户','No customers')) + '</span>'; return; }
     const noteMap = {
-        follow_up: currentLang === 'en' ? 'Follow-up first · overdue → today → next date' : '按「待跟进优先」· 逾期 → 今天 → 下次跟进日期',
-        name: currentLang === 'en' ? 'Sorted by name' : '按名称排序',
-        updated_at: currentLang === 'en' ? 'Recently updated' : '按最近跟进',
+        follow_up: langText('按「待跟进优先」· 逾期 → 今天 → 下次跟进日期','Follow-up first · overdue → today → next date'),
+        name: langText('按名称排序','Sorted by name'),
+        updated_at: langText('按最近跟进','Recently updated'),
     };
     let pager = '';
     for (let p = 1; p <= pages; p++) {
@@ -430,8 +430,8 @@ function _custRenderStageSeg() {
         if (counts[st] != null) counts[st]++;
     });
     const order = ['', '询盘', '报价', '样品', '订单'];
-    const labels = { '': (currentLang === 'en' ? 'All' : '全部'), '询盘': '询盘', '报价': '报价', '样品': '样品', '订单': '订单' };
-    seg.innerHTML = '<span class="seg-lbl">' + (currentLang === 'en' ? 'Stage' : '商机阶段') + '</span>' +
+    const labels = { '': (langText('全部','All')), '询盘': '询盘', '报价': '报价', '样品': '样品', '订单': '订单' };
+    seg.innerHTML = '<span class="seg-lbl">' + (langText('商机阶段','Stage')) + '</span>' +
         order.map(function (k) {
             return '<button type="button" data-stage="' + esc(k) + '"' + (_custStage === k ? ' class="on"' : '') + '>' +
                 esc(labels[k]) + ' <b>' + counts[k] + '</b></button>';
@@ -443,7 +443,7 @@ function _custGoPage(p) { _custPage = p; renderCustomersTable(_custFiltered); }
 function toggleStarredFilter() {
     _custStarred = !_custStarred;
     const b = $('cust-starred-toggle');
-    if (b) { b.classList.toggle('on', _custStarred); b.innerHTML = btnIcon('star') + ' ' + (currentLang === 'en' ? 'Starred only' : '只看星标'); }
+    if (b) { b.classList.toggle('on', _custStarred); b.innerHTML = btnIcon('star') + ' ' + (langText('只看星标','Starred only')); }
     filterCustomers();
 }
 
@@ -452,7 +452,7 @@ function toggleOverdueFilter() {
     const b = $('cust-overdue-toggle');
     if (b) {
         b.classList.toggle('on', _custOverdueOnly);
-        b.innerHTML = btnIcon('triangle-exclamation-point') + ' ' + (currentLang === 'en' ? 'Overdue only' : '只看逾期');
+        b.innerHTML = btnIcon('triangle-exclamation-point') + ' ' + (langText('只看逾期','Overdue only'));
     }
     filterCustomers();
 }
@@ -470,21 +470,21 @@ function openFollowUpModal(cid) {
     const today = _todayYmd();
     bd.innerHTML =
         '<div class="modal" style="width:520px;max-width:94vw;">' +
-        '<h3 style="margin:0 0 6px;">' + (currentLang === 'en' ? 'Resolve follow-up' : '跟进处理') + '</h3>' +
+        '<h3 style="margin:0 0 6px;">' + (langText('跟进处理','Resolve follow-up')) + '</h3>' +
         '<p class="muted" style="font-size:12.5px;margin:0 0 14px;">' + esc(c.name) +
-        ' · ' + (currentLang === 'en' ? 'was due ' : '原跟进日 ') + esc(follow) +
-        ' · ' + (currentLang === 'en' ? 'overdue ' : '逾期 ') + od + (currentLang === 'en' ? 'd' : ' 天') + '</p>' +
+        ' · ' + (langText('原跟进日 ','was due ')) + esc(follow) +
+        ' · ' + (langText('逾期 ','overdue ')) + od + (langText(' 天','d')) + '</p>' +
         '<label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:10px;">' +
-        '<input type="checkbox" id="fu-no-more"> ' + (currentLang === 'en' ? 'No more follow-up (clear date)' : '不再跟进（清空下次跟进日）') + '</label>' +
-        '<div class="form-group"><label for="fu-date">' + (currentLang === 'en' ? 'Next follow-up date' : '下次跟进日') + '</label>' +
+        '<input type="checkbox" id="fu-no-more"> ' + (langText('不再跟进（清空下次跟进日）','No more follow-up (clear date)')) + '</label>' +
+        '<div class="form-group"><label for="fu-date">' + (langText('下次跟进日','Next follow-up date')) + '</label>' +
         '<input type="date" id="fu-date" value="' + esc(today) + '"></div>' +
-        '<div class="form-group"><label for="fu-note">' + (currentLang === 'en' ? 'Note (optional)' : '本次跟进备注（可选）') + '</label>' +
+        '<div class="form-group"><label for="fu-note">' + (langText('本次跟进备注（可选）','Note (optional)')) + '</label>' +
         '<textarea id="fu-note" rows="3" style="width:100%;box-sizing:border-box;"></textarea></div>' +
         '<p class="muted" style="font-size:11.5px;margin:0 0 14px;">' +
-        (currentLang === 'en' ? 'This customer then leaves the overdue list; a timeline event is recorded.' : '处理后该客户不再计入逾期；处理记录会出现在客户详情时间线。') + '</p>' +
+        (langText('处理后该客户不再计入逾期；处理记录会出现在客户详情时间线。','This customer then leaves the overdue list; a timeline event is recorded.')) + '</p>' +
         '<div style="display:flex;gap:8px;justify-content:flex-end;">' +
-        '<button type="button" id="fu-cancel">' + (currentLang === 'en' ? 'Cancel' : '取消') + '</button>' +
-        '<button type="button" class="primary" id="fu-submit">' + (currentLang === 'en' ? 'Save & resolve' : '保存并解决逾期') + '</button>' +
+        '<button type="button" id="fu-cancel">' + (langText('取消','Cancel')) + '</button>' +
+        '<button type="button" class="primary" id="fu-submit">' + (langText('保存并解决逾期','Save & resolve')) + '</button>' +
         '</div></div>';
     document.body.appendChild(bd);
     bd.addEventListener('click', function (e) { if (e.target === bd) bd.remove(); });
@@ -498,18 +498,18 @@ function openFollowUpModal(cid) {
         const resolved = noMore.checked;
         const nd = dateEl.value;
         const note = (document.getElementById('fu-note').value || '').trim();
-        if (!resolved && !nd) { toast(currentLang === 'en' ? 'Pick a date or mark no follow-up' : '请选择下次跟进日，或勾选不再跟进'); return; }
+        if (!resolved && !nd) { toast(langText('请选择下次跟进日，或勾选不再跟进','Pick a date or mark no follow-up')); return; }
         const btn = this;
         btn.disabled = true;
-        btn.textContent = currentLang === 'en' ? 'Saving…' : '保存中…';
+        btn.textContent = langText('保存中…','Saving…');
         const r = await api('POST', '/api/trade/customers/' + cid + '/follow-up', {
             next_follow_up_date: resolved ? null : nd,
             resolved: resolved,
             note: note,
         });
-        if (!r) { btn.disabled = false; btn.textContent = currentLang === 'en' ? 'Save & resolve' : '保存并解决逾期'; return; }
+        if (!r) { btn.disabled = false; btn.textContent = langText('保存并解决逾期','Save & resolve'); return; }
         bd.remove();
-        toast(currentLang === 'en' ? 'Resolved; overdue badge updated' : '已处理，逾期角标已更新');
+        toast(langText('已处理，逾期角标已更新','Resolved; overdue badge updated'));
         await loadCustomersData();
     });
 }
@@ -630,7 +630,7 @@ function closeCustomerWall() {
             tl.textContent = wall._prevTop.l;
             wall._prevTop = null;
         } else if (typeof currentView !== 'undefined' && currentView === 'customers') {
-            tt.textContent = currentLang === 'en' ? 'Customers' : '客户管理';
+            tt.textContent = langText('客户管理','Customers');
             tl.textContent = '/ CUSTOMERS';
         }
     }
@@ -668,7 +668,7 @@ async function openCustomerWall(cid) {
         api('GET', `/api/trade/customers/${cid}/inquiries`),
     ]);
     if (!ov || !ov.customer) {
-        toast(currentLang === 'en' ? 'Failed to load customer wall' : '加载客户详情失败');
+        toast(langText('加载客户详情失败','Failed to load customer wall'));
         return;
     }
     const mailRecords = Array.isArray(mailRes)
@@ -701,8 +701,8 @@ async function openCustomerWall(cid) {
         return c.is_important_fallback;
     }) && keyChats.some(function (c) { return c.is_important; });
     const talksTitle = talksAreImportant
-        ? (currentLang === 'en' ? 'Key talks' : '重要对话')
-        : (currentLang === 'en' ? 'Recent talks' : '最近对话');
+        ? (langText('重要对话','Key talks'))
+        : (langText('最近对话','Recent talks'));
     const emailStatN = (stats.email_count != null) ? stats.email_count : (mailboxBound ? mailRecords.length : fileEmails.length);
     const talkStatN = (stats.key_talk_count != null) ? stats.key_talk_count : keyChats.length;
     const quoteCount = stats.quote_count || 0;
@@ -735,7 +735,7 @@ async function openCustomerWall(cid) {
 
     // 关联人物
     let peopleHtml = sect('sec-people') +
-        '<div class="ch"><span class="t">' + (typeof iconHtml === 'function' ? iconHtml('user-round', 16) : '') + (currentLang === 'en' ? 'People' : '人物') + '</span>' +
+        '<div class="ch"><span class="t">' + (typeof iconHtml === 'function' ? iconHtml('user-round', 16) : '') + (langText('人物','People')) + '</span>' +
         '<span class="ch-acts"><button type="button" class="lnk" id="wall-add-contact">' + t('contacts.add') + '</button></span>' +
         '<span class="ch-lbl">PERSONS · ' + people.length + '</span></div>';
     if (!people.length) {
@@ -745,10 +745,10 @@ async function openCustomerWall(cid) {
             const isPrimary = !!p.is_primary || p.id == null;
             const ini = String(p.name || '?').trim().slice(0, 2).toUpperCase();
             const role = ([(p.title || '').trim(), (p.responsibility || '').trim()].filter(Boolean).join(' · ')
-                || p.function || (isPrimary ? (currentLang === 'en' ? 'Primary contact' : '主要联系人') : ''));
+                || p.function || (isPrimary ? (langText('主要联系人','Primary contact')) : ''));
             const fname = (p.function || (isPrimary
-                ? (currentLang === 'en' ? 'Decision maker' : '决策人')
-                : (currentLang === 'en' ? 'Other' : '其他')));
+                ? (langText('决策人','Decision maker'))
+                : (langText('其他','Other'))));
             const acts = isPrimary
                 ? ('<a href="#" class="lnk wall-edit-primary">' + t('contacts.edit') + '</a>')
                 : ('<a href="#" class="lnk wall-edit-contact" data-id="' + esc(String(p.id)) + '">' + t('contacts.edit') + '</a>' +
@@ -776,9 +776,9 @@ async function openCustomerWall(cid) {
 
     // 订单
     let ordersHtml = sect('sec-orders') +
-        chHead(currentLang === 'en' ? 'Orders' : '订单', 'ORDERS · ' + orders.length, 'package');
+        chHead(langText('订单','Orders'), 'ORDERS · ' + orders.length, 'package');
     if (!orders.length) {
-        ordersHtml += '<div class="wall-empty">' + (currentLang === 'en' ? 'No orders yet' : '暂无订单记录') + '</div>';
+        ordersHtml += '<div class="wall-empty">' + (langText('暂无订单记录','No orders yet')) + '</div>';
     } else {
         const steps = currentLang === 'en'
             ? ['Quote', 'Ordered', 'Shipped', 'Done'] : ['报价中', '已下单', '已出货', '已完成'];
@@ -788,7 +788,7 @@ async function openCustomerWall(cid) {
             const filled = cancelled ? 0 : Math.round(prog / 100 * 4);
             const amt = (o.total_amount != null && o.total_amount !== '')
                 ? ((o.currency || 'USD') + ' ' + Number(o.total_amount).toLocaleString('en-US'))
-                : (currentLang === 'en' ? 'Price TBD' : '金额待谈');
+                : (langText('金额待谈','Price TBD'));
             const items = o.items || [];
             const product = items.length
                 ? (items[0].product_name + (items.length > 1 ? ' 等' + items.length + '项' : ''))
@@ -799,7 +799,7 @@ async function openCustomerWall(cid) {
             const logistics = [[o.incoterm, o.port_of_loading].filter(Boolean).join(' '), o.payment_terms || '', o.lead_time_text || ''].filter(Boolean).join(' / ');
             const containerLine = [o.container, o.port_of_loading].filter(Boolean).join(' ');
             let shipLine = '';
-            if (o.shipped_at) shipLine = String(o.shipped_at).slice(0, 7).replace('-', '.') + (currentLang === 'en' ? ' shipped' : ' 出货');
+            if (o.shipped_at) shipLine = String(o.shipped_at).slice(0, 7).replace('-', '.') + (langText(' 出货',' shipped'));
             else if (o.delivery_date) shipLine = o.delivery_date;
             let segs = '', labels = '';
             for (let i = 0; i < 4; i++) {
@@ -814,7 +814,7 @@ async function openCustomerWall(cid) {
                 '<span class="amt">' + esc(amt) + '</span></div>' +
                 '<div class="pn">' + esc(product) + '<span>' + esc(qty) + '</span></div>' +
                 (cancelled
-                    ? '<div class="r3"><span>' + (currentLang === 'en' ? 'Cancelled' : '已取消') + '</span></div>'
+                    ? '<div class="r3"><span>' + (langText('已取消','Cancelled')) + '</span></div>'
                     : ('<div class="prog">' + segs + '</div><div class="prog-l">' + labels + '</div>')) +
                 (r3 ? '<div class="r3">' + r3 + '</div>' : '') +
                 '</div>';
@@ -823,9 +823,9 @@ async function openCustomerWall(cid) {
     ordersHtml += '</div>';
 
     // 邮件
-    let mailHtml = sect('sec-mail') + '<div class="ch"><span class="t">' + (typeof iconHtml === 'function' ? iconHtml('mail', 16) : '') + (currentLang === 'en' ? 'Email' : '邮件') + '</span>';
+    let mailHtml = sect('sec-mail') + '<div class="ch"><span class="t">' + (typeof iconHtml === 'function' ? iconHtml('mail', 16) : '') + (langText('邮件','Email')) + '</span>';
     if (mailboxBound) {
-        mailHtml += '<span class="ch-acts"><button type="button" class="lnk" id="wall-email-refresh">' + (currentLang === 'en' ? 'Refresh' : '刷新') + '</button></span>';
+        mailHtml += '<span class="ch-acts"><button type="button" class="lnk" id="wall-email-refresh">' + (langText('刷新','Refresh')) + '</button></span>';
     }
     mailHtml += '<span class="ch-lbl">MAIL · ' + (mailboxBound ? mailRecords.length : emailDetails.length) + '</span></div>';
     const addrList = emailDetails.length
@@ -838,21 +838,20 @@ async function openCustomerWall(cid) {
                 const isPri = typeof em === 'object' && em.is_primary;
                 mailHtml += '<div class="addr">' + (typeof iconHtml === 'function' ? iconHtml('mail', 16) : '') +
                     '<span class="mono">' + esc(addr) + '</span>' +
-                    (isPri ? '<span class="chip k" style="margin-left:auto">' + (currentLang === 'en' ? 'Primary' : '主') + '</span>' : '') + '</div>';
+                    (isPri ? '<span class="chip k" style="margin-left:auto">' + (langText('主','Primary')) + '</span>' : '') + '</div>';
             });
         } else {
-            mailHtml += '<div class="wall-empty">' + (currentLang === 'en' ? 'No email on file' : '暂无邮箱') + '</div>';
+            mailHtml += '<div class="wall-empty">' + (langText('暂无邮箱','No email on file')) + '</div>';
         }
-        mailHtml += '<div class="mail-note">' + (currentLang === 'en'
-            ? 'Addresses only — bind a mailbox to read mail.' : '只显示邮箱地址，不读取邮箱') + '</div>' +
+        mailHtml += '<div class="mail-note">' + (langText('只显示邮箱地址，不读取邮箱','Addresses only — bind a mailbox to read mail.')) + '</div>' +
             '<button type="button" class="lnk" id="wall-goto-mailboxes" style="margin-top:6px;">' +
-            (currentLang === 'en' ? 'Open Mailboxes' : '去绑定邮箱') + '</button>';
+            (langText('去绑定邮箱','Open Mailboxes')) + '</button>';
     } else if (!mailRecords.length) {
-        mailHtml += '<div class="wall-empty">' + (currentLang === 'en' ? 'No synced emails yet.' : '暂无已同步的邮件记录') + '</div>';
+        mailHtml += '<div class="wall-empty">' + (langText('暂无已同步的邮件记录','No synced emails yet.')) + '</div>';
     } else {
         mailHtml += '<div id="wall-email-grid">';
         mailRecords.forEach(function (m, idx) {
-            const subj = m.subject || (currentLang === 'en' ? '(no subject)' : '（无主题）');
+            const subj = m.subject || (langText('（无主题）','(no subject)'));
             const party = m.from_addr || '';
             const dt = (m.received_at || '').slice(0, 16).replace('T', ' ');
             mailHtml += '<div class="it wall-mail-card" data-mail-idx="' + idx + '" style="cursor:pointer;">' +
@@ -867,7 +866,7 @@ async function openCustomerWall(cid) {
     // 对话
     let talksHtml = sect('sec-talks') + chHead(talksTitle, 'TALKS · ' + keyChats.length, 'message-circle');
     if (!keyChats.length) {
-        talksHtml += '<div class="wall-empty">' + (currentLang === 'en' ? 'No conversations linked' : '暂无关联对话') + '</div>';
+        talksHtml += '<div class="wall-empty">' + (langText('暂无关联对话','No conversations linked')) + '</div>';
     } else {
         keyChats.forEach(function (conv) {
             const talkTitle = (conv.title || '').trim() || (conv.query || '').slice(0, 120);
@@ -875,7 +874,7 @@ async function openCustomerWall(cid) {
             const dt = (conv.created_at || '').slice(5, 10).replace('-', '.');
             talksHtml += '<div class="it" data-conv-id="' + esc(String(conv.id || '')) + '" data-conv-summary="' + esc(conv.summary || '') + '">' +
                 '<div class="r1"><span class="dot' + (conv.is_important ? '' : ' k') + '"></span><span class="wall-talk-title" style="cursor:text;" title="' +
-                esc(currentLang === 'en' ? 'Double-click to edit' : '双击编辑标题') + '">' + esc(talkTitle) + '</span>' +
+                esc(langText('双击编辑标题','Double-click to edit')) + '">' + esc(talkTitle) + '</span>' +
                 '<span class="mono">' + esc(dt) + '</span></div>' +
                 '<p class="wall-talk-summary">' + esc(talkSummary) + '</p></div>';
         });
@@ -893,9 +892,9 @@ async function openCustomerWall(cid) {
     const tlLabel = 'TIMELINE · LAST 60 DAYS' + (timeline.length > _TL_LIMIT
         ? (currentLang === 'en' ? (' · LATEST ' + _TL_LIMIT) : (' · 最近 ' + _TL_LIMIT + ' 条'))
         : '');
-    let timelineHtml = sect('sec-timeline') + chHead(currentLang === 'en' ? 'Timeline' : '互动时间线', tlLabel, 'clock') + '<div class="tl">';
+    let timelineHtml = sect('sec-timeline') + chHead(langText('互动时间线','Timeline'), tlLabel, 'clock') + '<div class="tl">';
     if (!timeline.length) {
-        timelineHtml += '<div class="wall-empty">' + (currentLang === 'en' ? 'No activity yet' : '暂无互动记录') + '</div>';
+        timelineHtml += '<div class="wall-empty">' + (langText('暂无互动记录','No activity yet')) + '</div>';
     } else {
         tlShown.forEach(function (t) {
             const kind = t.kind || '';
@@ -913,34 +912,34 @@ async function openCustomerWall(cid) {
     timelineHtml += '</div></div>';
 
     // header 标签 chips + threat
-    const tierChip = e1.tier ? ('<span class="chip on">' + (currentLang === 'en' ? 'TIER ' : '客户分级 ') + esc(e1.tier) + '</span>') : '';
+    const tierChip = e1.tier ? ('<span class="chip on">' + (langText('客户分级 ','TIER ')) + esc(e1.tier) + '</span>') : '';
     const locVals = [e1.country, e1.city].filter(Boolean);
     const locChip = locVals.length ? ('<span class="chip k">' + esc(locVals.join(' · ')) + '</span>') : '';
     const btChip = e1.buyer_type ? ('<span class="chip k">' + esc(e1.buyer_type) + '</span>') : '';
-    const stageChip = '<span class="chip k">' + (currentLang === 'en' ? 'Stage · ' : '商机阶段 · ') + esc(stage) + '</span>';
+    const stageChip = '<span class="chip k">' + (langText('商机阶段 · ','Stage · ')) + esc(stage) + '</span>';
     const starred = Number(c.is_starred) === 1;
     const starHtml = '<span class="star' + (starred ? ' on' : '') + '" role="button" title="' +
-        (currentLang === 'en' ? 'Toggle star' : '切换星标') + '" style="cursor:pointer;" data-act="toggleWallStar" data-event="1" data-arg="' + cid + '">' +
+        (langText('切换星标','Toggle star')) + '" style="cursor:pointer;" data-act="toggleWallStar" data-event="1" data-arg="' + cid + '">' +
         (typeof iconHtml === 'function' ? iconHtml('star', 18) : '★') + '</span>';
     const threatHtml = overdue
-        ? ('<span class="tri-d"></span>' + (currentLang === 'en' ? 'OVERDUE ' : '已逾期 ') + overdueDays + (currentLang === 'en' ? ' D' : ' 天'))
-        : ('<span class="tri-d"></span>TODAY <span style="color:var(--muted)">→</span><span class="cn">' + esc(follow || (currentLang === 'en' ? 'Follow-up' : '待跟进')) + '</span>');
+        ? ('<span class="tri-d"></span>' + (langText('已逾期 ','OVERDUE ')) + overdueDays + (langText(' 天',' D')))
+        : ('<span class="tri-d"></span>TODAY <span style="color:var(--muted)">→</span><span class="cn">' + esc(follow || (langText('待跟进','Follow-up'))) + '</span>');
 
     // 4 格 KPI
     const statTotalHtml = multiCurrency
         ? esc(Object.keys(byCurrency).map(function (k) { return k + ' ' + Number(byCurrency[k]).toLocaleString('en-US'); }).join(' · '))
         : (hasAmount ? '0' : '—');
     const statsHtml = '<div class="stats">' +
-        '<div><span class="n">' + (stats.people_count || people.length) + '</span><span class="d"><span class="lbl">PERSONS</span>' + (currentLang === 'en' ? 'People' : '关联人物') + '</span></div>' +
-        '<div><span class="n">' + (stats.order_count || orders.length) + '</span><span class="d"><span class="lbl">ORDERS</span>' + (currentLang === 'en' ? 'Orders' : '订单数') + (quoteCount ? (' · ' + quoteCount + (currentLang === 'en' ? ' quoting' : ' 单报价中')) : '') + '</span></div>' +
-        '<div><span class="n" id="wall-stat-total">' + statTotalHtml + '</span><span class="d"><span class="lbl">TOTAL · ' + esc(orderCurrency || (Object.keys(byCurrency)[0] || 'USD')) + '</span>' + (currentLang === 'en' ? 'Order total' : '订单总额') + '</span></div>' +
+        '<div><span class="n">' + (stats.people_count || people.length) + '</span><span class="d"><span class="lbl">PERSONS</span>' + (langText('关联人物','People')) + '</span></div>' +
+        '<div><span class="n">' + (stats.order_count || orders.length) + '</span><span class="d"><span class="lbl">ORDERS</span>' + (langText('订单数','Orders')) + (quoteCount ? (' · ' + quoteCount + (langText(' 单报价中',' quoting'))) : '') + '</span></div>' +
+        '<div><span class="n" id="wall-stat-total">' + statTotalHtml + '</span><span class="d"><span class="lbl">TOTAL · ' + esc(orderCurrency || (Object.keys(byCurrency)[0] || 'USD')) + '</span>' + (langText('订单总额','Order total')) + '</span></div>' +
         '<div><span class="n">' + emailStatN + '<small>/</small>' + talkStatN + '</span><span class="d"><span class="lbl">MAIL / KEY TALKS</span>' + (currentLang === 'en' ? ('Mail ' + emailStatN + ' · talks ' + talkStatN) : ('邮件 ' + emailStatN + ' · 对话 ' + talkStatN)) + '</span></div>' +
         '</div>';
 
     wall.innerHTML =
         '<div class="det">' +
         '<div class="det-head">' +
-        '<button type="button" class="wall-back" id="wall-back">' + (currentLang === 'en' ? '← Back to list' : '← 返回客户列表') + ' <kbd>ESC</kbd></button>' +
+        '<button type="button" class="wall-back" id="wall-back">' + (langText('← 返回客户列表','← Back to list')) + ' <kbd>ESC</kbd></button>' +
         '<div class="subject bracket">' + starHtml +
         '<span class="nm">' + esc(c.name) + '</span>' +
         '<div class="facts2">' + tierChip + locChip + btChip + stageChip +
@@ -952,18 +951,18 @@ async function openCustomerWall(cid) {
         '</div>' +
         '</div>' +
         '<div class="det-actions">' +
-        '<button type="button" class="primary" id="wall-edit">' + (currentLang === 'en' ? 'Edit profile' : '编辑档案') + '</button>' +
+        '<button type="button" class="primary" id="wall-edit">' + (langText('编辑档案','Edit profile')) + '</button>' +
         '<button type="button" id="wall-open-profile">' + t('profile.open') + '</button>' +
-        '<button type="button" id="wall-visit">' + (currentLang === 'en' ? 'Site visit' : '验厂') + '</button>' +
-        '<button type="button" id="wall-add-order">' + (currentLang === 'en' ? 'Add order' : '添加订单') + '</button>' +
-        '<label class="da-lbl">' + (currentLang === 'en' ? 'Stage' : '商机阶段') + ' <select id="wall-stage">' + (function () {
+        '<button type="button" id="wall-visit">' + (langText('验厂','Site visit')) + '</button>' +
+        '<button type="button" id="wall-add-order">' + (langText('添加订单','Add order')) + '</button>' +
+        '<label class="da-lbl">' + (langText('商机阶段','Stage')) + ' <select id="wall-stage">' + (function () {
             const wallSel = _customerStageAuto(c) ? '自动' : stage;
             return _CRM_STAGES.map(function (s) {
                 return '<option value="' + esc(s) + '"' + (wallSel === s ? ' selected' : '') + '>' + esc(s) + '</option>';
             }).join('') + '<option value="自动"' + (wallSel === '自动' ? ' selected' : '') + '>' + esc(t('inquiry.stage_auto')) + '</option>';
         })() + '</select></label>' +
-        '<label class="da-lbl">' + (currentLang === 'en' ? 'Follow-up' : '下次跟进') + ' <input type="date" id="wall-follow" value="' + esc(follow) + '"></label>' +
-        '<button type="button" id="wall-stage-save">' + (currentLang === 'en' ? 'Save' : '保存') + '</button>' +
+        '<label class="da-lbl">' + (langText('下次跟进','Follow-up')) + ' <input type="date" id="wall-follow" value="' + esc(follow) + '"></label>' +
+        '<button type="button" id="wall-stage-save">' + (langText('保存','Save')) + '</button>' +
         '</div>' +
         statsHtml +
         '<div class="wall3">' +
@@ -982,7 +981,7 @@ async function openCustomerWall(cid) {
     const _tl = document.getElementById('app-top-lbl');
     if (_tt && _tl) {
         if (!wall._prevTop) wall._prevTop = { t: _tt.textContent, l: _tl.textContent };
-        _tt.textContent = currentLang === 'en' ? 'Customer' : '客户详情';
+        _tt.textContent = langText('客户详情','Customer');
         _tl.textContent = '/ ASSET PROFILE';
     }
     $('wall-back')?.focus();
@@ -1019,12 +1018,12 @@ async function openCustomerWall(cid) {
             // 摘要默认值取库里真实 summary，不取卡片兜底显示的 AI 回复片段
             const curSummary = card ? (card.getAttribute('data-conv-summary') || '') : '';
             const title = window.prompt(
-                currentLang === 'en' ? 'Talk title (max 60)' : '对话标题（最多 60 字）',
+                langText('对话标题（最多 60 字）','Talk title (max 60)'),
                 curTitle
             );
             if (title == null) return;
             const summary = window.prompt(
-                currentLang === 'en' ? 'Talk summary (max 200)' : '对话摘要（最多 200 字）',
+                langText('对话摘要（最多 200 字）','Talk summary (max 200)'),
                 curSummary
             );
             if (summary == null) return;
@@ -1035,7 +1034,7 @@ async function openCustomerWall(cid) {
             if (!r) return;
             el.textContent = title.trim() || curTitle;
             if (sumEl) sumEl.textContent = summary.trim() || curSummary;
-            toast(currentLang === 'en' ? 'Saved' : '已保存');
+            toast(langText('已保存','Saved'));
         });
     });
     wall.querySelectorAll('.wall-edit-contact').forEach(function (a) {
@@ -1126,7 +1125,7 @@ async function openCustomerWall(cid) {
         btn.disabled = true;
         var restore = (typeof TradeWait !== 'undefined') ? TradeWait.inline(btn, {en: 'PULLING', zh: '拉取中'}) : null;
         try {
-            if (!restore) btn.textContent = currentLang === 'en' ? 'Pulling…' : '拉取中…';
+            if (!restore) btn.textContent = langText('拉取中…','Pulling…');
             await api('POST', '/api/trade/mailboxes/pull-all');
         } finally {
             if (restore) restore();
@@ -1220,17 +1219,17 @@ async function showCustomerDetail(cid) {
     backdrop.className = 'slide-panel-backdrop';
     backdrop.id = 'customer-detail-panel';
     backdrop.onclick = function(e) { if (e.target === backdrop) closeCustomerDetail(); };
-    var scoreLabels = {1:currentLang==='en'?'Low':'低',3:currentLang==='en'?'Med':'中',5:currentLang==='en'?'High':'高'};
+    var scoreLabels = {1:langText('低','Low'),3:langText('中','Med'),5:langText('高','High')};
     // value 固定中文（与新建客户弹窗、后端既有数据一致），英文界面只翻译显示文本。
     // 旧版英文界面曾把 "Brand" 这类英文值写进 extra1，这里兼容读回（审计 P2-19）。
     var buyerTypeOptions = [
-        ['品牌商', currentLang==='en'?'Brand':'品牌商'],
-        ['分销商', currentLang==='en'?'Distributor':'分销商'],
-        ['代理商', currentLang==='en'?'Agent':'代理商'],
-        ['安装商', currentLang==='en'?'Installer':'安装商'],
-        ['维保商', currentLang==='en'?'Maintenance':'维保商'],
-        ['同行', currentLang==='en'?'Competitor':'同行'],
-        ['其他', currentLang==='en'?'Other':'其他'],
+        ['品牌商', langText('品牌商','Brand')],
+        ['分销商', langText('分销商','Distributor')],
+        ['代理商', langText('代理商','Agent')],
+        ['安装商', langText('安装商','Installer')],
+        ['维保商', langText('维保商','Maintenance')],
+        ['同行', langText('同行','Competitor')],
+        ['其他', langText('其他','Other')],
     ];
     var _legacyBuyerType = {
         'Brand':'品牌商','Distributor':'分销商','Agent':'代理商','Installer':'安装商',
@@ -1298,7 +1297,7 @@ async function showCustomerDetail(cid) {
                 ${libs.map(l => `
                 <div class="panel-linked-lib">
                     📄 ${esc(l.name)}
-                    <span class="unlink-btn" data-act="unlinkCustomerLib" data-arg="${c.id}" data-arg2="${l.id}" title="${currentLang==='en'?'Unlink':'取消关联'}">×</span>
+                    <span class="unlink-btn" data-act="unlinkCustomerLib" data-arg="${c.id}" data-arg2="${l.id}" title="${langText('取消关联','Unlink')}">×</span>
                 </div>`).join('')}
             </div>
             <div style="margin-top:8px;display:flex;gap:6px;">
@@ -2017,8 +2016,8 @@ function _profilePersonLabel(item, people) {
     const at = item.attach_to || 'none';
     if (at === 'primary') {
         const p = (people || []).find(function (x) { return x.id == null || x.is_primary; });
-        const nm = p && p.name ? p.name : (currentLang === 'en' ? 'Primary' : '主联系人');
-        return ' · ' + (currentLang === 'en' ? 'Primary ' : '主联系人 ') + nm;
+        const nm = p && p.name ? p.name : (langText('主联系人','Primary'));
+        return ' · ' + (langText('主联系人 ','Primary ')) + nm;
     }
     if (at === 'contact' && item.contact_id != null) {
         const p = (people || []).find(function (x) { return x.id === item.contact_id; });
@@ -2666,7 +2665,7 @@ async function openCustomerProfile(cid) {
         api('GET', '/api/trade/mailboxes'),
     ]);
     if (!ov || !ov.customer) {
-        toast(currentLang === 'en' ? 'Failed to load profile' : '加载客户画像失败');
+        toast(langText('加载客户画像失败','Failed to load profile'));
         return;
     }
     const c = ov.customer;
@@ -2685,8 +2684,8 @@ async function openCustomerProfile(cid) {
         const ini = String(p.name || '?').trim().slice(0, 2).toUpperCase();
         const role = [(p.title || '').trim(), (p.responsibility || '').trim()].filter(Boolean).join(' · ') || p.function || '';
         const fn = p.function || (isPrimary
-            ? (currentLang === 'en' ? 'Decision maker' : '决策人')
-            : (currentLang === 'en' ? 'Other' : '其他'));
+            ? (langText('决策人','Decision maker'))
+            : (langText('其他','Other')));
         const acts = isPrimary
             ? '<a href="#" class="lnk pf-edit-primary">' + t('contacts.edit') + '</a>'
             : ('<a href="#" class="lnk pf-edit-contact" data-id="' + esc(String(p.id)) + '">' + t('contacts.edit') + '</a>' +
@@ -2710,7 +2709,7 @@ async function openCustomerProfile(cid) {
     const left = renderProfileCircleSection(cid, factsPayload, people, delay, mailboxBound);
     const right = renderProfilePrefsSection(cid, factsPayload, giftsPayload, people, delay, mailboxBound);
 
-    const pfTier = e1.tier ? '<span class="chip on">' + (currentLang === 'en' ? 'TIER ' : '客户分级 ') + esc(String(e1.tier)) + '</span>' : '';
+    const pfTier = e1.tier ? '<span class="chip on">' + (langText('客户分级 ','TIER ')) + esc(String(e1.tier)) + '</span>' : '';
     const pfLocVals = [e1.country, e1.city].filter(Boolean);
     const pfLoc = pfLocVals.length ? '<span class="chip k">' + esc(pfLocVals.join(' · ')) + '</span>' : '';
     const pfBuyer = e1.buyer_type ? '<span class="chip k">' + esc(e1.buyer_type) + '</span>' : '';
@@ -2718,7 +2717,7 @@ async function openCustomerProfile(cid) {
         return '<span class="chip k">' + esc(tag) + '</span>';
     }).join('');
     const pfStar = '<span class="star' + (c.is_starred ? ' on' : '') + '" role="button" style="cursor:pointer;" title="' +
-        (currentLang === 'en' ? 'Toggle star' : '切换星标') + '" data-act="toggleWallStar" data-event="1" data-arg="' + cid + '">★</span>';
+        (langText('切换星标','Toggle star')) + '" data-act="toggleWallStar" data-event="1" data-arg="' + cid + '">★</span>';
 
     panel.innerHTML =
         '<div class="det">' +
@@ -2746,7 +2745,7 @@ async function openCustomerProfile(cid) {
     const _pl = document.getElementById('app-top-lbl');
     if (_pt && _pl) {
         if (!panel._prevTop) panel._prevTop = { t: _pt.textContent, l: _pl.textContent };
-        _pt.textContent = currentLang === 'en' ? 'Profile' : '客户画像';
+        _pt.textContent = langText('客户画像','Profile');
         _pl.textContent = '/ ASSET DOSSIER';
     }
     // 画像页人物卡：编辑主联系人 / 编辑附加联系人 / 删除附加联系人
@@ -2822,7 +2821,7 @@ async function renderVisitPlansViewInto(container) {
         '<div class="visit-page">' +
         '<div class="visit-head">' +
         (bound ? '<button type="button" class="btn" id="visit-back">← ' +
-            (currentLang === 'en' ? 'Back to customer' : '返回客户详情') + '</button>' : '') +
+            (langText('返回客户详情','Back to customer')) + '</button>' : '') +
         '<h2 class="cust-title">验厂计划<span class="cust-idx">SITE VISIT</span>' +
         (boundName ? '<span class="cust-co">' + esc(boundName) + '</span>' : '') + '</h2>' +
         '<div class="visit-chips" id="visit-chips"></div>' +
@@ -3102,7 +3101,7 @@ function _memoPromptPassword(title, withConfirm) {
 async function openCustomerMemo() {
     const sel = $('vp-customer');
     const cid = sel && sel.value ? Number(sel.value) : 0;
-    if (!cid) { toast(currentLang === 'en' ? 'Select a customer first' : '请先选择客户'); return; }
+    if (!cid) { toast(langText('请先选择客户','Select a customer first')); return; }
     const locked = _memoLockedLeft();
     if (locked > 0) { toast('密语已锁定，请 ' + locked + ' 秒后再试'); return; }
     try {

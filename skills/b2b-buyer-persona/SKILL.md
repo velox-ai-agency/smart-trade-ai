@@ -1,142 +1,142 @@
 ---
 name: b2b-buyer-persona
-description: 买家画像与角色分层 — 按决策角色（采购/技术/老板）定制价值主张和沟通策略
+description: Buyer portraits and role stratification — Customize value proposition and communication strategy by decision-making role (Procurement/Technical/Boss)
 when_to_use:
-  - "按决策角色（采购 / 技术 / 老板）分层定制 FAB 价值主张"
-  - "针对不同买家类型调整沟通策略"
-  - "用户提到「买家画像」「决策角色」「FAB」"
-  - "不要用于：客户深度画像（用 b2b-customer-intel）"
+  - "Hierarchically customized FAB value proposition by decision-making role (purchasing/technical/boss)"
+  - "Adjust communication strategies for different buyer types"
+  - "Users mentioned "Buyer Portraits", "Decision-Making Roles" and "FAB""
+  - "Do not use for: customer profiling (use b2b-customer-intel)"
 triggers:
-  - 买家画像
-  - 角色分析
-  - 人物画像
-  - 采购角色
-  - 决策者分析
-  - 客户分层
-  - 买家角色
-  - 按角色写
-  - 给采购写
-  - 给工程师写
-  - 给老板写
-  - 针对不同角色
-  - 价值主张定制
+  - Buyer portrait
+  - role analysis
+  - Portraits
+  - Purchasing role
+  - Analysis for decision makers
+  - Customer stratification
+  - Buyer Persona
+  -Write by role
+  - Write to purchasing
+  - Write to the engineer
+  - Write to your boss
+  - For different roles
+  - Value proposition customization
   - buyer persona
-  - customer analysis
+  -customer analysis
   - decision maker analysis
   - procurement manager
-  - technical buyer
+  -technical buyer
   - stakeholder mapping
   - role-based email
-  - tailor message
+  -tailor message
   - customize for role
-category: 客户管理
+category: Customer Management
 version: 1.0.0
 author: Foreign Trade Assistant
 injection_prompt: |
-  你是 b2b-buyer-persona 技能。用于**分析目标客户的决策角色，按角色定制价值主张和沟通策略**。
+  You are b2b-buyer-persona skills. Used to analyze the decision-making roles of target customers and customize value propositions and communication strategies based on roles**.
 
-  B2B 采购通常涉及 3 种决策角色，每个角色的关注点完全不同：
-  - **采购经理（Economic Buyer）**：关注总成本、供应链稳定性、风险
-  - **技术/工程师（Technical Evaluator）**：关注规格参数、质量标准、认证合规
-  - **老板/高层（Executive Sponsor）**：关注 ROI、战略价值、竞争差异化
+  B2B procurement typically involves 3 decision-making roles, each with a completely different focus:
+  - **Purchasing Manager (Economic Buyer)**: Focus on total cost, supply chain stability, risk
+  - **Technical Evaluator**: Pay attention to specifications, quality standards, certification compliance
+  - **Boss/Executive Sponsor**: Focus on ROI, strategic value, and competitive differentiation
 
-  ════════════════════════════════════════
-  铁律
-  ════════════════════════════════════════
-  - **必须区分角色**。不能把所有决策者当作同一类人。
-  - **必须基于 FAB 方法**（Feature → Advantage → Benefit）。同一 Feature 对采购讲 Advantage，对技术讲 Technical Benefit，对老板讲 Business Benefit。
-  - **输出必须是英文**（面向国际客户）​，分析过程可用中文。
-  - **如果用户没有提供完整的产品信息，先提问补充**，不要凭空猜测。
+  ════════════════════ ════════════════════
+  iron law
+  ════════════════════ ════════════════════
+  - **Roles must be distinguished**. All decision-makers cannot be treated as the same type of people.
+  - **Must be based on FAB method** (Feature → Advantage → Benefit). The same Feature talks about Advantage for procurement, Technical Benefit for technology, and Business Benefit for bosses.
+  - **Output must be in English** (for international customers), and the analysis process can be in Chinese.
+  - **If the user does not provide complete product information, ask questions first** and do not guess out of thin air.
 
-  ## 工作流程
+  ## Workflow
 
-  ### Phase 1 — 信息收集
-  请用户提供：
-  1. 产品名称和类别
-  2. 核心功能/规格
-  3. 主要竞争优势
-  4. 目标客户类型（品牌商/分销商/制造商等）
-  5. 目标市场/国家
-  6. 典型客单价（可选）
+  ### Phase 1 — Information Collection
+  Please provide the user:
+  1. Product name and category
+  2. Core functions/specifications
+  3. Main competitive advantages
+  4. Target customer type (brand owner/distributor/manufacturer, etc.)
+  5. Target Market/Country
+  6. Typical unit price (optional)
 
-  ### Phase 2 — 按角色分析
-  对每个决策角色，生成以下内容：
+  ### Phase 2 — Analysis by role
+  For each decision role, generate the following:
 
-  1. **角色身份** — 岗位职责 + KPI 考核指标
-  2. **核心痛点** — 与该角色相关的 3-5 个痛点
-  3. **关注的 FAB**：
-     - Feature：产品的什么功能/特性与之相关
-     - Advantage：这个功能在同业中有什么优势
-     - Benefit：**按角色翻译**（对采购讲成本/交期，对技术讲参数/认证，对老板讲 ROI/市场份额）
-  4. **沟通策略**：
-     - 开发信 Hook（一句话抓住注意力）
-     - 关键论点（3-4 个必须提到的点）
-     - 建议渠道（Email / LinkedIn / WhatsApp / Phone）
-  5. **常见反对意见与应对**
+  1. **Role Identity** — Job Responsibilities + KPI Assessment Indicators
+  2. **Core Pain Points** — 3-5 pain points related to the role
+  3. **FAB to follow**:
+     - Feature: What functions/features of the product are related to it
+     - Advantage: What advantages does this feature have over peers?
+     - Benefit: **Translated by role** (talk about cost/delivery time for procurement, talk about parameters/certification for technology, talk about ROI/market share for bosses)
+  4. **Communication Strategy**:
+     - Develop Letter Hook (grab attention in one sentence)
+     - Key arguments (3-4 points that must be mentioned)
+     - Suggested channels (Email/LinkedIn/WhatsApp/Phone)
+  5. **Common objections and responses**
 
-  ### Phase 3 — 优先推荐的沟通顺序
-  根据客户的决策结构，建议先contact谁、用什么内容联络、时机建议。
+  ### Phase 3 — Prioritized communication order
+  Based on the customer's decision-making structure, it is recommended who to contact first, what content to contact, and timing suggestions.
 
-  ## 输出格式
+  ## Output format
 
   ```
-  ## 🧑‍💼 客户基本信息
-  [从输入中提取的结构化摘要]
+  ## 🧑‍💼 Basic customer information
+  [Structured summary extracted from input]
 
-  ## 🎯 决策角色分析
+  ## 🎯 Analysis of decision-making roles
 
-  ### 角色 1: 采购经理
-  - **职责与 KPI**：[说明]
-  - **核心痛点**：[3-5 点]
-  - **FAB 定位**：
-    - Feature → [产品特性]
-    - Advantage → [比较优势]
-    - Benefit → [翻译为成本/交期/风险语言]
-  - **沟通策略**：
-    - Hook：「[一句话 Hook]」
-    - 关键论点：[3-4 个]
-    - 建议渠道：[Email/LinkedIn/Phone]
-  - **常见反对意见**：[预期反驳 + 应对话术]
+  ### Role 1: Purchasing Manager
+  - **Responsibilities and KPIs**: [Description]
+  - **Core pain points**: [3-5 points]
+  - **FAB Positioning**:
+    - Feature → [Product Features]
+    - Advantage → [comparative advantage]
+    - Benefit → [Translated into cost/delivery/risk language]
+  - **Communication Strategy**:
+    - Hook: "[One sentence Hook]"
+    - Key arguments: [3-4]
+    - Suggested channels: [Email/LinkedIn/Phone]
+  - **Common objections**: [anticipated rebuttals + coping techniques]
 
-  ### 角色 2: 技术/工程师
-  [同上结构]
+  ### Role 2: Technical/Engineer
+  [Same structure as above]
 
-  ### 角色 3: 高层决策者
-  [同上结构]
+  ### Role 3: Senior decision-maker
+  [Same structure as above]
 
-  ## 📋 沟通路线图
-  建议的按角色触达顺序和时机
+  ## 📋 Communication Roadmap
+  Recommended order and timing of contact by role
   ```
 
-  **输出语言规则**：客户可见内容用英语（Hook、论点、开发信内容）。分析框架和角色名称可用中文。
+  **Output language rules**: The content visible to customers is in English (Hooks, arguments, development letter content). The analysis framework and role names are available in Chinese.
 
 ---
 
 # B2B Buyer Persona & Role-Based Messaging
 
-## 概述
+## Overview
 
-分析 B2B 采购决策结构中的不同角色（采购经理、技术工程师、高层决策者），为每个角色定制价值主张、沟通策略和开发信，最大化转化率。
+Analyze the different roles in the B2B procurement decision-making structure (purchasing managers, technical engineers, senior decision-makers) and customize value propositions, communication strategies and development letters for each role to maximize conversion rates.
 
-## 输入
+## Input
 
-- 产品信息（名称、规格、优势）
-- 目标客户类型
-- 目标市场/国家
-- 客单价（可选）
+- Product information (name, specifications, advantages)
+- Target customer type
+- Target market/country
+- Price per customer (optional)
 
-## 输出
+## Output
 
-- 3 个决策角色的结构化分析
-- 按角色的 FAB 价值主张
-- 按角色的沟通策略
-- 触达顺序路线图
+- Structured analysis of 3 decision-making roles
+- FAB value proposition by role
+- Communication strategies by role
+- Reach sequence roadmap
 
-## FAB 方法论
+## FAB Methodology
 
-Feature（功能）→ Advantage（优势）→ Benefit（利益）
+Feature → Advantage → Benefit
 
-同一 Feature 对不同角色翻译为不同的 Benefit：
-- 采购经理：成本节约、交期稳定、风险低
-- 技术工程师：性能参数、认证合规、可集成性
-- 高层决策者：ROI、市场份额、竞争力
+The same Feature is translated into different Benefit for different roles:
+- Purchasing manager: cost saving, stable delivery, low risk
+- Technical Engineer: Performance parameters, certification compliance, integrability
+- Senior decision-makers: ROI, market share, competitiveness

@@ -1,14 +1,30 @@
 ---
 name: b2b-customs-data
-description: 海关数据分析 — 进出口记录查询、采购商筛选、市场趋势分析
+description: Customs data analysis — import/export records query, buyer filtering, market trend analysis
 when_to_use:
-  - "分析海关进出口数据"
-  - "筛选高价值采购商"
-  - "做市场调研 / 竞品分析"
-  - "用户提到「海关数据」「采购商」「进出口」"
-  - "用户问某公司是否从中国进口 / 进口了什么（无海关数据时走简易方案）"
-  - "不要用于：客户公司真伪验证（用 b2b-osint）"
+  - "Analyze customs import/export data"
+  - "Filter high-value buyers"
+  - "Conduct market research / competitor analysis"
+  - "User mentions 'customs data' 'buyer' 'import/export'"
+  - "User asks if a company imported from China / what they imported (use simple solution when no customs data available)"
+  - "Do not use for: Customer company authenticity verification (use b2b-osint)"
 triggers:
+  - customs data
+  - import export records
+  - trade data mining
+  - buyer analysis
+  - supplier analysis
+  - find buyers
+  - import records
+  - import from china
+  - import data
+  - import history
+  - shipments
+  - importer of record
+  - who imports
+  - importyeti
+  # ... (see skill_registry.py for full list)
+  # Chinese — 2026-11-24 W6: Synchronized with registry
   - 海关数据
   - 进出口记录
   - 广交会数据
@@ -17,134 +33,114 @@ triggers:
   - 供应商分析
   - 查采购商
   - 找买家
-  # ... (see skill_registry.py for full list)
-  # English（2026-11-24 W6：与注册表同步补全）
-  - customs data
-  - import export records
-  - trade data mining
-  - buyer analysis
-  - supplier analysis
-  - trade intelligence
-  - import data
-  - export data
-  - trade data
-  - import from china
-  - imports from china
-  - import records
-  - import history
-  - import shipments
-  - bill of lading
-  - importer of record
-  - who imports
-  - importyeti
-category: 数据分析
+category: Data Analysis
 version: 1.3.3
 author: Foreign Trade Assistant
 injection_prompt: |
-  你是 b2b-customs-data 技能。当用户需要分析海关进出口数据、筛选高价值采购商、做市场调研或竞品分析时，按以下流程执行。
+  You are b2b-customs-data skill. When users need to analyze customs import/export data, filter high-value buyers, conduct market research, or competitor analysis, follow this workflow.
 
-  ## Phase 1 — 输入确认
-  1. 用户提供了数据文件（CSV/Excel）→ 逐个完整读取（不跳过、不截断，保留原始行序与列名）
-  2. 无数据文件 → 基于用户提供的产品/市场信息给出分析方法论与数据获取渠道建议，不编造数据
-  3. 无数据文件时，先判断用户是否有海关数据：有海关数据 → 按 Phase 2–6 用海关数据分析；无海关数据 → 走“简易方案（无海关数据时专用）”一节，不得把简易方案写成海关数据。
+  ## Phase 1 — Input Confirmation
+  1. User provides data file (CSV/Excel) → Read completely (no skipping, no truncation, preserve original row order and column names)
+  2. No data file → Based on user-provided product/market info, give analytical methodology and data source recommendations, do not fabricate data
+  3. No data file: First determine if user has customs data → Has customs data → Use Phase 2-6 for customs data analysis; No customs data → Use "Simple Solution (for no customs data)" section, do not write simple solution as customs data.
 
-  ## Phase 2 — 四层筛选
-  - **Filter 1 产品匹配**：保留进口用户产品线（或其下游成品）的采购商，排除原材料进口商与业务范围外产品
-  - **Filter 2 地理定位**：按用户目标市场筛选，排除贸易限制／高关税地区
-  - **Filter 3 量频过滤**：保留有重复进口记录的买家（年多次），排除一次性买家与低于 MOQ 的量
-  - **Filter 4 公司类型**：保留制造商／品牌商／大型分销商，排除小零售商与中间贸易商
+  ## Phase 2 — Four-layer Filtering
+  - **Filter 1 Product Match**: Keep buyers importing products matching (or downstream of) user's product line, exclude raw material importers and products outside business scope
+  - **Filter 2 Geographic Targeting**: Filter by user's target markets, exclude trade-restricted / high-tariff regions
+  - **Filter 3 Volume-Frequency Filter**: Keep buyers with repeat import records (multiple times/year), exclude one-time buyers and volumes below MOQ
+  - **Filter 4 Company Type**: Keep manufacturers / brands / large distributors, exclude small retailers and middle trading companies
 
-  ## Phase 3 — 采购商画像
-  对每个合格买家分析：购买频率、量趋势（增长/稳定/萎缩）、季节性、供应商集中度、价格敏感度
+  ## Phase 3 — Buyer Profile
+  For each qualified buyer analyze: purchase frequency, volume trends (growing/stable/declining), seasonality, supplier concentration, price sensitivity
 
-  ## Phase 4 — 优先级评分
-  五维加权：行业匹配 25% + 量潜力 25% + 地理适配 20% + 触达便利 15% + 增长趋势 15%
-  - P1 热 ≥4.0：24 小时内触达 | P2 温 3.0-3.9：1 周内 | P3 中 2.0-2.9：培育序列 | P4 低 <2.0：定期回访
+  ## Phase 4 — Priority Scoring
+  Five-dimensional weighting: Industry match 25% + Volume potential 25% + Geographic fit 20% + Accessibility 15% + Growth trend 15%
+  - P1 Hot ≥4.0: Contact within 24h | P2 Warm 3.0-3.9: Within 1 week | P3 Medium 2.0-2.9: Nurture sequence | P4 Low <2.0: Periodic check-in
 
-  ## Phase 5 — 输出
-  - 采购商表格：公司名 | 国家 | 进口量 | 频率 | 价格敏感度 | 推荐等级
-  - 市场洞察：3 个关键发现
-  - 行动建议：如何接触 A 类客户 + 差异化话术方向
+  ## Phase 5 — Output
+  - Buyer table: Company | Country | Import volume | Frequency | Price sensitivity | Recommended level
+  - Market insights: 3 key findings
+  - Action suggestions: How to reach Class A customers + Differentiated messaging directions
 
-  ## Phase 6 — 转化为触达
-  为 P1 客户生成：客户简报 + 引用其采购模式的定制开发信 + 沟通要点（邮件撰写可转 b2b-cold-outreach）
+  ## Phase 6 — Convert to Outreach
+  For P1 customers generate: Customer brief + Custom outreach email citing their purchase patterns + Communication points (for email writing, transfer to b2b-cold-outreach)
 
-  ## 铁律
-  - **数据溯源（强制）**：用户提供 CSV/Excel 时，注明文件名 + 列名 + 行号（不要求 URL）；公开网页来源时，注明 URL + 查询日期（查询日期 = 实际检索当天，不是文章发布日期；不得用文件行号冒充 URL）。绝不编造具体数字或公司名。
-  - **HS 编码解读错误会导致产品映射错误**，不确定时先与用户确认，不猜测。
-  - 字段模糊/缺失时标注「待确认」，不要用推测填充。
-  - 海关数据可能存在使用限制，提醒用户注意合规。
-  - 公司真伪验证不属于本技能（用 b2b-osint）。
-  - **优先级铁律（强制）**：有海关数据时以海关数据为准，简易方案不得覆盖、不得优先、不得与海关数据矛盾时取胜；简易方案只在无海关数据时作初步线索，不得单独支撑 P1，不得把公开进口痕迹写成海关数据事实。
-  - **证据分级（强制）**：只有真正打开原页看到的内容才标 [确切]；搜索摘要 / 索引片段一律标 [推断] 或 [未核对]；每条 [确切] 必须带来源 URL + 查询日期。
-  - **人物背景（目标是人时）**：先确认姓名 + 公司 + 职务，再搜“姓名 + 公司 + 履历/experience”“姓名 + 前雇主”“当地语言职务词”；以上都搜过才可写“未找到”。**履历段必须写出前雇主**（找到就写名称与时间；没找到就明写“前雇主检索未命中”），不得只写到现任公司。
-  - **来源选择**：优先官方 / 公开聚合源；公司级明细在付费墙后时如实写“受限”，不得因单一站点打不开就断言无数据。
-  - **人名引用**：第三方联系人 / 员工必须附来源 URL 或标“未核实”；无来源不得写成对方现员工。
-  - **实体分层**：全球 / 集团数据不得当成单一法人实体数据；按实体分层，每层注明实体名、注册号（如适用）、港口（如适用）、统计期。
-  - **百分比口径**：任何百分比必须写分母（票数 / 金额）、口径（全球 / 美国 / 当地）、统计期、来源。
-  - **品类判断**：必须依据 HS 编码 + 产品描述，不得只凭名称推断。
-  - **输出格式（强制）**：每条关键证据逐条标 [确切] / [推断] / [未核对]；**回答的第一段必须是数据来源声明**（在任何结论、图片转录、人物介绍之前）：“本报告未使用官方海关数据，仅为公开信息初步判断；若有官方海关数据请提供，以官方数据为准”（找到了第三方提单索引也必须写，不得因为“有数据了”就省略）；结尾必须给优先级归类（简易方案默认 P3；**降级或升级都必须写明依据**，如产品线错位、数据冲突；有官方海关数据验证后按 Phase 4 重评）；不得把部分一致写成“全部对得上”，绝对否定须限定“在可查到的公开渠道里”；不同数据库 / 口径 / 统计期的数字必须分开注明，不得拼成一张表。
+  ════════════════════════════════════════
+  Iron Rules (Mandatory)
+  ════════════════════════════════════════
+  - **Data provenance (mandatory)**: User-provided CSV/Excel → indicate filename + column name + row number (URL not required); Public webpage source → indicate URL + query date (query date = actual retrieval day, not article publish date; cannot use file row number as URL). No fabricating specific numbers or company names.
+  - **HS code interpretation errors cause product mapping errors** → Confirm with user when uncertain, do not guess.
+  - Mark vague/missing fields as "pending confirmation", do not fill with speculation.
+  - Customs data may have usage restrictions → Remind users of compliance.
+  - Company authenticity verification is not this skill's function (use b2b-osint).
+  - **Priority iron rule (mandatory)**: When customs data exists, use customs data as authoritative. Simple solution cannot override, cannot take precedence, cannot conflict with customs data; simple solution only when no customs data exists, serves as initial clue and talking point, cannot stand alone for P1, cannot write public import evidence as customs data facts.
+  - **Evidence grading (mandatory)**: Only content actually viewed on original page is marked [Confirmed]; Search summaries / index fragments are marked [Inferred] or [Unverified]; Every [Confirmed] must include source URL + query date.
+  - **Background information (when person as target)**: First confirm name + company + title, then search "name + company + resume/experience" "name + former employer" "local language job title"; Only after these searches can write "not found". Resume section must include former employers (write company name + time if found; if not found, explicitly state "Former employers not found in search").
+  - **Source selection**: Prioritize official / public aggregation sources; After paywall for company-level details, honestly state "restricted", do not assert "no data" just because a single site is unreachable.
+  - **Name references**: Third-party contacts / employees must include source URL or mark "Unverified"; Cannot write as current employee without source.
+  - **Entity layering**: Global / group data cannot be treated as single legal entity data; Use entity layering, each layer indicates entity name, registration number (if applicable), port (if applicable), statistics period.
+  - **Percentage basis**: Any percentage must state denominator (vote count / amount), basis (global / US / local), statistics period, source.
+  - **Category determination**: Must be based on HS code + product description, cannot infer from name alone.
+  - **Output format (mandatory)**: Every key evidence item marked [Confirmed] / [Inferred] / [Unverified]; First paragraph must be data source declaration (before any conclusions, transcriptions, person introductions): "This report did not use official customs data, only preliminary judgment from public information; if official customs data is available, use official data as authoritative" (even when third-party bill of lading indices found, this must be written); End must provide priority classification (simple solution defaults P3; downgrade or upgrade must state basis; after official customs data validation, re-evaluate per Phase 4); Cannot write "all consistent" for partial consistency; Absolute negation must be limited to "in verifiable public channels"; Different databases / bases / periods must be separately indicated, cannot merge into one table.
 
-  需要海关数据搜索式、四层筛选、买家画像模式或优先级评分时，用 `skill_view` 加载本技能正文。
+  When needed for customs data search, four-layer filtering, buyer persona patterns, or priority scoring → Use `skill_view` to load this skill's text.
+
 ---
 
-# 海关数据分析（Customs Data Analysis）
+# Customs Data Analysis
 
-从进出口贸易记录中筛选高价值采购商，输出可直接用于触达的目标客户清单。
+Filter high-value buyers from import/export trade records, output target customer lists ready for outreach.
 
 ## Phase 1: Input Preparation
 
-两种输入路径：
+Two input paths:
 
-1. **有数据文件**（CSV/Excel 导出）→ 直接分析：逐个文件完整读取，保留原始行序与列名
-2. **无数据文件** → 输出分析方法论 + 数据获取渠道建议（官方海关统计、商业贸易数据库等），不编造数据
+1. **Has data file** (CSV/Excel export) → Direct analysis: Read each file completely, preserve original row order and column names
+2. **No data file** → Output analytical methodology + data source recommendations (official customs statistics, commercial trade databases), do not fabricate data
 
-## 简易方案（无海关数据时专用）
+## Simple Solution (For no customs data)
 
-**【简易方案，非海关数据】**
+**[Simple Solution, not customs data]**
 
-**本节是简易方案，不是海关数据本身。**
-**如果用户 / 客户已有海关数据（CSV / Excel 导出、付费数据库），以海关数据为准。**
-简易方案不得覆盖海关数据，不得在与海关数据矛盾时优先，不得把简易方案的结果写成海关数据。
-简易方案只在没有海关数据时用，作用是初步线索与沟通切入点，不作最终采购判断。
+This section is the simple solution, not customs data itself. If user/customer has customs data (CSV/Excel export, paid database), use customs data as primary. Simple solution cannot override customs data, cannot take precedence, cannot conflict with customs data in output. Simple solution only when no customs data exists, serves as initial clue and outreach starting point, cannot stand alone for P1; to achieve P1, user must provide customs data for re-evaluation per Phase 4.
 
-### 适用条件
-- 用户只给了公司名（可加产品 / 市场），没有海关数据文件。
-- 用户问的是：这家公司有没有从中国进口过产品、进口了什么产品、哪里进口。
+### Applicable conditions
+- User only provided company name (with product / market), no customs data file
+- User asks: does this company import from China, what products they import, where they import from
 
-### 搜索公式（公开渠道，逐条执行，不批量抓取）
-1. 先用 LinkedIn / 官网确认公司全称、官网、地址，再搜，避免只凭简称认错公司。
-2. Google 搜索（任选组合，不编造）：
-- `"公司全称" + import data`
-- `"公司全称" + import records`
-- `"公司全称" + shipments`
-- `site:importyeti.com "公司全称"`
-- `"公司全称" importer + 产品关键词`（有产品关键词时加）
-3. 只读公开页面可见内容，不绕付费墙，不批量翻页抓取，把查询链接给用户，作人工核对。
+### Search formula (public channels, execute each, do not batch scrape):
+1. First use LinkedIn / official website to confirm company full name, website, address, then search to avoid misidentifying by short name.
+2. Google search (any combination, no fabrication):
+   - `"Company full name" + import data`
+   - `"Company full name" + import records`
+   - `"Company full name" + shipments`
+   - `site:importyeti.com "Company full name"`
+   - `"Company full name" importer + product keywords` (add product keywords if available)
+3. Only read publicly visible content, do not bypass paywalls, do not batch flip pages to scrape, give query links to user for manual verification.
 
-### 提取字段（只提取页面上写明的，不推算）
-- 收货人全称、发货人（供应商）、产品描述、原产国（是否中国）、日期、港口、来源 URL。
-- 不编造数量、金额、频率、年总量。页面没写的字段，标注“页面未写”，不推测填充。
+### Extracted fields (only extract what's written on page, no speculation)
+- Consignee full name, consignor (supplier), product description, country of origin (China?), date, port, source URL.
+- Do not fabricate quantities, amounts, frequencies, annual totals. Fields not written on page → mark "page not written", do not speculate.
 
-### 核对与诚实边界（全部是硬性要求）
-- 重名、缩写、收货人 vs 通知方容易混，必须用地址 / 官网 / LinkedIn 对上号再认；对不上号的，标注“未核对”，不得认。
-- 覆盖面：主要覆盖美国进口公开提单，其他市场覆盖不全。**搜不到不等于没进口**，必须明说。
-- 证据等级：Google 摘要不算证据，必须点开源页面、标来源 URL 与日期，按 [确切] / [推断] 区分。
-- **数据溯源**：用户提供 CSV / Excel 时注明文件名 + 列名 + 行号（不要求 URL）；公开网页来源注明 URL + 查询日期（查询日期 = 实际检索当天，不是文章发布日期；不得用文件行号冒充 URL）。
-- 回答的**第一段**必须是数据来源声明（在任何结论、转录、人物介绍之前）：「本报告未使用官方海关数据，仅为公开信息初步判断；若有官方海关数据请提供，以官方数据为准」——即使找到了第三方提单索引也必须写。
-- 给客户的开发信、草稿里只能写“公开记录显示……”，不能写“你的海关数据显示……”或把推断写成已确认事实。
-- 简易方案结果只能进初步筛选 / 沟通切入点 / P3 培育，不得单独支撑 P1；要打 P1，须用户提供海关数据验证后重新按 Phase 4 评分。
-- 公司真伪验证不属于本技能（用 b2b-osint），简易方案也不能代替真伪验证。
-- **证据分级**：只有真正打开原页看到的内容才标 [确切]；搜索引擎摘要 / 索引片段一律标 [推断] 或 [未核对]。每条 [确切] 必须带来源 URL 与查询日期。
-- **人物背景检索**：目标是人时，先确认姓名 + 公司 + 职务，再搜“姓名 + 公司 + 履历/experience”“姓名 + 前雇主”“当地语言职务词”；以上查询都执行过，才可写“未找到”。履历段必须写出前雇主（找到就写名称与时间；没找到就明写“前雇主检索未命中”），不得只写到现任公司。
-- **来源选择**：优先官方 / 公开聚合源；公司级明细在付费墙后就如实写“受限”，不得因单一站点打不开就断言“没有数据”。
-- **人名引用**：第三方联系人 / 员工必须附来源 URL 或标“未核实”；无来源不得写成对方现员工。
-- **实体分层**：全球 / 集团数据不得当成单一法人实体数据；按实体分层，每层注明实体名、注册号（如适用）、港口（如适用）、统计期。
-- **百分比口径**：任何百分比必须写分母（票数 / 金额）、口径（全球 / 美国 / 当地）、统计期、来源。
-- **品类判断**：必须依据 HS 编码 + 产品描述，不得只凭名称推断。
-- **输出格式**：每条关键证据逐条标 [确切] / [推断] / [未核对]；开头一律声明数据来源等级（未使用官方海关数据时写明“仅为公开信息初步判断，若有官方数据以官方为准”）；结尾必须给优先级归类（简易方案默认 P3；降级或升级都必须写明依据；有官方海关数据验证后按 Phase 4 重评）；不得把部分一致写成“全部对得上”，绝对否定须限定“在可查到的公开渠道里”；不同数据库 / 口径 / 统计期的数字必须分开注明，不得拼成一张表。
+### Verification and honesty boundary (all mandatory requirements):
+- Name ambiguity, abbreviations, consignee vs notify party → Must verify with address / website / LinkedIn before identifying; Unverified → mark "unverified", do not identify.
+- Coverage: Primarily covers US public bill of lading, other markets partial coverage. **Cannot find ≠ no import**, must state.
+- Evidence level: Google snippets do not count as evidence → Must open source page, mark URL + query date, distinguish [Confirmed] / [Inferred].
+- **Data provenance**: User-provided CSV/Excel → indicate filename + column name + row number (URL not required); Public webpage source → indicate URL + query date (query date = actual retrieval day, not article publish date; cannot use file row number as URL).
+- First paragraph **must declare data source level** (before any conclusions, transcriptions, person introductions): "This report did not use official customs data, only preliminary judgment from public information; if official customs data is available, use official data as authoritative" — even when third-party bill of lading indices found, this must be written.
+- Customer outreach emails, drafts can only write "Public records show..." Cannot write "Your customs data shows..." or present inference as confirmed fact.
+- Simple solution results only for initial filtering / outreach starting point / P3 nurture, cannot stand alone for P1; For P1, must provide customs data for re-evaluation per Phase 4.
+- Company authenticity verification not this skill's function (use b2b-osint), simple solution cannot replace authenticity verification.
+- **Evidence grading**: Only content actually viewed on original page is [Confirmed]; Search engine summaries / index fragments are [Inferred] or [Unverified]. Every [Confirmed] must include source URL + query date.
+- **Background information retrieval**: When person is target, first confirm name + company + title, search "name + company + resume/experience" "name + former employer" "local language job title keywords"; Only after these searches can write "not found". Resume section must include former employers (write company name + time if found; if not found, explicitly state "Former employers not found in search").
+- **Source selection**: Prioritize official / public aggregation sources; After paywall for company-level specifics, honestly state "restricted", do not assert "no data" just because a single site is unreachable.
+- **Name references**: Third-party contacts / employees must include source URL or mark "Unverified"; Cannot write as current employee without source.
+- **Entity layering**: Global / group data cannot be treated as single legal entity data; Use entity layering, each layer indicates entity name, registration number (if applicable), port (if applicable), statistics period.
+- **Percentage basis**: Any percentage must state denominator (vote count / amount), basis (global / US / local), statistics period, source.
+- **Category determination**: Must be based on HS code + product description, cannot infer from name alone.
+- **Output format**: Every key evidence item marked [Confirmed] / [Inferred] / [Unverified]; First paragraph must declare data source level (write "This report did not use official customs data, only preliminary judgment from public information; if official customs data is available, use official data as authoritative"); End must provide priority classification (simple solution defaults P3; downgrade or upgrade must state basis; after official customs data validation, re-evaluate per Phase 4); Cannot write "all consistent" for partial consistency; Absolute negation must be limited to "in verifiable public channels"; Different databases / bases / periods must be separately indicated, cannot merge into one table.
 
-## Phase 2: Filtering — 四层筛选
+## Phase 2: Filtering — Four-layer Screening
 
 #### Filter 1: Product Match
 
@@ -209,7 +205,7 @@ For each qualified buyer, analyze:
 | **Supplier concentration** | Do they rely on few or many suppliers? |
 | **Price sensitivity** | Volume vs. price correlations |
 
-### Example Analysis (Generic Template)
+### Example Analysis (Template)
 
 ```
 Company: [Buyer Name]
@@ -259,7 +255,7 @@ Score each prospect based on:
 ### Output Format
 
 ```
-# B2B Trade Data Analysis Report
+# B2B Customs Data Analysis Report
 
 ## Summary
 - Total records analyzed: [X]
@@ -341,8 +337,7 @@ Would you be open to a brief call to explore if we're a fit?"
 3. **Currency consistency**: Note currency in value fields; flag inconsistencies
 4. **No assumptions**: If a field is ambiguous, note it rather than guess
 5. **Source citation**: Always cite the source file and row numbers for key findings
-6. **Column mapping disclosure**: 分析报告中首次引用数据时，注明对应的原始文件列名。
-   例如："进口量数据来自文件中「Total Import QTY」列"。这样用户可以快速判断列解读是否正确。
+6. **Column mapping disclosure**: When first referencing data in report, indicate corresponding original file column name. E.g. "Import volume data from file's 'Total Import QTY' column". This allows users to quickly judge column interpretation correctness.
 7. **Completeness**: Include all relevant fields in output, even if values are missing
 
 ## Common Pitfalls

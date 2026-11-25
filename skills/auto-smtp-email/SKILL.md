@@ -1,41 +1,40 @@
 ---
 name: auto-smtp-email
-description: "(已禁用) SMTP 邮件发送 — 此 skill 已被禁用，不会被系统触发"
+description: "(Disabled) SMTP Email Sending — This skill is disabled and will not be triggered by the system"
 when_to_use:
-  - "配置自动 SMTP 发邮件"
-  - "用户提到「自动发邮件」「smtp 配置」"
-  - "不要用于：手动单封邮件（用 b2b-cold-outreach）"
+  - "Configure automatic SMTP email"
+  - "The user mentioned "automatic email sending" and "smtp configuration""
+  - "Do not use for: Manual single mailing (use b2b-cold-outreach)"
 triggers:
-  - 发邮件
-  - 发送邮件
-  - SMTP 发送
-  - 发开发信
-  - 群发邮件
-  - 批量发送
-  - 预览后发送
-  - send email
+  - Send email
+  - Send email
+  - SMTP send
+  - Send development letters
+  - Bulk email
+  - Send in bulk
+  - Preview and send
+  -send email
   - smtp send
-  - send cold email
-  - bulk send
+  -send cold email
+  -bulk send
   - mail out
-  - 帮我发
-  - 发出去
-category: 系统工具
+  - Send it to me
+  - Send it out
+category: system tools
 version: 1.0.0
 author: Trade
 injection_prompt: |
-  此技能已被 Trade 停用（auto-smtp-email 不在安装清单里，也不会被路由触发）。
+  This skill has been disabled by Trade (auto-smtp-email is not in the installation list and will not be triggered by routing).
 
-  **不要调用 SMTP / smtplib，不要读取或写入 SMTP 凭证，也不要自动发送任何邮件。**
+  **Do not call SMTP/smtplib, do not read or write SMTP credentials, and do not automatically send any mail. **
 
-  需要发邮件时：用 b2b-cold-outreach 生成草稿，由用户自己复制发送。
+  When you need to send an email: Use b2b-cold-outreach to generate a draft, which the user can copy and send.
 ---
 
-# auto-smtp-email —（已禁用，仅保留为引用记录）
+# auto-smtp-email — (disabled, retained as reference record only)
 
-本技能**不会安装、不会注册、不会被路由触发**（`trade/skill_registry.py` 的
-`_BLOCKED_SKILLS` 拦截，安装与启动时由 `_purge_blocked_skills` 清理）。
+This skill **will not be installed, will not be registered, and will not be triggered by routing** (`trade/skill_registry.py`
+`_BLOCKED_SKILLS` intercepted, cleaned up by `_purge_blocked_skills` during installation and startup).
 
-保留这个文件只为记录 Trade 的设计决定：AI 可以起草邮件，但不能替用户发送。
-需要写开发信请用 `b2b-cold-outreach`，草稿由用户本人核对后手动发送。
-
+This file is kept just to document Trade's design decisions: the AI can draft emails, but it can't send them on behalf of the user.
+If you need to write a development letter, please use `b2b-cold-outreach`. The draft will be checked by the user before being sent manually.
