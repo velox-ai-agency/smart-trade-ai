@@ -1284,7 +1284,8 @@ async function sendMsg() {
         if (typeof TradeWait !== 'undefined') {
             wait = TradeWait.mount(progBody, {
                 mode: 'chat',
-                title: 'TRADE · ASSISTANT  ///  等待回复',
+                // title omitted on purpose: wait.js supplies the localized
+                // title_chat ("WAITING FOR REPLY" / "بانتظار الرد" / zh default)
                 onCancel: function () { streamCtl.abort(); },
             });
         }
