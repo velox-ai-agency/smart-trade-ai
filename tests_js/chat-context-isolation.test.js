@@ -34,14 +34,13 @@ test('exportChat is wired through the data-act dispatcher', () => {
     assert.match(init, /'exportChat',/);
 });
 
-test('session/export strings exist in all three languages', () => {
+test('session/export strings exist in both languages', () => {
     for (const needle of [
-        "'chat.export':'导出会话'",
         "'chat.export':'Export session'",
         'تصدير المحادثة',
     ]) {
         assert.ok(i18n.includes(needle), `missing i18n string: ${needle}`);
     }
-    assert.equal((i18n.match(/'chat\.session':/g) || []).length, 2);
+    assert.equal((i18n.match(/'chat\.session':/g) || []).length, 1);
     assert.equal((i18n.match(/"chat\.session":/g) || []).length, 1);
 });

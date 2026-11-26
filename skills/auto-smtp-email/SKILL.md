@@ -2,24 +2,16 @@
 name: auto-smtp-email
 description: "(Disabled) SMTP Email Sending — This skill is disabled and will not be triggered by the system"
 when_to_use:
-  - "Configure automatic SMTP email"
-  - "The user mentioned "automatic email sending" and "smtp configuration""
-  - "Do not use for: Manual single mailing (use b2b-cold-outreach)"
+  - 'Configure automatic SMTP email'
+  - 'The user mentioned "automatic email sending" and "smtp configuration"'
+  - 'Do not use for: Manual single mailing (use b2b-cold-outreach)'
 triggers:
-  - Send email
-  - Send email
-  - SMTP send
-  - Send development letters
-  - Bulk email
-  - Send in bulk
-  - Preview and send
-  -send email
-  - smtp send
-  -send cold email
-  -bulk send
-  - mail out
-  - Send it to me
-  - Send it out
+  - 'send email'
+  - 'smtp send'
+  - 'send cold email'
+  - 'bulk send'
+  - 'mail out'
+  - 'dispatch email'
 category: system tools
 version: 1.0.0
 author: Trade

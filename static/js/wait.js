@@ -58,8 +58,8 @@
     partial_sources:['部分来源', 'PARTIAL SOURCES', 'مصادر جزئية'],
   };
   function uiLang() {
-    try { return (typeof currentLang !== 'undefined' && typeof I18N !== 'undefined' && I18N[currentLang]) ? currentLang : 'zh'; }
-    catch (e) { return 'zh'; }
+    try { return (typeof currentLang !== 'undefined' && typeof I18N !== 'undefined' && I18N[currentLang]) ? currentLang : 'en'; }
+    catch (e) { return 'en'; }
   }
   function pick(row, lang) {
     if (!row) return '';

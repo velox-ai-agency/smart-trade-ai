@@ -11,24 +11,52 @@ when_to_use:
   - "User pastes product/company info to find potential buyers"
   - "Do not use for: single customer deep profiling (use b2b-customer-intel)"
 triggers:
-  - find customers
-  - develop customers
-  - customer development
-  - find potential customers
-  - inquiry reply
-  - how to reply to inquiry
-  - first response to inquiry
-  - inquiry handling
-  - quotation strategy
-  - how to negotiate price
-  - negotiation skills
-  - advance to deal
-  - customer finds price high
-  - customer haggles
-  - price too high
-  - price objection
-  - price is too high
-  # ... (see skill_registry.py for full list)
+  - 'lead generation'
+  - 'find customers'
+  - 'customer development'
+  - 'prospect'
+  - 'prospecting'
+  - 'lead gen'
+  - 'leadgen'
+  - 'follow up'
+  - 'follow-up'
+  - 'negotiation'
+  - 'closing'
+  - 'inquiry'
+  - 'payment terms'
+  - 'delivery time'
+  - 'lead time negotiation'
+  - 'price negotiation'
+  - 'target price'
+  - 'subject line'
+  - 'subject line optimization'
+  - 'multi-language email'
+  - 'multilingual email'
+  - 'arabic email'
+  - 'spanish email'
+  - 'german email'
+  - 'french email'
+  - 'portuguese email'
+  - 'russian email'
+  - 'japanese email'
+  - 'korean email'
+  - 'find buyers'
+  - 'get customers'
+  - 'look for customers'
+  - 'new customers'
+  - 'buyer'
+  - 'purchasing manager'
+  - 'procurement'
+  - 'reply to inquiry'
+  - 'inquiry reply'
+  - 'first response'
+  - 'respond to inquiry'
+  - 'price objection'
+  - 'too expensive'
+  - 'price is too high'
+  - 'price too high'
+  - 'negotiate price'
+  - 'customer says expensive'
 category: Customer Development
 version: 1.3.2
 author: Foreign Trade Assistant
@@ -132,6 +160,17 @@ injection_prompt: |
   Tier standards: A-tier ≥22 points | B-tier 16-21 points | C-tier <16 points
 
   For A-tier customers, prioritize b2b-osint for deep background check. B/C-tier customers, label as "batch developable" or "low priority".
+  Before delivering, run the self-check and the quality-gate checklist in this skill's body.
+  ## Inquiry first response + quote / price objections
+  - First response: reply to every inquiry within 30 minutes during working hours; outside hours, next working day within 2 hours.
+  - Price objection ladder: concede 5% → 3% → 1% only after confirming volume, payment terms and delivery window.
+  - Never lead with a discount; lead with value, then anchor the concession to a trade-off.
+  
+  ## Red lines (never cross)
+  - Never fabricate scarcity, competition, price rises, lead times, or "manager approval".
+  - Never promise price, payment terms, lead time or exclusivity beyond your authority.
+  - No off-book commissions or kickbacks, ever.
+  - This module is derived from training material and has not yet been validated with real users.
 ---
 
 ## Phase 4: Follow-up Sequences

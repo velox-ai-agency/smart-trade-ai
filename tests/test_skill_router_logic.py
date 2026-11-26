@@ -468,7 +468,8 @@ class TestPlatformSpecificInjectionIsSelfDetected:
         ip = fm["injection_prompt"]
 
         assert "alibaba.com" in ip, "注入里要给出可判定的 URL 域名信号"
-        assert "不要问用户" in ip, "注入里要明确「自己判断，不要问用户」"
+        assert "不要问用户" in ip or "do not ask the user" in ip.lower(), \
+        "注入里要明确「自己判断，不要问用户」"
         assert "skill_view" in ip, "注入里要写清命中后怎么加载（skill_view）"
 
     def test_body_keeps_the_full_rules(self):
@@ -532,7 +533,9 @@ class TestQualityGateIsSelfContained:
             "auto-trade-customer-development",
         ):
             skill = get_skill_by_name(name)
-            assert "自检" in self._active_prompt(skill), f"{name} 的生效注入里没有自检条目"
+            prompt = self._active_prompt(skill)
+            assert "自检" in prompt or "self-check" in prompt.lower(), \
+                f"{name} 的生效注入里没有自检条目"
 
 
 def test_when_to_use_reaches_the_model():

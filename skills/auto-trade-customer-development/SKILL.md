@@ -2,25 +2,17 @@
 name: auto-trade-customer-development
 description: Foreign trade customer development orchestrator - search/back-up/rating/write-write/delivery draft/warehousing end-to-end pipeline
 when_to_use:
-  - "Fully automated customer development pipeline"
-  - "Scheduled search + automatic generation of draft development letters (sent by users themselves)"
-  - "Users mentioned "automatic customer development" and "assembly line""
-  - "Do not use for: manual intervention of high-value customers (use b2b-lead-generation)"
+  - 'Fully automated customer development pipeline'
+  - 'Scheduled search + automatic generation of draft development letters (sent by users themselves)'
+  - 'Users mentioned "automatic customer development" and "assembly line"'
+  - 'Do not use for: manual intervention of high-value customers (use b2b-lead-generation)'
 triggers:
-  - Fully automated customer development
-  - Develop customers with one click
-  - End-to-end customer development
-  -Customer development pipeline
-  - Automatically develop customers
-  - Full process customer development
-  - Orchestrate customer development
-  -auto customer development
-  - end to end lead generation
-  - full pipeline outreach
-  - One-stop customer development
-  - Help me run a round of customer development
-  - Run a group of customers
-  - Automated customer development
+  - 'auto customer development'
+  - 'end to end lead generation'
+  - 'auto lead generation'
+  - 'full pipeline outreach'
+  - 'automated outreach pipeline'
+  - 'orchestrated lead gen'
 category: automation
 version: 1.2.2
 author: Trade
@@ -138,6 +130,8 @@ injection_prompt: |
   ```
 
   If the user does not provide key information such as product/market/customer type, etc., ask them all at once instead of squeezing out toothpaste one by one.
+  Before delivering, run a self-check: drafts only (never send), every figure has a source, and company data stays isolated.
+  - **Never sends any email.** Every email body is a draft shown to the user; the user reviews and sends it manually.
 ---
 
 <!-- Maintenance tip: All the rules of this skill are in the injection_prompt of frontmatter above

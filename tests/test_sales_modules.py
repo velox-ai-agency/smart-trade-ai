@@ -54,10 +54,10 @@ class TestStandaloneSkillsRemoved:
 class TestMergedContent:
     def test_lead_generation_has_inquiry_and_quote_modules(self):
         prompt = _effective_prompt("b2b-lead-generation")
-        assert "询盘首响" in prompt
-        assert "报价与价格异议" in prompt
-        assert "5%→3%→1%" in prompt or "5% → 3% → 1%" in prompt
-        assert "未经" in prompt and "实战验证" in prompt
+        assert "Inquiry first response" in prompt
+        assert "quote / price objections" in prompt
+        assert "5% → 3% → 1%" in prompt
+        assert "has not yet been validated with real users" in prompt
 
     def test_sales_playbook_has_closing_module(self):
         prompt = _effective_prompt("b2b-sales-playbook")
@@ -74,9 +74,9 @@ class TestMergedContent:
 
     def test_red_lines_kept(self):
         prompt = _effective_prompt("b2b-lead-generation") + _effective_prompt("b2b-sales-playbook")
-        assert "不虚构" in prompt
-        assert "经理特批" in prompt
-        assert "回扣" in prompt
+        assert "Never fabricate" in prompt
+        assert "manager approval" in prompt
+        assert "kickbacks" in prompt
 
 
 class TestRouting:

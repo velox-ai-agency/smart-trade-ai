@@ -58,11 +58,12 @@ class TestCustomsSkillConsistency:
         body = text.split("---", 2)[2]
 
         for kw in (
-            "目标是人时", "用户提供 CSV/Excel 时", "实体分层",
-            "百分比口径", "品类判断", "输出格式（强制）",
+            "When the target is a person", "CSV/Excel", "Entity layering",
+            "Percentage basis", "Category determination", "Output format",
         ):
             assert kw in ip, f"注入缺少：{kw}"
-        for kw in ("目标是人时", "实体分层", "百分比口径", "品类判断", "输出格式"):
+        for kw in ("When person is target", "Entity layering", "Percentage basis",
+                   "Category determination", "Output format"):
             assert kw in body, f"正文缺少：{kw}"
 
     def test_no_category_specific_hs_pair(self):
@@ -181,7 +182,8 @@ class TestBlockedSkillPurge:
         skill = (ROOT / "skills" / "auto-smtp-email" / "SKILL.md").read_text(
             encoding="utf-8",
         )
-        assert "已被 Trade 停用" in skill
+        assert "disabled by trade" in skill.lower()
+        assert "已被 Trade 停用" in skill or "disabled by Trade" in skill
         assert "import smtplib" not in skill, "停用 skill 不应保留可执行发信代码"
 
     def test_registry_augment_is_disabled(self):
@@ -206,13 +208,13 @@ class TestBlockedSkillPurge:
         )
         assert "确认后调用 auto-smtp-email" not in skill
         assert "SMTP_HOST" not in skill
-        assert "不发送任何邮件" in skill
-        # description 的流程也不能写"发送"（审计附录四）
+        assert "Never sends any email" in skill
+        # description 的流程也不能写「发送」（审计附录四）
         description = next(
             line for line in skill.splitlines() if line.startswith("description:")
         )
-        assert "发送" not in description
-        assert "交付草稿" in description
+        assert "send" not in description.lower()
+        assert "draft" in description.lower()
 
     def test_startup_sync_purges_and_skips_blocked(self, tmp_path, monkeypatch):
         """启动同步也要清残留、且不复制停用 skill（P1-13 时间窗口）。"""

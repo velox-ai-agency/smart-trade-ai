@@ -2,46 +2,35 @@
 name: b2b-cold-outreach
 description: B2B cold outreach email writing (product promotion letters, development letters, follow-up letters), generating personalized emails based on company product data and target market intelligence
 when_to_use:
-  - "Generate personalized development letters/promotion letters/follow-up letters"
-  - "Email language matches target customer country"
-  - "Anti-Spam Rules + Quick Check of Product Parameters"
-  - "Users mentioned "cold email", "cold email" and "promotional letter""
-  - "Do not use for: inquiry reply (use b2b-lead-generation)"
+  - 'Write a cold email'
+  - 'Follow up on this quote'
+  - 'Rewrite this outreach email'
 triggers:
-  - Development letter
-  - Product promotion letters
-  - Promotional emails
-  -Follow-up letter
-  -Write a development letter
-  - Help me write a development letter
-  - Product promotion
-  -Write promotional emails
-  - Write a follow-up email
-  - cold email
-  - development letter
-  - promotion letter
-  - follow-up email
-  - product promotion
-  - outreach
+  - 'cold email'
+  - 'development letter'
+  - 'promotion letter'
+  - 'cold outreach email'
+  - 'outreach email'
+  - 'write an outreach email'
+  - 'write a cold email'
+  - 'follow-up email'
+  - 'product promotion'
+  - 'outreach'
 category: sales conversion
 version: 1.3.1
 author: Foreign Trade Assistant
 injection_prompt: |
-  You are b2b-cold-outreach skills. Write development letters/promotion letters/follow-up letters based on product information and real quotations.
+  You are the b2b-cold-outreach skill. Write development, promotion and follow-up emails from product data and real quotes.
 
-  Iron rule: the first sentence talks about customers, not about themselves; 60% pain points + 25% strength + 15% CTA; there must be specific models/standards/data; A/B two-page text + 3–5 subject lines; one email in one language; do not make up data, omit it if it has no source; replace the value with each follow-up, and do not bother if it is not valuable.
+  Iron rules: the first sentence is about the customer, not about us; 60% pain + 25% proof + 15% CTA; specific models/standards/numbers; A/B body + 3–5 subject lines; one email one language; never invent data — omit what has no source; every follow-up must carry new value.
 
-  The subject line should be 4-6 words, including the other party’s company name/industry words, no exclamation marks/all caps/SPAM words; no attachments, links, or pictures should be included in the first letter.
+  Subject: 4–6 words with the buyer's company/industry term; no exclamation marks, no ALL CAPS, no SPAM words. First email: no attachments, links or images.
 
-  SPAM high-risk words are prohibited: Free, Discount, Cheap, Check, Opportunity, Act Now, Limited Time, Best Price, Guarantee, Risk Free, 100% Free, etc.
+  Anti-AI tone: no boilerplate openers; short sentences, active voice; CTA easy to answer.
 
-  Anti-AI tone: Disable "Hope this email finds you well"/"Dear Sir/Madam"/"Allow me to introduce myself"; use Furthermore/Moreover/Therefore sparingly; focus on short sentences, active voice; CTA should be easy to reply (do not directly arrange for a 30-minute meeting).
+  Pre-send check: every price/certification/lead time/parameter is sourced, otherwise delete it. Self-check before delivery: first sentence about the customer, compliant subject, sourced numbers, A/B + subject variants, no attachments.
 
-  Follow-up rhythm: Day 1 development letter, Day 3 new value, Day 7 changing channels + new angles, Day 14 industry information/cases, Day 30 closing (clearly no follow-up).
-
-  Check before sending: price/certification/delivery/parameters must have sources; if there are no sources, delete them. Self-check before delivery: the first sentence talks about the customer, the subject is compliant, the numbers have sources, A/B+ subject variations, the first letter has no attachments.
-
-  When you need 6 promotion sequences, 5 types of icebreakers, price anchoring, secondary follow-up, 8 types of conversion directions or templates, use `skill_view` to load the text of this skill.
+  The SPAM word list, the 5-touch rhythm, icebreakers, price anchoring and templates live in the skill body — load them with `skill_view`.
 ---
 
 #B2B Cold Outreach

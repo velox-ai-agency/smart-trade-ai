@@ -2,33 +2,21 @@
 name: b2b-buyer-persona
 description: Buyer portraits and role stratification — Customize value proposition and communication strategy by decision-making role (Procurement/Technical/Boss)
 when_to_use:
-  - "Hierarchically customized FAB value proposition by decision-making role (purchasing/technical/boss)"
-  - "Adjust communication strategies for different buyer types"
-  - "Users mentioned "Buyer Portraits", "Decision-Making Roles" and "FAB""
-  - "Do not use for: customer profiling (use b2b-customer-intel)"
+  - 'Hierarchically customized FAB value proposition by decision-making role (purchasing/technical/boss)'
+  - 'Adjust communication strategies for different buyer types'
+  - 'Users mentioned "Buyer Portraits", "Decision-Making Roles" and "FAB"'
+  - 'Do not use for: customer profiling (use b2b-customer-intel)'
 triggers:
-  - Buyer portrait
-  - role analysis
-  - Portraits
-  - Purchasing role
-  - Analysis for decision makers
-  - Customer stratification
-  - Buyer Persona
-  -Write by role
-  - Write to purchasing
-  - Write to the engineer
-  - Write to your boss
-  - For different roles
-  - Value proposition customization
-  - buyer persona
-  -customer analysis
-  - decision maker analysis
-  - procurement manager
-  -technical buyer
-  - stakeholder mapping
-  - role-based email
-  -tailor message
-  - customize for role
+  - 'buyer persona'
+  - 'customer analysis'
+  - 'decision maker analysis'
+  - 'analyze buyer persona'
+  - 'procurement manager'
+  - 'technical buyer'
+  - 'stakeholder mapping'
+  - 'role-based email'
+  - 'tailor message'
+  - 'customize for role'
 category: Customer Management
 version: 1.0.0
 author: Foreign Trade Assistant

@@ -43,7 +43,7 @@ def test_confirmed_hit_is_reported_with_missing_lists(monkeypatch):
          "confirmation": "confirmed"},
     ], sanctioned=True)
 
-    text = chat._sanctions_fallback_text("帮我查一下 HUAWEI")
+    text = chat._sanctions_fallback_text("帮我查一下 HUAWEI", language="zh")
 
     assert "⚠️ 命中" in text
     assert "欧盟制裁名单未就绪" in text
@@ -55,7 +55,7 @@ def test_possible_only_is_reported_with_missing_lists(monkeypatch):
          "confirmation": "possible"},
     ], sanctioned=False)
 
-    text = chat._sanctions_fallback_text("帮我查一下 HUAWEI")
+    text = chat._sanctions_fallback_text("帮我查一下 HUAWEI", language="zh")
 
     assert "疑似匹配" in text
     assert "欧盟制裁名单未就绪" in text
@@ -64,7 +64,7 @@ def test_possible_only_is_reported_with_missing_lists(monkeypatch):
 def test_no_hit_stays_not_executed(monkeypatch):
     _degraded(monkeypatch, hits=[], sanctioned=False)
 
-    text = chat._sanctions_fallback_text("帮我查一下 HUAWEI")
+    text = chat._sanctions_fallback_text("帮我查一下 HUAWEI", language="zh")
 
     assert "未执行" in text and "不构成" in text
 
@@ -74,6 +74,6 @@ def test_cjk_target_without_hits_stays_chinese_name_message(monkeypatch, query):
     """S2 与 S3 的交叉：中文无命中仍写「未执行（中文名）」，不因 degraded 改写。"""
     _degraded(monkeypatch, hits=[], sanctioned=False)
 
-    text = chat._sanctions_fallback_text(query)
+    text = chat._sanctions_fallback_text(query, language="zh")
 
     assert "中文名称无法比对" in text

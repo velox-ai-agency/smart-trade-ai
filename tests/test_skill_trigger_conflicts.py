@@ -96,19 +96,20 @@ def _skill_md_triggers():
     return out
 
 
-def test_every_skill_md_has_chinese_and_english_triggers():
-    """W6 补全：每个 SKILL.md 的触发词必须中英双全。"""
-    import re
+def test_every_skill_md_has_usable_triggers():
+    """每个 SKILL.md 都要有触发词，且同一文件内不得重复（大小写不敏感）。
 
-    cjk = re.compile(r"[\u4e00-\u9fff]")
-    latin = re.compile(r"[A-Za-z]")
-    missing = {
-        name: triggers
-        for name, triggers in _skill_md_triggers().items()
-        if not any(cjk.search(t) for t in triggers)
-        or not any(latin.search(t) for t in triggers)
-    }
-    assert not missing, f"SKILL.md 触发词缺少中/英文: {list(missing)}"
+    2026-11-26：中文界面已移除，原先的「中英双全」要求失效。英文技能可以
+    只有英文触发词；中文技能在翻译完成前仍保留中文触发词。
+    """
+    problems = {}
+    for name, triggers in _skill_md_triggers().items():
+        cleaned = [str(t).strip().lower() for t in triggers if str(t).strip()]
+        if not cleaned:
+            problems[name] = "no triggers"
+        elif len(cleaned) != len(set(cleaned)):
+            problems[name] = "duplicate triggers"
+    assert not problems, f"SKILL.md 触发词有问题: {problems}"
 
 
 

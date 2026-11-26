@@ -8,23 +8,12 @@ when_to_use:
   - "User mentions 'exhibition' 'trade show' 'canton fair'"
   - "Do not use for: Online B2B platforms"
 triggers:
-  - exhibition
-  - trade show
-  - canton fair
-  - exhibition planning
-  - show preparation
-  - post-show follow-up
-  - booth design
-  - exhibition materials
-  - pre-show preparation
-  - exhibition invitation
-  # English
-  - trade show
-  - exhibition
-  - canton fair
-  - exhibition planning
-  - show preparation
-  - post-show follow-up
+  - 'trade show'
+  - 'exhibition'
+  - 'canton fair'
+  - 'exhibition planning'
+  - 'post-show follow-up'
+  - 'show preparation'
 category: Sales Conversion
 version: 1.0.1
 author: Foreign Trade Assistant

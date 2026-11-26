@@ -166,7 +166,7 @@ async def test_sync_timeout_saves_partial_report(company):
          patch.object(chat.chat_memory, "save_with_context",
                       side_effect=lambda **kw: saved.append(kw) or {"id": 7}), \
          patch("trade.license.check_license", return_value=(True, "")):
-        result = await chat.trade_chat(ChatRequest(query="查一下 acme"), company["id"])
+        result = await chat.trade_chat(ChatRequest(query="查一下 acme", language="zh"), company["id"])
 
     assert result["partial"] is True
     assert "未完成报告" in result["response"]
@@ -223,7 +223,7 @@ async def test_empty_result_retry_does_not_rerun_tools(company):
          patch.object(chat.chat_memory, "save_with_context",
                       side_effect=lambda **kw: saved.append(kw) or {"id": 1}), \
          patch("trade.license.check_license", return_value=(True, "")):
-        result = await chat.trade_chat(ChatRequest(query="查一下 acme"), company["id"])
+        result = await chat.trade_chat(ChatRequest(query="查一下 acme", language="zh"), company["id"])
 
     assert result["response"] == "基于已有结果的总结"
     # 审计 P2-3：总结成功也是「凭部分结果整理的半成品」，必须标 partial
@@ -258,7 +258,7 @@ async def test_stream_summary_is_marked_partial(company):
                       side_effect=lambda **kw: saved.append(kw) or {"id": 9}), \
          patch("trade.license.check_license", return_value=(True, "")):
         resp = await chat.trade_chat_stream(
-            ChatRequest(query="查一下 acme"), company["id"]
+            ChatRequest(query="查一下 acme", language="zh"), company["id"]
         )
         chunks = []
         async for chunk in resp.body_iterator:
@@ -320,7 +320,7 @@ async def _collect_stream(company) -> tuple[str, list[dict]]:
                       side_effect=lambda **kw: saved.append(kw) or {"id": 3}), \
          patch("trade.license.check_license", return_value=(True, "")):
         resp = await chat.trade_chat_stream(
-            ChatRequest(query="查一下 acme"), company["id"]
+            ChatRequest(query="查一下 acme", language="zh"), company["id"]
         )
         chunks = []
         async for chunk in resp.body_iterator:
@@ -375,7 +375,7 @@ async def test_stream_normal_answer_with_tools_saves_exactly_one(company):
                       side_effect=lambda **kw: saved.append(kw) or {"id": 5}), \
          patch("trade.license.check_license", return_value=(True, "")):
         resp = await chat.trade_chat_stream(
-            ChatRequest(query="查一下 acme"), company["id"]
+            ChatRequest(query="查一下 acme", language="zh"), company["id"]
         )
         async for _ in resp.body_iterator:
             pass
@@ -414,7 +414,7 @@ async def test_stream_summary_race_never_writes_two_histories(company):
              patch.object(chat.chat_memory, "save_with_context", side_effect=_save), \
              patch("trade.license.check_license", return_value=(True, "")):
             resp = await chat.trade_chat_stream(
-                ChatRequest(query="查一下 acme"), company["id"]
+                ChatRequest(query="查一下 acme", language="zh"), company["id"]
             )
             async for _ in resp.body_iterator:
                 pass
@@ -483,7 +483,7 @@ async def test_disconnect_during_finalize_save_writes_one_history(company):
          patch.object(chat.chat_memory, "save_with_context", side_effect=_save), \
          patch("trade.license.check_license", return_value=(True, "")):
         resp = await chat.trade_chat_stream(
-            ChatRequest(query="查一下 acme"), company["id"]
+            ChatRequest(query="查一下 acme", language="zh"), company["id"]
         )
         async for _ in resp.body_iterator:
             pass

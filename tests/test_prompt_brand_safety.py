@@ -135,13 +135,14 @@ class TestAccuracyTagsAreBilingual:
 
 
 class TestReplyLanguageFollowsUI:
-    """回复语言跟随界面选择框（Hisham 2026-11-25：UI wins）。
+    """回复语言跟随界面选择框（2026-11-26：中文已移除，只剩 ar/en）。
 
-    旧口径「跟随用户这句话」已废弃：ar/en/zh 由前端传入，优先级最高；
-    仅在界面未传语言时才回退到按输入文本判定。
+    UI 传入的语言优先级最高；仅在界面未传语言时才回退到按输入文本判定：
+    阿拉伯语输入回阿语，其它一律英文。
     """
 
     def test_chinese_input_replies_chinese(self):
+        """中文输入仍按中文回（界面不再提供 zh，但中文内容尚未翻译）。"""
         from trade.prompt import detect_reply_language
 
         assert detect_reply_language("帮我找一下德国的阀门客户") == "zh"
@@ -152,7 +153,6 @@ class TestReplyLanguageFollowsUI:
         assert detect_reply_language("find valve customers in Germany") == "en"
 
     def test_mixed_input_counts_as_chinese(self):
-        """中英混排说明用户在说中文，按中文回。"""
         from trade.prompt import detect_reply_language
 
         assert detect_reply_language("帮我在 Germany 找阀门客户") == "zh"
@@ -165,25 +165,27 @@ class TestReplyLanguageFollowsUI:
         assert detect_reply_language("12345", fallback="en") == "en"
 
     def test_single_english_word_is_not_enough(self):
-        """只有一个英文词（如型号）不足以判定为英文提问。"""
+        """只有一个英文词（如型号）不足以判定语言，默认英文。"""
         from trade.prompt import detect_reply_language
 
         assert detect_reply_language("DN50", fallback="zh") == "zh"
 
     def test_english_policy_keeps_customer_facing_content(self):
-        """英文提问时，给客户的内容仍按客户语言（通常英文）。"""
+        """给客户的内容仍按客户语言（通常英文）。"""
         from trade.prompt import LANGUAGE_POLICY_BLOCK_EN
 
         assert "language of the target audience" in LANGUAGE_POLICY_BLOCK_EN
 
-    def test_chinese_policy_keeps_customer_facing_english(self):
-        """中文提问时，给客户的内容仍写成英文（外贸客户多为英文买家）。"""
-        from trade.prompt import LANGUAGE_POLICY_BLOCK
+    def test_default_policy_is_english(self):
+        """中文策略已删除：默认策略块就是英文版，且不含中文。"""
+        from trade.prompt import LANGUAGE_POLICY_BLOCK, LANGUAGE_POLICY_BLOCK_EN
 
-        assert "English for international buyers" in LANGUAGE_POLICY_BLOCK
+        assert LANGUAGE_POLICY_BLOCK == LANGUAGE_POLICY_BLOCK_EN
+        assert "language of the target audience" in LANGUAGE_POLICY_BLOCK
+        assert not any("\u4e00" <= ch <= "\u9fff" for ch in LANGUAGE_POLICY_BLOCK)
 
     def test_ui_language_wins_over_input_language(self):
-        """Hisham 2026-11-25: 界面选阿拉伯语/英语时，即使输入中文也按界面语言回。"""
+        """界面选阿拉伯语/英语时，即使输入中文也按界面语言回。"""
         from trade.prompt import detect_reply_language
 
         zh_query = "请对 https://aldahra.com 做全面的客户背景调查"

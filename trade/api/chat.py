@@ -237,7 +237,7 @@ def _osint_sanctions_used(tools: CompletedToolTracker) -> bool:
 
 
 # 交付前制裁兜底文案：UI 语言优先（Hisham 2026-11-25：UI wins）。
-# 默认 zh 保持旧测试与旧行为；前端传 ar/en 时整段本地结论跟随界面语言。
+# 默认英文；前端传 ar 时整段本地结论跟随界面语言。中文已停用。
 _SANCTIONS_TEXT = {
     "zh": {
         "header": "【制裁名单筛查】", "check": "制裁", "prefix": "制裁名单筛查：",
@@ -278,11 +278,11 @@ _SANCTIONS_TEXT = {
 }
 
 
-def _sanctions_text(language: str = "zh") -> dict:
-    return _SANCTIONS_TEXT.get(language or "zh", _SANCTIONS_TEXT["zh"])
+def _sanctions_text(language: str = "en") -> dict:
+    return _SANCTIONS_TEXT.get(language or "en", _SANCTIONS_TEXT["en"])
 
 
-def _missing_lists_note(lists: dict, language: str = "zh") -> str:
+def _missing_lists_note(lists: dict, language: str = "en") -> str:
     """degraded 时列出未就绪的名单（S3：结论不完整必须写明）。"""
     L = _sanctions_text(language)
     missing = [
@@ -295,7 +295,7 @@ def _missing_lists_note(lists: dict, language: str = "zh") -> str:
     return L["sep"] + L["join"].join(L["missing_item"].format(label) for label in missing[:6]) + L["missing_tail"]
 
 
-def _sanctions_fallback_text(query: str, language: str = "zh") -> str:
+def _sanctions_fallback_text(query: str, language: str = "en") -> str:
     """用本地制裁库补一段结论（<1 秒，无网络下载）。
 
     回复语言跟随界面语言（Hisham 2026-11-25：UI wins）。
@@ -351,7 +351,7 @@ def _sanctions_fallback_text(query: str, language: str = "zh") -> str:
 
 def _ensure_sanctions_section(
     *, query: str, response: str, skill: str, tools: CompletedToolTracker,
-    language: str = "zh",
+    language: str = "en",
 ) -> str:
     """命中 b2b-osint 但没跑过 OSINT 工具、或缺制裁段落时，补一段本地结论。
 

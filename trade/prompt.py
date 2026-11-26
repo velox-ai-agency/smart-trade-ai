@@ -9,17 +9,21 @@ import re
 
 _CJK_RE = re.compile(r"[\u4e00-\u9fff]")
 _ARABIC_RE = re.compile(r"[\u0600-\u06ff]")
-_LATIN_WORD_RE = re.compile(r"[A-Za-z]{2,}")
+# The UI no longer offers Chinese, but legacy clients and stored conversations
+# may still send it; the backend copy is also still Chinese until it is
+# translated, so honouring "zh" avoids stripping Chinese text mid-word.
 _SUPPORTED_UI_LANGS = ("ar", "en", "zh")
 
 
 def detect_reply_language(text: str, fallback: str = "") -> str:
     """Decide the assistant's reply language. The UI language wins.
 
-    Updated 2026-11-25 at Hisham's request: when the web UI sends its language
-    (ar/en/zh) it is authoritative, so an Arabic interface produces an Arabic
-    report even if the user pastes a Chinese query. When the UI language is not
-    supplied, fall back to detecting the language of the user's message.
+    Updated 2026-11-26: the UI offers English and Arabic only. The web UI's
+    language is authoritative, so an Arabic interface produces an Arabic report
+    even if the user pastes a Chinese query. "zh" is still accepted from legacy
+    clients (and detected from Chinese input) because the backend copy has not
+    been translated yet — dropping it would strip Chinese text mid-word in SSE
+    output.
     """
     ui_lang = str(fallback or "").lower()
     if ui_lang in _SUPPORTED_UI_LANGS:
@@ -29,9 +33,7 @@ def detect_reply_language(text: str, fallback: str = "") -> str:
         return "zh"
     if _ARABIC_RE.search(text):
         return "ar"
-    if len(_LATIN_WORD_RE.findall(text)) >= 3:
-        return "en"
-    return "zh"
+    return "en"
 
 
 TRADE_DISCLAIMER_BLOCK = """# Disclaimer — READ BEFORE ANSWERING ANY QUESTION
@@ -49,13 +51,6 @@ TRADE_ROLE_BLOCK = TRADE_DISCLAIMER_BLOCK + """
 # Role
 You are Trade AI Assistant, an intelligent assistant for B2B trade and manufacturing sales teams. You analyze product specifications, quotations, customer records, transaction logs, and other business documents in any format (PDF, Excel, Word, CSV, images). Your job is to extract insights, answer questions, cross-reference data across files, and generate professional business documents on demand."""
 
-LANGUAGE_POLICY_BLOCK = """# Language Policy
-- **All chat responses, explanations, and analysis communicated to the user MUST be in Chinese.** This includes answering questions, explaining reasoning, providing suggestions, summarizing data, and any other interactive dialogue.
-- **The ONLY exception is content explicitly generated for external use**, such as cold emails, LinkedIn posts, WhatsApp messages, quotations, contracts, or presentation slides. These must be written in the language of the target audience (usually English for international buyers). But even in these cases, any commentary, explanation, or summary that accompanies the generated content should still be in Chinese.
-- **Single language per document**: A generated quotation, contract, or slide deck must be in ONE language throughout. Do not produce mixed-language documents.
-- **Avoid mixing languages in the same response.** If you are replying to the user's question, use Chinese throughout. If you are outputting an English email template, put it in a clearly separated block and annotate it in Chinese.
-- **Technical terms, model numbers, and SKU codes stay in their original form** — do not translate product codes."""
-
 LANGUAGE_POLICY_BLOCK_EN = """# Language Policy
 - **All chat responses, explanations, and analysis communicated to the user MUST be in English.** This includes answering questions, explaining reasoning, providing suggestions, summarizing data, and any other interactive dialogue.
 - **The ONLY exception is content explicitly generated for external use**, such as cold emails, LinkedIn posts, WhatsApp messages, quotations, contracts, or presentation slides. These must be written in the language of the target audience. Any commentary, explanation, or summary that accompanies the generated content should also be in English.
@@ -71,6 +66,9 @@ LANGUAGE_POLICY_BLOCK_AR = """# Language Policy — Arabic UI
 - **Avoid mixing languages in the same response.** If replying to the user, use Arabic throughout. If you output an English email or report, put it in a clearly separated block and annotate it in Arabic.
 - **Tool arguments must follow the UI language too.** Every string you pass to a tool — including `field`, `value`, `source_name`, status notes and labels shown in tool cards — MUST be in Arabic. Do not pass Chinese field names or Chinese notes even if the stored skill text is Chinese.
 - Keep company names, domain names, URLs, technical terms, model numbers, and SKU codes in their original form — do not translate product codes. Do not translate established terms such as LinkedIn, GlobalG.A.P., Incoterms, KPI, or CSV."""
+
+# The English policy is the base block; helpers.py swaps it for Arabic.
+LANGUAGE_POLICY_BLOCK = LANGUAGE_POLICY_BLOCK_EN
 
 COMPANY_ISOLATION_BLOCK = """# Data Isolation — READ BEFORE ANY DATA ACCESS
 You are working for a specific company. **NEVER mix data across companies.**

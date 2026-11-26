@@ -34,17 +34,17 @@ test('slash dropdown renders localized description and group', () => {
     assert.doesNotMatch(chat, /const trig = String\(it\.t/);
 });
 
-test('localized help keys exist in all three languages', () => {
+test('localized help keys exist in both languages', () => {
     ids.forEach(function (id) {
         ['d', 't'].forEach(function (suffix) {
             const key = 'skills.' + id + '.' + suffix;
             const count = i18n.split(key).length - 1;
-            assert.ok(count >= 3, key + ' present in <3 dictionaries (got ' + count + ')');
+            assert.ok(count >= 2, key + ' present in <2 dictionaries (got ' + count + ')');
         });
     });
     groups.forEach(function (g) {
         const key = 'skills.group.' + g;
         const count = i18n.split(key).length - 1;
-        assert.ok(count >= 3, key + ' present in <3 dictionaries (got ' + count + ')');
+        assert.ok(count >= 2, key + ' present in <2 dictionaries (got ' + count + ')');
     });
 });

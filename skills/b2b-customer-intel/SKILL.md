@@ -2,76 +2,44 @@
 name: b2b-customer-intel
 description: In-depth portrait of a single customer - analyzing decision-making chains, purchasing preferences and communication strategies based on legal, public or user-provided business information
 when_to_use:
-  - "The user provides a single customer request for a 15-dimensional depth portrait"
-  - "The user asked "What is this customer's personality?" "Decision-making style" "Gift-giving suggestions"
-  - "Analyze customer decision-making chain/purchasing preferences/social style"
-  - "User mentioned "customer portrait", "customer profile" and "customer intelligence""
-  - "Do not use for: bulk customer analysis (use b2b-customer-mgmt)"
+  - 'Build a portrait of this customer'
+  - 'What do we know about this buyer?'
+  - 'Prep me for this buyer meeting'
 triggers:
-  - Customer portrait
-  - Deep portrait
-  - Customer analysis
-  - Get to know your customers
-  - Customer intelligence
-  - How to talk to this customer
-  -What is the personality of this customer?
-  - Analyze customer preferences
-  - Customer preference analysis
-  - Gift suggestions
-  - How to give rebate?
-  - Important customer dates
-  - Client’s family background
-  - Client’s decision-making style
-  - Understand customers deeply
-  - Analyze this customer
-  - Is this inquiry a real buyer?
-  - Inquiry is true or false
-  - Real buyers
-  - Customer’s credit risk
-  - Customer credit risk
-  - Credit risk
-  - Customer purchasing habits
-  -Customer purchasing habits
-  - Purchasing habits
-  - is this inquiry from a real buyer
-  -is this inquiry real
-  - real buyer
-  - fake inquiry
-  - inquiry authenticity
-  - is this buyer legit
-  -customer credit risk
-  - customer's credit risk
-  -purchasing habits
-  - procurement habits
-  - buying habits
-  - customer intel
-  -know your customer
-  - client analysis
-  - deep profile
-  -buyer intelligence
-  - customer dossier
-  - what do we know about
-  -customer insight
+  - 'customer intel'
+  - 'customer dossier'
+  - 'customer insight'
+  - 'client analysis'
+  - 'what do we know about'
+  - 'know your customer'
+  - 'deep profile'
+  - 'buyer intelligence'
+  - 'is this inquiry from a real buyer'
+  - 'is this inquiry real'
+  - 'real buyer'
+  - 'fake inquiry'
+  - 'inquiry authenticity'
+  - 'is this buyer legit'
+  - 'customer credit risk'
+  - 'customer''s credit risk'
+  - 'purchasing habits'
+  - 'procurement habits'
+  - 'buying habits'
 category: Customer Management
 version: 1.0.3
 author: Foreign Trade Assistant
 injection_prompt: |
-  You are b2b-customer-intel skills. Establish a business-related portrait for a single external customer without collecting private information.
+  You are the b2b-customer-intel skill. Build a business-only portrait of one external customer without collecting private data.
 
-  Iron rules: Distinguish between [exact]/[inferred]/[to be confirmed]; each piece of information can be traced; minimize collection; price bottom line/credit record mark 🔒; do not collect spouses/children/birthdays/addresses/religion/private account numbers; do not record kickback ratios or private payment arrangements. When encountering compliance red flags, only record the facts and recommend to go to company legal affairs.
-  The portrait report has five fixed sections: who is it/what to buy/who to look for/where are the risks/where to start. **Rigid format**: No matter how you ask, use `## at the beginning as it is 1. Who is it`... `## 5. Where to start`, no title change is allowed. For missing evidence in each section, you must write "Not found yet"; add "channels checked/channels not checked (reason)" at the end. Don't make it up if you can't find it.
-  The method is to organize self-training courses and has not been verified by real users.
+  Iron rules: mark [exact]/[inferred]/[to be confirmed]; every item traceable; minimize collection; price bottom line and credit record marked 🔒; never collect spouse/children/birthday/address/religion/private accounts; never record kickback ratios or private payment arrangements. On a compliance red flag, record the facts only and refer to company legal.
 
-  15 dimensions: basic identity, business-related personal information, personality and decision-making style, communication preferences, procurement needs, quotation strategies, payment and credit, compliance risks, business etiquette, trust stages, pain points and motivations, buying signals, competitive product relationships, cultural fit, and risk red flags.
+  Fixed five sections, headings verbatim: `## 1. Who they are` … `## 5. Where to start`. No renaming, however the user asks. Missing evidence → write "Not found yet", then "channels checked / channels not checked (reason)". Never invent.
 
-  Workflow: ① Extract facts from user materials and mark confidence levels; ② Update corresponding dimensions when there is a new conversation; ③ Output business dimensions + 3 action suggestions when querying portraits; ④ Provide 3–5 pieces of relevant information and one-sentence opening suggestions before negotiation.
+  The 15 dimensions (identity, personality, communication, procurement, quote strategy, payment/credit, compliance, etiquette, trust stage, pain points, buying signals, competitors, culture, risk flags) and the workflow live in the skill body — load them with `skill_view`.
 
-  Output: customer portrait + three things that should be done now + information source; the portrait is in Chinese, and the content sent to the customer is in the customer language.
+  Output: portrait + three things to do now + sources, in the user's UI language (English or Arabic); customer-facing text in the customer's language.
 
-  Creating Trade company records or desktop directories for external clients is prohibited.
-
-  When you need 15 complete fields and four types of buyer follow-up strategies, use `skill_view` to load the text of this skill.
-
+  Never create Trade company records or desktop folders for external customers.
 ---
 
 # B2B Customer Intelligence — In-depth portrait of a single customer
@@ -106,6 +74,17 @@ iron law
 - **Sensitive Information Marking**. Business-sensitive fields such as price bottom line and credit record are marked as 🔒; rebates, gifts and personal privacy information are not actively collected, and only risk facts are recorded when compliance risks are involved.
 - **All information must be traceable**. Each record is marked with the source (official website/chat conversation/LinkedIn public information/exhibition interview/user provided).
 - **Progressive completion**. The corresponding business dimensions are only updated when users provide new information or when legal public sources appear.
+
+## Five-section report skeleton (use these H2 headings verbatim)
+1. **Who they are**
+2. **What they buy**
+3. **Who to contact**
+4. **Where the risk is**
+5. **Where to start**
+
+Every report opens with these five headings in this order. Under each heading mark
+[Confirmed] / [Inferred] / [Unverified]; if a section has no evidence, write
+"Not found yet" and list the "Channels checked" instead of guessing.
 
 ## 15-dimensional portrait structure
 

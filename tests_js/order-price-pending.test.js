@@ -21,10 +21,7 @@ test('单价待谈的文案 helper 存在且区分 null 与旧数据 0', () => {
     assert.match(body, /order\.price_pending/, '新数据待谈文案');
 });
 
-test('中英文词典都有待谈文案', () => {
-    assert.ok(SRC.includes("'order.price_pending':'单价待谈'"), '中文缺待谈文案');
-    assert.ok(SRC.includes("'order.price_pending_legacy':'单价待谈（旧数据，单价未填）'"),
-        '中文缺旧数据待谈文案');
+test('英文词典有待谈文案（阿文缺失时回落到英文）', () => {
     assert.ok(SRC.includes("'order.price_pending':'Price TBD'"), '英文缺待谈文案');
     assert.ok(SRC.includes("'order.price_pending_legacy':'Price TBD (legacy data, price not filled)'"),
         '英文缺旧数据待谈文案');

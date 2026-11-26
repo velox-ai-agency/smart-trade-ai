@@ -1798,12 +1798,32 @@ async function saveCustomer() {
 }
 
 // ── 批量导入 ───────────────────────────────────────────
+// Excel often exports "CSV (comma delimited)" as UTF-16. The backend only
+// accepts UTF-8, so normalise UTF-16 files in the browser before uploading.
+// UTF-8 (with or without BOM) is left untouched — the backend strips BOM.
+async function _normalizeCsvFile(file) {
+    try {
+        if (typeof file.arrayBuffer !== 'function' || typeof TextDecoder === 'undefined' ||
+            typeof TextEncoder === 'undefined' || typeof Blob === 'undefined') return file;
+        const bytes = new Uint8Array(await file.arrayBuffer());
+        let enc = null;
+        if (bytes[0] === 0xFF && bytes[1] === 0xFE) enc = 'utf-16le';
+        else if (bytes[0] === 0xFE && bytes[1] === 0xFF) enc = 'utf-16be';
+        if (!enc) return file;
+        const text = new TextDecoder(enc).decode(bytes);
+        return new Blob([new TextEncoder().encode(text)], {type: 'text/csv'});
+    } catch (e) {
+        return file;
+    }
+}
+
 async function bulkImportCustomers() {
     const fileInput = document.getElementById('cust-bulk-file');
     if (!fileInput || !fileInput.files.length) return;
     const file = fileInput.files[0];
+    const upload = await _normalizeCsvFile(file);
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('file', upload, file.name);
     const btn = document.getElementById('cust-import-btn') || $('cust-import-btn') || fileInput.nextElementSibling;
     const originalLabel = btn.innerHTML;
     btn.disabled = true;
@@ -1812,7 +1832,7 @@ async function bulkImportCustomers() {
         if (typeof TradeWait !== 'undefined') restoreBtn = TradeWait.inline(btn, {en: 'IMPORTING', zh: '导入中'});
         else btn.textContent = langText('导入中...', 'Importing...');
         // 走 api() 统一封装：拿到 120s 超时与 401 自愈（原先裸 fetch 无超时）
-        const result = await api('POST', '/api/trade/customers/bulk', formData);
+        const result = await api('POST', '/api/trade/customers/bulk', formData, undefined, { sticky: true });
         // result 为 null 时 api() 已经 toast 过失败原因，这里不重复提示
         if (result) {
             toast(langText('导入完成：新增 %n% 条，跳过 %s% 条（重复或空行）', 'Imported: %n% added, %s% skipped (duplicates or empty rows)')

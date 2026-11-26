@@ -55,7 +55,7 @@ class TestResponseSla:
 
     def test_other_skills_do_not_contradict(self):
         assert "≤30 分钟（工作时间）" in _text("b2b-sales-playbook")
-        assert "工作时间内 30 分钟内回复" in _text("b2b-lead-generation")
+        assert "within 30 minutes during working hours" in _text("b2b-lead-generation")
 
 
 class TestCustomerGrading:
@@ -72,7 +72,9 @@ class TestCustomerGrading:
 
     def test_exhibition_uses_intent_levels(self):
         text = _text("b2b-exhibition")
-        assert "展会意向分级" in text and "高 / 中 / 低" in text
+        assert "Post-Show Lead Grading" in text
+        for level in ("High", "Medium", "Low"):
+            assert level in text
 
 
 class TestNoUnauthorizedNames:

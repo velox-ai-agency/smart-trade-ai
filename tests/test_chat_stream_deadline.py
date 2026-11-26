@@ -74,7 +74,7 @@ async def _collect(company: dict) -> str:
          patch.object(chat.chat_memory, "save_with_context", return_value={"id": 1}), \
          patch("trade.license.check_license", return_value=(True, "")):
         resp = await chat.trade_chat_stream(
-            ChatRequest(query="做个网站诊断"), company["id"]
+            ChatRequest(query="做个网站诊断", language="zh"), company["id"]
         )
         chunks = []
         async for chunk in resp.body_iterator:
@@ -119,7 +119,7 @@ class TestSaveFailureIsVisible:
              ), \
              patch("trade.license.check_license", return_value=(True, "")):
             resp = await chat.trade_chat_stream(
-                ChatRequest(query="你好"), company["id"]
+                ChatRequest(query="你好", language="zh"), company["id"]
             )
             chunks = []
             async for chunk in resp.body_iterator:
@@ -169,7 +169,7 @@ class TestLateAnswerNotSaved:
              ), \
              patch("trade.license.check_license", return_value=(True, "")):
             resp = await chat.trade_chat_stream(
-                ChatRequest(query="你好"), company["id"]
+                ChatRequest(query="你好", language="zh"), company["id"]
             )
             async for _chunk in resp.body_iterator:
                 pass

@@ -77,6 +77,8 @@ async function api(method, path, body, extraHeaders, options) {
     // options.onStatus(status)：把 HTTP 状态码交给调用方（如备忘录只在 403
     // 时计失败，网络错/500/429 不计）
     const onStatus = options && options.onStatus;
+    // options.sticky：用户需要读清原因的失败（如 CSV 导入校验）常驻显示
+    const sticky = !!(options && options.sticky);
     const opts = _buildApiOpts(method, body, TOKEN, currentCompanyId, extraHeaders);
     const ctrl = new AbortController();
     const tid = setTimeout(() => ctrl.abort(), 120000);
@@ -87,7 +89,8 @@ async function api(method, path, body, extraHeaders, options) {
         if (!r.ok) {
             if (onStatus) onStatus(r.status);
             const err = await r.json().catch(() => ({}));
-            const msg = err.detail || `请求失败 (${r.status})`;
+            const rawMsg = err.detail || `请求失败 (${r.status})`;
+            const msg = typeof localizeApiError === 'function' ? localizeApiError(rawMsg) : rawMsg;
             if (r.status === 401) {
                 // 自动恢复一次：重取 token / 重载公司
                 const recovered = await recoverAuth(method, path, body);
@@ -96,8 +99,8 @@ async function api(method, path, body, extraHeaders, options) {
             }
             else if (r.status === 404) { if (!silent) toast(msg); }
             else if (r.status === 409) { if (!silent) toast(msg); }
-            // 5xx / 429 是「用户需要看清原因」的失败，常驻显示
-            else if (!silent) toast(msg, {sticky: r.status >= 500 || r.status === 429});
+            // 5xx / 429 与显式 sticky 是「用户需要看清原因」的失败，常驻显示
+            else if (!silent) toast(msg, {sticky: sticky || r.status >= 500 || r.status === 429});
             return null;
         }
         return r.json();

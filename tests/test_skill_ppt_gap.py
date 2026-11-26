@@ -96,12 +96,16 @@ class TestEvidenceDisciplineBlock:
             assert "[待核实]" in getattr(prompt, tier), f"{tier} 未携带事实/推断块"
 
     def test_osint_and_customer_intel_have_five_sections(self):
-        for skill in ("b2b-osint", "b2b-customer-intel"):
+        skeleton = {
+            "b2b-osint": ("它是谁", "买什么", "找谁", "风险在哪", "从哪切入", "暂未找到", "已查渠道"),
+            "b2b-customer-intel": ("Who they are", "What they buy", "Who to contact",
+                                   "Where the risk is", "Where to start",
+                                   "Not found yet", "Channels checked"),
+        }
+        for skill, markers in skeleton.items():
             text = _text(skill)
-            for section in ("它是谁", "买什么", "找谁", "风险在哪", "从哪切入"):
-                assert section in text, f"{skill} 缺少五节之一：{section}"
-            assert "暂未找到" in text, f"{skill} 缺少「暂未找到」"
-            assert "已查渠道" in text, f"{skill} 缺少「已查渠道」"
+            for marker in markers:
+                assert marker in text, f"{skill} 缺少五节要素之一：{marker}"
 
 
 class TestOutboundActionBan:

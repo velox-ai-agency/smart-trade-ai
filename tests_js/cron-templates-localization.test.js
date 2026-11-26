@@ -13,7 +13,8 @@ function templatesFor(lang) {
         '{ getAllTemplates }',
         {
             currentLang: lang,
-            langText: (zh, en) => (lang === 'en' ? en : zh),
+            // 真实实现：阿文查 AR_TERMS（此处置为前缀以便断言），其它一律英文
+            langText: (zh, en) => (lang === 'ar' ? 'AR:' + en : en),
             localStorage: { getItem: () => '[]' },
         }
     );
@@ -32,7 +33,14 @@ test('英文界面下全部模板名为英文', () => {
     assert.ok(names.includes('Weekly review report'));
 });
 
-test('中文界面仍保留中文模板名', () => {
+test('已停用的中文语言回落为英文模板名', () => {
     const names = templatesFor('zh').map(x => x.name);
-    assert.ok(names.includes('每周复盘报告'));
+    assert.ok(!names.some(n => /[\u4e00-\u9fff]/.test(n)), '残留中文：' + names.join(', '));
+    assert.ok(names.includes('Weekly review report'));
+});
+
+test('阿拉伯语界面不出现中文模板名', () => {
+    const names = templatesFor('ar').map(x => x.name);
+    assert.ok(!names.some(n => /[\u4e00-\u9fff]/.test(n)), '阿文界面残留中文：' + names.join(', '));
+    assert.ok(names.every(n => n.startsWith('AR:')), names.join(', '));
 });

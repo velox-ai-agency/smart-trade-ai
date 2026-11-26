@@ -2,12 +2,9 @@
 name: b2b-doc-generation
 description: 外贸单证生成 — 生成报价单/PI/合同/商业提案等外贸专用文档（DOCX/XLSX/PPTX）
 when_to_use:
-  - "用户要求生成外贸单证（报价单 / PI / 形式发票 / 装箱单 / 合同 / 商业提案）"
-  - "需要可下载的外贸模板"
-  - "用户提到「做一份报价」「生成PI」「出合同」"
-  - "生成 PI/形式发票前需要检查必填项与银行信息"
-  - "生成普通 Word/PPT 用 Hermes 内置 office skills 即可，不需要本技能"
-  - "不要用于：读取文档（用 b2b-document）；非外贸通用文档（用 Hermes 内置）"
+  - 'Generate a PI/CI/PL'
+  - 'Fill this shipping document'
+  - 'Check my document fields'
 triggers:
   - 做报价单
   - 生成PI

@@ -310,17 +310,15 @@ test('detail requires a reason; API reason is shown; credential and shipment pos
     });
 });
 
-test('all start.* i18n keys exist in zh, en and ar; Arabic is real Arabic', () => {
+test('all start.* i18n keys exist in en and ar; Arabic is real Arabic', () => {
     const src = fs.readFileSync(I18N_JS, 'utf8');
     const i = (marker) => src.indexOf(marker);
-    const zh = src.slice(i('    zh: {'), i('    en: {'));
     const en = src.slice(i('    en: {'), i('    ar: {'));
     const ar = src.slice(i('    ar: {'), i('\n};'));
     const keys = (s) => new Set(Array.from(s.matchAll(/'(start\.[^']+)'\s*:/g), m => m[1]).sort());
-    const zk = keys(zh), ek = keys(en), ak = keys(ar);
-    assert.ok(zk.size > 40, `expected a full key set, got ${zk.size}`);
-    assert.deepEqual([...ek], [...zk], 'English dictionary must have every start.* key');
-    assert.deepEqual([...ak], [...zk], 'Arabic dictionary must have every start.* key');
+    const ek = keys(en), ak = keys(ar);
+    assert.ok(ek.size > 40, `expected a full key set, got ${ek.size}`);
+    assert.deepEqual([...ak], [...ek], 'Arabic dictionary must have every start.* key');
     assert.ok(/[\u0600-\u06FF]{3,}/.test(src.slice(i("'start.button':'ابدأ'"), i("'start.button':'ابدأ'") + 200)),
         'start.* Arabic strings must be Arabic, not English/Chinese');
 });

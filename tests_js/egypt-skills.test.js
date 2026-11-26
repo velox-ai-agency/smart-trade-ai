@@ -29,17 +29,15 @@ test('Egypt packs are visible in the 47-skill help list', () => {
     for (const id of EGYPT_IDS) assert.ok(items.includes(id), 'missing skill: ' + id);
 });
 
-test('Egypt skills are localized in ZH/EN/AR', () => {
-    for (const block of [langBlock('zh', 'en'), langBlock('en', 'ar'), langBlock('ar', null)]) {
+test('Egypt skills are localized in EN/AR', () => {
+    for (const block of [langBlock('en', 'ar'), langBlock('ar', null)]) {
         assert.ok(block.includes("'skills.group.Egypt'"), 'missing Egypt group key');
         for (const id of EGYPT_IDS) {
             assert.ok(block.includes("'skills." + id + ".d'"), 'missing description: ' + id);
             assert.ok(block.includes("'skills." + id + ".t'"), 'missing triggers: ' + id);
         }
     }
-    assert.ok(i18n.includes('全部 47 个技能速查'));
     assert.ok(i18n.includes('All 47 Skills Reference'));
-    assert.ok(html.includes('全部 47 个技能速查'));
 });
 
 test('slash commands insert English triggers for Egypt skills', () => {

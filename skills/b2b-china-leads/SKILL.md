@@ -2,79 +2,19 @@
 name: b2b-china-leads
 description: Domestic enterprise clue mining - find supply manufacturers/discover competitive products/find domestic customers, free public channels
 when_to_use:
-  - "Users want to find domestic sources of goods, domestic manufacturers, OEMs, and suppliers (purchase by themselves, or help overseas buyers find factories)"
-  - "Users need to find competing domestic manufacturers based on their own products (who is producing the same/similar product, where it is, and what price it sells for)"
-  - "Users want to find domestic customers (sell equipment/materials/services to Chinese companies)"
-  - "User mentioned 1688 / Qichacha / Tianyancha / Domestic customer acquisition / Finding supply sources / Competitive product manufacturers / OEM"
-  - "The user clearly stated that he does not want to use the paid interface / can only use free channels"
-  - "Do not use for: overseas customer development (use b2b-lead-generation / b2b-customer-finder); competitive product analysis methodology and market strategy (use b2b-market-analysis); customs data platform operation details (use b2b-customs-data)"
+  - 'Users want to find domestic sources of goods, domestic manufacturers, OEMs, and suppliers (purchase by themselves, or help overseas buyers find factories)'
+  - 'Users need to find competing domestic manufacturers based on their own products (who is producing the same/similar product, where it is, and what price it sells for)'
+  - 'Users want to find domestic customers (sell equipment/materials/services to Chinese companies)'
+  - 'User mentioned 1688 / Qichacha / Tianyancha / Domestic customer acquisition / Finding supply sources / Competitive product manufacturers / OEM'
+  - 'The user clearly stated that he does not want to use the paid interface / can only use free channels'
+  - 'Do not use for: overseas customer development (use b2b-lead-generation / b2b-customer-finder); competitive product analysis methodology and market strategy (use b2b-market-analysis); customs data platform operation details (use b2b-customs-data)'
 triggers:
-  # Common (shared by three modes)
-  - Domestic customers
-  - Domestic customer acquisition
-  - Find domestic customers
-  - Develop domestic customers
-  - Domestic leads
-  - Find a manufacturer
-  - Find a manufacturer
-  - Digging manufacturers
-  - Vendor mining
-  - Find suppliers
-  - Domestic suppliers
-  - Supplier development
-  - Domestic business directory
-  - Domestic manufacturers
-  - 1688
-   - Manufacturer
-  - Manufacturer
-  - Factory
-  - Suppliers
-  - Source factory
-  - Source manufacturer
-  - Industrial belt
-  - Domestic factory
-  - Qichacha
-  - Tianyancha
-  # Find the source of goods (main) - deliberately use only compound words: naked "OEM"/"OEM" will steal the adjacent semantics (OEM contract, OEM compliance)
-  - Find sources of supply
-  - Supply
-  - Foundry
-  - Find OEM
-  - Domestic OEM
-  - OEM manufacturer
-  -OEM manufacturer
-  - OEM factory
-  - OEM factory
-  - OEM
-  - OEM
-  - OEM
-  -OEM
-  - OEM supplier
-  - OEM supplier
-  - Find OEM
-  - Find OEM
-  -OEM
-  -OEM
-  -OEM
-  - Find OEM
-  - Want to do OEM
-  - OEM cooperation
-  #Poach domestic manufacturers of competing products (key)
-  - Competing product manufacturers
-  - Competing manufacturers
-  - Competitive product factory
-  - Similar manufacturers
-  - Similar manufacturers
-  - peer manufacturers
-  - peer manufacturers
-  - Competitor manufacturers
-  #English
-  - china leads
-  -domestic leads
-  - find chinese suppliers
-  - chinese manufacturers
-  - china sourcing
-  - china suppliers
+  - 'china leads'
+  - 'domestic leads'
+  - 'find chinese suppliers'
+  - 'chinese manufacturers'
+  - 'china sourcing'
+  - 'china suppliers'
 category: Customer Development
 version: 1.0.0
 author: Foreign Trade Assistant

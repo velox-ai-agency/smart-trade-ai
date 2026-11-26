@@ -11,10 +11,11 @@ const assert = require('node:assert');
 const { SRC } = require('./_extract');
 
 function loadBulkImport() {
-    const start = SRC.indexOf('async function bulkImportCustomers()');
-    assert.notEqual(start, -1, 'bulkImportCustomers() must exist in static/js');
-    const stop = SRC.indexOf('\nasync function ', start + 10);
-    assert.ok(stop > start, 'bulkImportCustomers() must end before the next function');
+    const start = SRC.indexOf('async function _normalizeCsvFile');
+    assert.notEqual(start, -1, '_normalizeCsvFile() must exist in static/js');
+    const firstFn = SRC.indexOf('\nasync function ', start + 10);
+    const stop = SRC.indexOf('\nasync function ', firstFn + 10);
+    assert.ok(stop > firstFn, 'bulkImportCustomers() must end before the next function');
     return new Function(
         'document', '$', 'FormData', 'TradeWait', 'api', 'toast',
         'loadCustomersData', 'renderCustomersTable', 'currentView',

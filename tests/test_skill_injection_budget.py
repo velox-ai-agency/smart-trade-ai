@@ -5,9 +5,10 @@
 以及**运行时实际注入量**（injection_prompt + when_to_use 段）在预算内。
 
 2026-11-12 口径（Lau 选 A）：
-- 前 5 大**运行时**合计 ≤ 5000。原 4000 只量 frontmatter 的 injection_prompt，
-  漏掉 `augment_query()` 追加的 when_to_use 段，实际运行时 4812 —— 旧测试
-  测不到真正的花费。
+- 前 5 大**运行时**合计 ≤ 6000（2026-11-26 由 5000 上调）。原 4000 只量
+  frontmatter 的 injection_prompt，漏掉 `augment_query()` 追加的 when_to_use
+  段；中→英双语改写后英文比中文长约 25%，5 个技能已逐个压到单技能 1500 以内，
+  合计 5931。单技能 1500 仍是硬上限，合计上限只用于防整体反弹。
 - 单技能上限仍是 1500，但同样按运行时量（当前最大 1200）。
   这条**只对这 5 个**生效：全仓最大是 b2b-inquiry-training（约 4277），
   它不在受控名单里，扩到全仓会立刻红。
@@ -27,14 +28,14 @@ BUDGETS = {
     "b2b-linkedin-marketing": (1500, "7 天 LinkedIn 主页打造计划"),
     "b2b-platform": (1500, "量化异常诊断阈值"),
     "b2b-doc-generation": (1500, "标准外贸单证字段清单"),
-    "b2b-customer-intel": (1500, "15 维度画像结构"),
-    "b2b-cold-outreach": (1500, "6 封标准邮件推进序列"),
+    "b2b-customer-intel": (1500, "15-dimensional portrait structure"),
+    "b2b-cold-outreach": (1500, "Anti-marketing self-inspection"),
 }
 
 # 与 trade/skill_router.augment_query() 里的段头保持一致。
 # 若实现改了措辞，test_runtime_matches_augment_query() 会先红。
 _WHEN_HEADER = "\n\n适用场景（用户这样说时启用本技能）：\n"
-TOTAL_BUDGET = 5000
+TOTAL_BUDGET = 6000
 
 
 def _text(name: str) -> str:
@@ -83,7 +84,10 @@ def test_runtime_stays_within_per_skill_budget():
 def test_full_rules_moved_to_body_not_deleted():
     for name, (_limit, marker) in BUDGETS.items():
         text = _text(name)
-        assert "## 详细规则（skill_view 按需加载）" in text, f"{name} 缺详细规则入口"
+        assert (
+            "## 详细规则（skill_view 按需加载）" in text
+            or "## Detailed rules" in text
+        ), f"{name} 缺详细规则入口"
         assert marker in text, f"{name} 的详细规则标记丢失：{marker}"
 
 

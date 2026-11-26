@@ -9,30 +9,26 @@ when_to_use:
   - "User asks if a company imported from China / what they imported (use simple solution when no customs data available)"
   - "Do not use for: Customer company authenticity verification (use b2b-osint)"
 triggers:
-  - customs data
-  - import export records
-  - trade data mining
-  - buyer analysis
-  - supplier analysis
-  - find buyers
-  - import records
-  - import from china
-  - import data
-  - import history
-  - shipments
-  - importer of record
-  - who imports
-  - importyeti
-  # ... (see skill_registry.py for full list)
-  # Chinese — 2026-11-24 W6: Synchronized with registry
-  - 海关数据
-  - 进出口记录
-  - 广交会数据
-  - 贸易数据挖掘
-  - 采购商分析
-  - 供应商分析
-  - 查采购商
-  - 找买家
+  - 'customs data'
+  - 'import export records'
+  - 'trade data mining'
+  - 'buyer analysis'
+  - 'supplier analysis'
+  - 'import records'
+  - 'import from china'
+  - 'import data'
+  - 'import history'
+  - 'importer of record'
+  - 'who imports'
+  - 'importyeti'
+  - '海关数据'
+  - '进出口记录'
+  - '广交会数据'
+  - '贸易数据挖掘'
+  - '采购商分析'
+  - '供应商分析'
+  - '查采购商'
+  - '找买家'
 category: Data Analysis
 version: 1.3.3
 author: Foreign Trade Assistant
@@ -84,6 +80,8 @@ injection_prompt: |
   - **Output format (mandatory)**: Every key evidence item marked [Confirmed] / [Inferred] / [Unverified]; First paragraph must be data source declaration (before any conclusions, transcriptions, person introductions): "This report did not use official customs data, only preliminary judgment from public information; if official customs data is available, use official data as authoritative" (even when third-party bill of lading indices found, this must be written); End must provide priority classification (simple solution defaults P3; downgrade or upgrade must state basis; after official customs data validation, re-evaluate per Phase 4); Cannot write "all consistent" for partial consistency; Absolute negation must be limited to "in verifiable public channels"; Different databases / bases / periods must be separately indicated, cannot merge into one table.
 
   When needed for customs data search, four-layer filtering, buyer persona patterns, or priority scoring → Use `skill_view` to load this skill's text.
+  - **When the target is a person**: first confirm name + company + title, then search "name + company + resume/experience" and "name + former employer" in the local language; only then may you write "not found".
+  - **When the user provides a CSV/Excel file**: read it completely (no skipping, no truncation), preserve original row order and column names.
 
 ---
 

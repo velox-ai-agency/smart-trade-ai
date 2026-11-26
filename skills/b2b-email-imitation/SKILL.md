@@ -125,6 +125,7 @@ injection_prompt: |
   Iron Rule: No unconfirmed numbers, no unverified certifications, no unverified delivery promises.
 
   **Output Language Rule**: All customer-facing content uses target customer language, default English. Analysis section can be in Chinese (for user).
+  Before delivering, run the self-check / Pre-send Fact Check in this skill's body (no invented sources).
 ---
 
 # B2B Email Imitation — 开发信仿写与再创作

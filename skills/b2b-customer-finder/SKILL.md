@@ -2,27 +2,15 @@
 name: b2b-customer-finder
 description: Fool-like customer development wizard - three questions to start, automatically search for customers + generate development letters
 when_to_use:
-  - "Users say "find customers in a fool's way", "find customers with one click" and "quickly develop customers""
-  - "Newbies don't know how to find customers by themselves, so they need three questions to start."
-  - "Users ask "how to find customers" and "finding customers is too difficult"
-  - "Do not use for: deep customer development (use b2b-lead-generation)"
+  - 'Users say "find customers in a fool''s way", "find customers with one click" and "quickly develop customers"'
+  - 'Newbies don''t know how to find customers by themselves, so they need three questions to start.'
+  - 'Users ask "how to find customers" and "finding customers is too difficult'
+  - 'Do not use for: deep customer development (use b2b-lead-generation)'
 triggers:
-  - Find customers the fool-proof way
-  - Find customers with one click
-  - Find customers quickly
-  - Quickly develop customers
-  - Newbies looking for clients
-  - Can't find customers
-  - Find customers easily
-  - Customer Development Wizard
-  - Find a customer guide
-  -Teach me how to find customers
-  - I want to develop customers
-  - It’s too difficult to find customers
-  - quick customer finder
-  - easy customer find
-  - find customers quickly
-  - help me find customers
+  - 'quick customer finder'
+  - 'easy customer find'
+  - 'find customers quickly'
+  - 'help me find customers'
 category: Customer Development
 version: 1.0.1
 author: Trade

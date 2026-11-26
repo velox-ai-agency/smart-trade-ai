@@ -67,7 +67,7 @@ async def _call_chat(env, agent_stub, query, evidence, saved):
          patch.object(chat, "snapshot_read_coverage", return_value=evidence), \
          patch("trade.license.check_license", return_value=(True, "")), \
          patch.object(chat.chat_memory, "save_with_context", side_effect=_save):
-        payload = ChatRequest(query=query, library_id=env["library"]["id"])
+        payload = ChatRequest(query=query, library_id=env["library"]["id"], language="zh")
         return await chat.trade_chat(payload, env["cid"])
 
 
@@ -194,7 +194,7 @@ async def test_gate_falls_back_to_callbacks_without_hermes_api(env):
          patch("trade.license.check_license", return_value=(True, "")), \
          patch.object(chat.chat_memory, "save_with_context",
                       side_effect=lambda **k: saved.append(k) or {"id": 1}):
-        payload = ChatRequest(query=STRICT_QUERY, library_id=env["library"]["id"])
+        payload = ChatRequest(query=STRICT_QUERY, library_id=env["library"]["id"], language="zh")
         result = await chat.trade_chat(payload, env["cid"])
 
     assert result["response"] == "分析完成"
@@ -220,7 +220,7 @@ async def test_callback_gate_blocks_skipped_file(env):
          patch("trade.license.check_license", return_value=(True, "")), \
          patch.object(chat.chat_memory, "save_with_context",
                       side_effect=lambda **k: saved.append(k) or {"id": 1}):
-        payload = ChatRequest(query=STRICT_QUERY, library_id=env["library"]["id"])
+        payload = ChatRequest(query=STRICT_QUERY, library_id=env["library"]["id"], language="zh")
         result = await chat.trade_chat(payload, env["cid"])
 
     assert "报价.xlsx" in result["response"]
@@ -253,7 +253,7 @@ async def test_hermes_snapshot_wins_over_callbacks(env):
          patch("trade.license.check_license", return_value=(True, "")), \
          patch.object(chat.chat_memory, "save_with_context",
                       side_effect=lambda **k: saved.append(k) or {"id": 1}):
-        payload = ChatRequest(query=STRICT_QUERY, library_id=env["library"]["id"])
+        payload = ChatRequest(query=STRICT_QUERY, library_id=env["library"]["id"], language="zh")
         result = await chat.trade_chat(payload, env["cid"])
 
     assert result["response"] == "分析完成"
@@ -290,7 +290,7 @@ async def test_gate_releases_hermes_task_record(env, agent_stub):
          patch("trade.license.check_license", return_value=(True, "")), \
          patch.object(chat.chat_memory, "save_with_context", return_value={"id": 1}):
         from trade.api.models import ChatRequest
-        payload = ChatRequest(query=STRICT_QUERY, library_id=env["library"]["id"])
+        payload = ChatRequest(query=STRICT_QUERY, library_id=env["library"]["id"], language="zh")
         await chat.trade_chat(payload, env["cid"])
 
     assert released and released[0].startswith("trade-doc-")
@@ -311,7 +311,7 @@ async def _collect_stream(env, agent_stub, query, evidence):
          patch.object(chat, "release_read_coverage"), \
          patch("trade.license.check_license", return_value=(True, "")), \
          patch.object(chat.chat_memory, "save_with_context", return_value={"id": 1}):
-        payload = ChatRequest(query=query, library_id=env["library"]["id"])
+        payload = ChatRequest(query=query, library_id=env["library"]["id"], language="zh")
         response = await chat.trade_chat_stream(payload, env["cid"])
         async for chunk in response.body_iterator:
             text = chunk.decode() if isinstance(chunk, bytes) else chunk

@@ -639,7 +639,7 @@ def build_query(
     customer_id: int | None = None,
     *,
     last_skill_name: str | None = None,
-    language: str = "zh",
+    language: str = "en",
     context: str | None = None,
 ) -> tuple[str, str | None]:
     """组装完整的用户 prompt：公司身份 + 文档库上下文 + Skill 注入。

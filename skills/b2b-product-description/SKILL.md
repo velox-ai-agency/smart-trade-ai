@@ -7,24 +7,23 @@ when_to_use:
   - "用户提到「产品描述」「listing 文案」"
   - "不要用于：产品选品（用 b2b-market-analysis）"
 triggers:
-  - 产品描述
-  - 产品介绍
-  - 产品文案
-  - Sales Kit
-  - 销售资料
-  - 产品卖点
-  - 产品说明
-  - 产品话术
-  - 描述产品
-  - 帮我写产品
-  - product description
-  - product copy
-  - sales kit
-  - product selling points
-  - value proposition
-  - product features
-  - product brochure
-  - sales material
+  - '产品描述'
+  - '产品介绍'
+  - '产品文案'
+  - 'Sales Kit'
+  - '销售资料'
+  - '产品卖点'
+  - '产品说明'
+  - '产品话术'
+  - '描述产品'
+  - '帮我写产品'
+  - 'product description'
+  - 'product copy'
+  - 'product selling points'
+  - 'value proposition'
+  - 'product features'
+  - 'product brochure'
+  - 'sales material'
 category: 销售转化
 version: 1.1.0
 author: Foreign Trade Assistant

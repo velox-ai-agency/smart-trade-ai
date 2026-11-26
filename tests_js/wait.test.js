@@ -109,7 +109,10 @@ function loadComponent(opts) {
   const code = loadRegion('wait', '{ TradeWait: window.TradeWait, Wait: null }',
     // 区段内只用了这些自由变量
     { window: win, document: doc, localStorage, requestAnimationFrame: win.requestAnimationFrame,
-      ResizeObserver: win.ResizeObserver, IntersectionObserver: win.IntersectionObserver });
+      ResizeObserver: win.ResizeObserver, IntersectionObserver: win.IntersectionObserver,
+      // wait.js 的内部文案表仍保留 zh 行；界面已不提供中文，但这里测的是
+      // 组件行为，钉住 zh 行避免断言随语言默认值漂移。
+      currentLang: 'zh', I18N: { zh: {} } });
   // loadRegion 已执行整个 IIFE，window.TradeWait 已就位
   return { SW: win.TradeWait, doc, byId, win, store, code };
 }
