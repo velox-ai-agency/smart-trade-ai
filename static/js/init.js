@@ -156,6 +156,7 @@ function renderNoCompanyPage() {
         'bulkImportCustomers',
         'clearAllCronTasks',
         'clearChat',
+        'exportChat',
         'closeBackdrop',
         'closeCustomerDetail',
         'copySelf',

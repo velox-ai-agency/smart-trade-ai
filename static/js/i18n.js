@@ -20,7 +20,7 @@ const I18N = {
         'chat.ph.docs':'在下方选择文档库后提问，或直接粘贴文件内容...',
         'chat.ph.docgen':'描述要生成的文档：如「做一份欧洲客户的报价单PPT」...',
         'chat.ph.osint':'输入邮箱/域名/公司名，我来做全面的背景调查...',
-        'chat.clr':'🗑️ 清屏','chat.library':'— 选择文档库 —','chat.lib.add':'添加文档库',
+        'chat.clr':'🗑️ 清屏','chat.export':'导出会话','chat.session':'会话','chat.library':'— 选择文档库 —','chat.lib.add':'添加文档库',
         // footer buttons —— 只写文字：图标固定在 HTML 里（不随语言变），
         // 这些文案由 applyI18n 填进按钮的 data-tip，悬停时显示。
         'footer.update':'更新系统','footer.restart':'重启',
@@ -114,7 +114,7 @@ const I18N = {
         // toast
         'toast.copied':'已复制','toast.saved':'已保存','toast.deleted':'已删除',
         'toast.updated':'已更新','toast.error':'操作失败','toast.network':'网络错误',
-        'toast.no_company':'请先选择公司','toast.csv_ok':'成功导入 {n} 个客户',
+        'toast.no_company':'请先选择公司','toast.no_export':'当前会话还没有消息','toast.csv_ok':'成功导入 {n} 个客户',
         // customer view
         'customer.title':'客户管理','customer.add':'添加客户',
         'customer.import':'📥 CSV导入','customer.search':'搜索公司、联系人、邮箱、标签',
@@ -523,7 +523,7 @@ const I18N = {
         'chat.ph.docs':'Select a library below, or paste file content...',
         'chat.ph.docgen':'Describe the document: e.g. "Create a quotation PPT for EU client"...',
         'chat.ph.osint':'Enter email/domain/company name for background check...',
-        'chat.clr':'🗑️ Clear','chat.library':'— Select Library —','chat.lib.add':'Add Library',
+        'chat.clr':'🗑️ Clear','chat.export':'Export session','chat.session':'Session','chat.library':'— Select Library —','chat.lib.add':'Add Library',
         'footer.update':'Update','footer.restart':'Restart',
         'footer.skills':'Skills Help','footer.skills_update':'Update Skills',
         'footer.upgrade':'Upgrade Guide','footer.onboarding':'Tutorial',
@@ -607,7 +607,7 @@ const I18N = {
         'license.activate_btn':'🔑 Enter Activation Code','license.days_left':'{n} days left',
         'toast.copied':'Copied','toast.saved':'Saved','toast.deleted':'Deleted',
         'toast.updated':'Updated','toast.error':'Error','toast.network':'Network Error',
-        'toast.no_company':'Please select a company first','toast.csv_ok':'Imported {n} customers',
+        'toast.no_company':'Please select a company first','toast.no_export':'Nothing to export in this session yet','toast.csv_ok':'Imported {n} customers',
         'customer.title':'Customers','customer.add':'Add Customer',
         'customer.import':'📥 Import CSV','customer.search':'Search company, contact, email, tag',
         'customer.detail.save':'💾 Save',
@@ -1013,6 +1013,8 @@ const I18N = {
         'chat.ph.docgen': "صف المستند المطلوب، مثلاً: \"أنشئ عرض سعر بصيغة PPT لعميل أوروبي\"...",
         'chat.ph.osint': "أدخل البريد الإلكتروني/النطاق/اسم الشركة لإجراء فحص شامل للخلفية...",
         'chat.clr': "🗑️ مسح",
+        'chat.export': "تصدير المحادثة",
+        "chat.session": "جلسة",
         'chat.library': "— اختر مكتبة المستندات —",
         'chat.lib.add': "إضافة مكتبة مستندات",
         'footer.update': "تحديث",
@@ -1165,7 +1167,7 @@ const I18N = {
         'toast.updated': "تم التحديث",
         'toast.error': "خطأ في العملية",
         'toast.network': "خطأ في الشبكة",
-        'toast.no_company': "يرجى اختيار شركة أولًا",
+        "toast.no_company": "يرجى اختيار شركة أولًا", "toast.no_export": "لا توجد رسائل لتصديرها في هذه الجلسة",
         'toast.csv_ok': "تم استيراد {n} عميل",
         'customer.title': "العملاء",
         'customer.add': "إضافة عميل",

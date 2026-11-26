@@ -455,12 +455,14 @@ def _get_history_block(
     company_id: int | None,
     total_prompt_chars: int,
     customer_id: int | None = None,
+    context: str | None = None,
 ) -> tuple[str, int]:
     """根据 prompt 总大小构造历史对话注入块。
 
     上下文越长，注入的历史条数越少，防止超出 token 预算。
     `customer_id` 给定时只注入该客户的对话 —— 之前只按公司过滤，给 A 客户的
     回答会看到 B 客户的报价/承诺（2026-10-23 审计 P0）。
+    `context` 给定时只注入同一屏幕/场景的对话，避免 Lead/OSINT 串话。
     当 company_id 为 None 或 0 时 history_block 为空字符串。
     """
     if not company_id:  # None, 0, 空 — company_id 从 1 开始自增，0 不可能有效
@@ -486,7 +488,9 @@ def _get_history_block(
             "如需查询更早内容，请调用 chat_memory_list 工具（参数同 50k 档提示）。"
         )
 
-    rows = _cm.get_recent(company_id, limit=limit, customer_id=customer_id)
+    rows = _cm.get_recent(
+        company_id, limit=limit, customer_id=customer_id, context=context
+    )
     if not rows:
         # 数据库中无历史记录
         return "", 0
@@ -636,6 +640,7 @@ def build_query(
     *,
     last_skill_name: str | None = None,
     language: str = "zh",
+    context: str | None = None,
 ) -> tuple[str, str | None]:
     """组装完整的用户 prompt：公司身份 + 文档库上下文 + Skill 注入。
 
@@ -647,6 +652,7 @@ def build_query(
     library_id 可选地添加文档库上下文。
     customer_id 可选地添加客户上下文（客户名称、关联文档库）。
     last_skill_name 上次使用的 skill 名称，连续同 skill 时跳过重复注入。
+    context 当前 chat 屏幕/场景（daily/lead/osint/...），用于限定历史注入范围。
     """
 
     # 0. Skill auto-detection — 走路由总入口：默认 keyword（行为不变），
@@ -896,7 +902,8 @@ def build_query(
             len(augmented_query) + 200
         )
         history_block, _ = _get_history_block(
-            company_id, pre_history_chars, customer_id=customer_id
+            company_id, pre_history_chars,
+            customer_id=customer_id, context=context
         )
 
     # 8. Assemble final user message：system → 客户 → 订单 → 文档库 → 历史 → 查询

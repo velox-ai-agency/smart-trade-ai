@@ -145,19 +145,33 @@ def save(
 
 
 def list_by_context(
-    company_id: int, context: str, limit: int = 50
+    company_id: int,
+    context: str,
+    limit: int = 50,
+    library_id: int | None = None,
+    customer_id: int | None = None,
 ) -> list[dict]:
     """返回指定公司内某个上下文（如 daily/lead/platform）最近的对话记录。
 
-    同时包含 context 为空字符串的旧记录，兼容升级前的历史数据。
+    严格按 context 过滤：旧记录里 context 为空字符串的行不再混入每个屏幕，
+    它们仍然可以通过 History（list_by_company）查到。这样可以保证每个
+    chat 屏幕真正只看到自己的会话，而不是共享同一段历史。
     """
+    clauses = ["company_id = ?", "context = ?"]
+    params: list = [company_id, context]
+    if library_id is not None:
+        clauses.append("library_id = ?")
+        params.append(library_id)
+    if customer_id is not None:
+        clauses.append("customer_id = ?")
+        params.append(customer_id)
+    params.append(limit)
     conn = get_connection()
     try:
         rows = conn.execute(
-            "SELECT * FROM conversations WHERE company_id = ? "
-            "AND (context = ? OR context = '') "
-            "ORDER BY id DESC LIMIT ?",
-            (company_id, context, limit),
+            "SELECT * FROM conversations WHERE " + " AND ".join(clauses) +
+            " ORDER BY id DESC LIMIT ?",
+            params,
         ).fetchall()
         return [_row_to_dict(r) for r in rows]
     finally:
@@ -540,13 +554,17 @@ def recall_context(query: str, *, bank_id: str = "trade") -> str:
 
 
 def get_recent(
-    company_id: int, limit: int = 20, customer_id: int | None = None
+    company_id: int,
+    limit: int = 20,
+    customer_id: int | None = None,
+    context: str | None = None,
 ) -> list[dict]:
     """获取最近的 N 条对话记录，用于上下文注入。
 
     customer_id 给定时只取该客户的对话；**未选客户时只取未归属对话**
     （`customer_id IS NULL`）—— 否则默认聊天会把全公司最近 20 条塞进 prompt，
     给 A 客户的回答看到 B 客户的价格/承诺（2026-10-23/25 审计）。
+    context 给定时只取该屏幕/场景的对话，避免 Daily/Lead/OSINT 之间串话。
     返回时反转以确保上下文按时间正序排列。
     """
     clauses = ["company_id = ?", "query IS NOT NULL"]
@@ -556,6 +574,9 @@ def get_recent(
         params.append(customer_id)
     else:
         clauses.append("customer_id IS NULL")
+    if context:
+        clauses.append("context = ?")
+        params.append(context)
     params.append(limit)
 
     conn = get_connection()

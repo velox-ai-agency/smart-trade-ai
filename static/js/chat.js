@@ -16,6 +16,7 @@ function renderChatViewInto(container, ctx, name) {
                     <option value="">${t('chat.library')}</option>
                 </select>
                 <button data-act="showAddLibraryModal" title="${t('chat.lib.add')}" style="height:30px;width:30px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-card);cursor:pointer;font-size:16px;">+</button>` : ''}
+                <button data-act="exportChat" title="${t('chat.export')}">${t('chat.export')}</button>
                 <button data-act="clearChat">${t('chat.clr')}</button>
             </div>
         </div>`;
@@ -67,6 +68,7 @@ function renderChatViewInto(container, ctx, name) {
     }
 
     if (ctx === 'docs') loadChatLibrarySelect();
+    _updateChatSessionTag();
     loadChatHistory();
     // 客户开发向导（lead 上下文 + 未完成 onboarding 时显示）
     if (ctx === 'lead' && !isOnboardingCompleted()) {
@@ -489,18 +491,24 @@ function _ensureScrollHint(container) {
     _update();
 }
 
-function onChatLibraryChange(libId) {
-    currentLibraryId = libId ? parseInt(libId) : null;
+function _updateChatSessionTag() {
     const ct = currentChatContainer;
     if (!ct) return;
     const tag = ct.querySelector('#chat-context-tag');
-    if (libId) {
+    if (!tag) return;
+    if (currentLibraryId) {
         const sel = ct.querySelector('#chat-library-select');
-        tag.textContent = '📁 ' + (sel.options[sel.selectedIndex]?.text || '');
-        tag.style.display = 'block';
+        tag.textContent = '📁 ' + (sel?.options[sel.selectedIndex]?.text || '');
     } else {
-        tag.style.display = 'none';
+        tag.textContent = '🗂️ ' + (t('chat.session') || 'Session') + ': ' +
+            (currentChatName || currentChatContext || '');
     }
+    tag.style.display = 'block';
+}
+
+function onChatLibraryChange(libId) {
+    currentLibraryId = libId ? parseInt(libId) : null;
+    _updateChatSessionTag();
     loadChatHistory();
 }
 
@@ -734,6 +742,35 @@ async function clearChat() {
     const ct = currentChatContainer;
     if (!ct) return;
     ct.querySelector('#chat-messages').innerHTML = `<div class="empty-state"><div class="empty-icon">💬</div><h2>${esc(currentChatName)}</h2></div>`;
+}
+
+/** Export only the active context's visible session as a Markdown file. */
+function exportChat() {
+    const ct = currentChatContainer;
+    if (!ct) return;
+    const box = ct.querySelector('#chat-messages');
+    if (!box) return;
+    const lines = ['# ' + (currentChatName || currentChatContext || 'Chat'), ''];
+    box.querySelectorAll('.message').forEach(function (m) {
+        const role = m.classList.contains('user') ? 'You' : 'Assistant';
+        const body = m.querySelector('.msg-body') || m;
+        lines.push('## ' + role, (body.innerText || '').trim(), '');
+    });
+    if (lines.length <= 2) {
+        toast(t('toast.no_export') || 'Nothing to export yet.');
+        return;
+    }
+    const blob = new Blob([lines.join('\n')], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const stamp = new Date().toISOString().slice(0, 10);
+    const slug = String(currentChatContext || 'chat').replace(/[^a-z0-9_-]/gi, '-');
+    a.download = slug + '-session-' + stamp + '.md';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
 }
 
 // ═════════════════════ CHAT MESSAGES ═════════════════════
@@ -1238,11 +1275,10 @@ async function loadChatHistory() {
     if (!currentCompanyId) return;
     const ct = currentChatContainer;
     if (!ct) return;
-    // 按 context 过滤，避免不同主题的对话混在一起
+    // 每个屏幕只加载自己的会话：context 永远带上，library 只是附加过滤。
     const ctx = encodeURIComponent(currentChatContext || '');
-    const params = currentLibraryId
-        ? `?library_id=${currentLibraryId}&limit=30`
-        : `?context=${ctx}&limit=30`;
+    let params = `?limit=30&context=${ctx}`;
+    if (currentLibraryId) params += `&library_id=${currentLibraryId}`;
     const data = await api('GET', `/api/trade/conversations${params}`);
     if (!data || !data.length) return;
     const container = ct.querySelector('#chat-messages');

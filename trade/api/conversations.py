@@ -44,7 +44,10 @@ def list_conversations(
     """
     limit = max(1, min(int(limit), 200))
     if context:
-        return chat_memory.list_by_context(x_company_id, context, limit)
+        return chat_memory.list_by_context(
+            x_company_id, context, limit,
+            library_id=library_id, customer_id=customer_id,
+        )
     if library_id is not None:
         return chat_memory.list_by_library(x_company_id, library_id, limit)
     return chat_memory.list_by_company(

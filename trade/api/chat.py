@@ -762,6 +762,7 @@ async def trade_chat(
         cid, payload.library_id, query, customer_id=payload.customer_id,
         last_skill_name=last_skill,
         language=reply_lang,
+        context=payload.context or "",
     )
     # 用户本轮亲手贴出的文件 → 直接只读放行（贴出来即授权，不再二次确认）
     user_paths = _classify_user_paths(query, cid)
@@ -1101,6 +1102,7 @@ async def trade_chat_stream(
         cid, payload.library_id, query, customer_id=payload.customer_id,
         last_skill_name=last_skill,
         language=reply_lang,
+        context=payload.context or "",
     )
     # 用户本轮亲手贴出的文件 → 直接只读放行（贴出来即授权，不再二次确认）
     user_paths = _classify_user_paths(query, cid)
