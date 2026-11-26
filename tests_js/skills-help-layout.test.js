@@ -23,7 +23,8 @@ function fnBody(name) {
 test('skills reference modal is wide', () => {
     assert.ok(html.includes('class="modal wide skills-help-modal"'));
     assert.ok(!html.includes('max-width:800px'), 'old narrow modal width still present');
-    assert.ok(css.includes('.skills-help-modal { width: min(1200px, 96vw); max-width: 1200px;'));
+    assert.ok(css.includes('.modal.wide.skills-help-modal { width: min(1200px, 96vw); max-width: 1200px;'));
+    assert.ok(!/\.skills-help-modal\s*\{[^}]*width:/.test(css.replace('.modal.wide.skills-help-modal', 'X')), 'selector must outrank .modal.wide');
 });
 
 test('skills reference content uses a responsive multi-column grid with wrapping text', () => {
