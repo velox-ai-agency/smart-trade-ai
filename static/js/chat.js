@@ -956,6 +956,64 @@ function _renderChatBlocks(blocks) {
 // ═════════ @ 关联客户 / / 调用技能 下拉 ═════════
 let _mention = { kind: '', start: 0, items: [], idx: 0, query: '' };
 let _mentionSeq = 0;
+
+// Slash-command insertion map: English phrases that are real backend triggers.
+// Selecting a skill must insert a phrase the skill router recognises (never the
+// Chinese first trigger) so the message still routes to the intended skill.
+const SKILL_CMD_EN = {
+    'b2b-osint': 'company background',
+    'b2b-email-intel': 'email intel',
+    'b2b-customer-finder': 'quick customer finder',
+    'b2b-lead-generation': 'lead generation',
+    'b2b-document': 'invoice analysis',
+    'b2b-doc-generation': 'proforma invoice',
+    'b2b-platform': 'platform diagnosis',
+    'b2b-linkedin-marketing': 'linkedin marketing',
+    'b2b-social-media': 'social media marketing',
+    'b2b-customs-data': 'customs data',
+    'b2b-onboarding': 'marketing plan',
+    'b2b-daily-automation': 'daily tasks',
+    'b2b-customer-mgmt': 'customer management',
+    'b2b-data-directory': 'data directory',
+    'chat-memory': 'chat history',
+    'b2b-skill-generator': 'create skill',
+    'b2b-trade-ops': 'payment reminder',
+    'b2b-trade-compliance': 'trade terms',
+    'b2b-cold-outreach': 'cold email',
+    'auto-trade-customer-development': 'auto customer development',
+    'auto-smtp-email': 'send email',
+    'b2b-email-imitation': 'email imitation',
+    'b2b-buyer-persona': 'buyer persona',
+    'b2b-market-analysis': 'market analysis',
+    'b2b-sales-pipeline': 'sales pipeline',
+    'b2b-inquiry-training': 'inquiry training',
+    'b2b-kol-imitation': 'kol imitation',
+    'b2b-reddit-engagement': 'reddit post',
+    'b2b-seo-aeo': 'seo article',
+    'b2b-short-video': 'short video',
+    'b2b-exhibition': 'trade show',
+    'b2b-product-description': 'product description',
+    'b2b-six-thinking-hats': 'six thinking hats',
+    'b2b-customer-intel': 'customer intel',
+    'b2b-inquiry-meeting': 'inquiry review meeting',
+    'b2b-sales-playbook': 'sales playbook',
+    'b2b-guarantee-proposal': 'business case',
+    'b2b-tech-drawing': 'technical drawing',
+    'b2b-china-leads': 'china leads',
+    'b2b-tender-mail': 'fetch tender emails',
+    'b2b-tender-processing': 'inquiry sheet',
+    'b2b-tender-download': 'download tender package',
+    'b2b-tender-archive': 'unzip',
+    'b2b-tender-info': 'tender opportunities',
+    'b2b-tender-doc-match': 'match drawings',
+};
+
+function _skillText(key, fallback) {
+    try {
+        var v = (typeof t === 'function') ? t(key) : '';
+        return (v && v !== key) ? v : fallback;
+    } catch (e) { return fallback; }
+}
 let _chatLinkedName = '';
 
 function _chatScope() {
@@ -1024,16 +1082,20 @@ async function _mentionOpen(sym, query, start) {
         }
         items = flat.filter(function (row) {
             const it = row.it;
-            const hay = [it.n, it.d, it.t].filter(Boolean).join(' ').toLowerCase();
+            const hay = [
+                it.n, it.d, it.t,
+                _skillText('skills.' + it.n + '.d', ''),
+                _skillText('skills.' + it.n + '.t', ''),
+                _skillText('skills.group.' + row.group, ''),
+            ].filter(Boolean).join(' ').toLowerCase();
             return !q || hay.indexOf(q) >= 0;
         }).map(function (row) {
             const it = row.it;
-            const trig = String(it.t || '').split(/[、,，]/)[0].trim();
             return {
                 label: it.n,
-                sub: it.d || '',
-                group: row.group,
-                insert: (trig || it.n) + ' ',
+                sub: _skillText('skills.' + it.n + '.d', it.d || ''),
+                group: _skillText('skills.group.' + row.group, row.group),
+                insert: (SKILL_CMD_EN[it.n] || it.n) + ' ',
                 run: function () {},
             };
         });
