@@ -32,3 +32,18 @@ def test_company_id_is_ignored():
         assert license.license_state(cid) == ("active", "")
         assert license.check_license(cid) == (True, "")
         assert license.status(cid)["activated"] is True
+
+
+def test_no_expiry_read_only_gate_in_app_or_frontend():
+    """Internal build: no expiry-driven read-only gate or activation screen."""
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    app_py = (root / "trade" / "app.py").read_text(encoding="utf-8")
+    api_js = (root / "static" / "js" / "api.js").read_text(encoding="utf-8")
+    html = (root / "static" / "trade_chat.html").read_text(encoding="utf-8")
+
+    assert "is_read_only" not in app_py
+    assert "_licenseGateAllowsPaid" in api_js
+    assert "return true" in api_js.split("function _licenseGateAllowsPaid")[1][:120]
+    assert "license-bar" not in html
