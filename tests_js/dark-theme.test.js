@@ -51,6 +51,32 @@ test('切换按钮的明暗图标互斥', () => {
     assert.match(css, /html\[data-theme="dark"\] \.theme-toggle \.icon-moon \{ display: none; \}/);
 });
 
+test('实底按钮（primary/ink/accent 背景）的文字用 on-ink/on-accent，不用 on-dark', () => {
+    // 2026-11-26 实测：dark 下 --primary 是浅色，文字若用 --on-dark（也是浅色）
+    // 就是「浅底浅字」不可读。所有实底填充一律配 --on-ink / --on-accent。
+    const lines = css.split('\n');
+    const offenders = [];
+    lines.forEach((line, i) => {
+        if (!line.includes('var(--on-dark)')) return;
+        if (/var\(--(?:primary|ink|accent)\b/.test(line) && /color:\s*var\(--on-dark\)/.test(line)) {
+            offenders.push(`trade_chat.css:${i + 1}: ${line.trim().slice(0, 90)}`);
+        }
+    });
+    assert.deepEqual(offenders, [], '实底背景配 on-dark 文字在暗色模式不可读：\n' + offenders.join('\n'));
+});
+
+test('用户消息气泡（--ink 实底）全文用 on-ink，含子元素', () => {
+    // 2026-11-26 实测：气泡正文第二条规则把 * 全部涂成 --on-dark，
+    // dark 下就是浅底浅字。规则必须与气泡底色（--ink）配 --on-ink。
+    const block = css.match(/\.chat-main \.message\.user \.msg-body[^{]*\{[^}]*\}/g) || [];
+    const hits = block.filter((b) => b.includes('color'));
+    assert.ok(hits.length >= 2, '应有底色规则与文字继承规则两条');
+    for (const h of hits) {
+        assert.ok(h.includes('var(--on-ink)'), '用户气泡文字必须是 --on-ink：' + h.slice(0, 90));
+        assert.ok(!h.includes('var(--on-dark)'), '用户气泡文字不得用 --on-dark：' + h.slice(0, 90));
+    }
+});
+
 test('JS 生成的 HTML 不再新增裸浅色背景', () => {
     const bad = /background:\s*#(fff|FFF|f9fafb|F9FAFB|f3f4f6|F3F4F6|e5e7eb|E5E7EB)\b/;
     const offenders = [];
