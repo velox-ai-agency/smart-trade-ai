@@ -84,6 +84,7 @@ function renderChatViewInto(container, ctx, name) {
         <div class="chat-layout single">
         <section class="chat-main">
         ${topbarHtml}
+        ${isDaily ? '' : '<div class="proc-steps" id="proc-steps" hidden></div>'}
         <div class="chat-cmd">
             <div class="q">WHAT ARE YOUR COMMANDS?<span class="cmd-cursor"></span></div>
             <div class="cmd-sub">${esc(t('chat.cmd.sub'))}</div>
@@ -131,6 +132,8 @@ function renderChatViewInto(container, ctx, name) {
     if (ctx === 'docs') loadChatLibrarySelect();
     _updateChatSessionTag();
     loadChatHistory();
+    // 流程子步骤卡片：配置在 trade/api/processes.py，无配置的上下文保持隐藏
+    loadProcessSteps(ctx, container).catch(function () {});
     // 客户开发向导（lead 上下文 + 未完成 onboarding 时显示）
     if (ctx === 'lead' && !isOnboardingCompleted()) {
         setTimeout(function() { showWizardInLeadView(); }, 300);
@@ -455,6 +458,76 @@ async function loadCronStatus(isPoll = false) {
     // 右栏缺失时无需再兜底渲染（正常情况 #app-rail 常驻）。
     return;
 
+}
+
+// ── 流程子步骤卡片（process steps card，/api/trade/processes）────
+
+const _PROCESS_CACHE = new Map(); // context -> steps payload
+
+async function loadProcessSteps(ctx, container) {
+    /** 拉取并渲染该聊天上下文的子步骤卡片；没有配置的上下文不渲染。 */
+    if (!ctx || ctx === 'daily' || !currentCompanyId || !container) return;
+    let data = _PROCESS_CACHE.get(ctx);
+    if (!data) {
+        data = await api('GET', '/api/trade/processes/' + encodeURIComponent(ctx), null, undefined, {silent: true});
+        if (!data) return;
+        _PROCESS_CACHE.set(ctx, data);
+    }
+    if (!(data.steps || []).length) return;
+    _renderProcessSteps(ctx, data, container);
+}
+
+function _renderProcessSteps(ctx, data, container) {
+    /** 渲染卡片：头部（流程名 + 进度）+ 有序步骤按钮 + 说明行。 */
+    const el = container.querySelector('#proc-steps');
+    if (!el) return;
+    const steps = data.steps || [];
+    const label = currentLang === 'ar' ? (data.label_ar || data.label_en) : (data.label_en || data.label_ar);
+    const note = langText(
+        '点击步骤会预填聊天输入框，审阅后再发送；不会自动发送。',
+        'Clicking a step prefills the chat input — review, then send. Nothing is sent automatically.'
+    );
+    let html = '<div class="proc-head">' +
+        '<span class="t">' + (typeof iconHtml === 'function' ? iconHtml('list-checks', 15) : '') + esc(label) + '</span>' +
+        '<span class="lbl">' + esc(t('proc.do_in_order')) + ' · ' + esc(String(steps.length)) + '</span>' +
+        '<button type="button" class="proc-collapse" aria-expanded="true">' + esc(t('proc.collapse')) + '</button>' +
+        '</div><div class="steps">';
+    steps.forEach(function (s) {
+        const name = currentLang === 'ar' ? (s.label_ar || s.label_en) : (s.label_en || s.label_ar);
+        const meta = currentLang === 'ar' ? (s.meta_ar || s.meta_en) : (s.meta_en || s.meta_ar);
+        html += '<button type="button" class="step" data-process="' + esc(ctx) + '" data-step-id="' + esc(String(s.id)) + '"' +
+            ' title="' + esc(name) + '">' +
+            '<span class="n">' + esc(String(s.n)) + '</span>' +
+            '<span class="name">' + esc(name) + '</span>' +
+            '<span class="meta">' + esc(meta) + '</span>' +
+            '</button>';
+    });
+    html += '</div><p class="proc-note">' + esc(note) + '</p>';
+    el.innerHTML = html;
+    el.querySelectorAll('.step').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            applyProcessStepPreset(btn.getAttribute('data-process'), btn.getAttribute('data-step-id'));
+        });
+    });
+    const col = el.querySelector('.proc-collapse');
+    if (col) col.addEventListener('click', function () {
+        const collapsed = el.classList.toggle('collapsed');
+        col.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+    });
+}
+
+function applyProcessStepPreset(processId, stepId) {
+    /** 点击子步骤：预填 `/触发词 + 模板提示`（当前语言），聚焦输入框。 */
+    const data = _PROCESS_CACHE.get(processId);
+    const step = ((data && data.steps) || []).find(function (s) { return String(s.id) === String(stepId); });
+    if (!step) return;
+    const prompt = currentLang === 'ar' ? (step.prompt_ar || step.prompt_en) : (step.prompt_en || step.prompt_ar);
+    const ct = currentChatContainer;
+    const input = ct ? ct.querySelector('#msg-input') : null;
+    if (!input) return;
+    input.value = prompt;
+    input.focus();
+    if (typeof _chatInputChanged === 'function') _chatInputChanged(input);
 }
 
 // ── 待办（独立存储，P2-12）────────────────────────────────────────
