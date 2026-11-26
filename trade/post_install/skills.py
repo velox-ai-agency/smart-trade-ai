@@ -499,20 +499,32 @@ def install_skills(progress_callback=None) -> None:
 
 
 def update_skills() -> None:
-    """从 GitHub 拉取最新 B2B skill 定义 (SKILL.md) 更新到本地 Hermes 目录。
+    """把 B2B skill 定义同步到本地 Hermes 目录。
 
-    与 install_skills 的区别：
-      - install_skills: 从本地 pip 安装包中复制 skills（新安装时用）
-      - update_skills:  从 GitHub main 分支下载最新 SKILL.md（更新时用）
+    两种模式：
+      - **默认（离线）**：从本地安装包同步（与 ``install_skills`` 同源）。
+        定制版必须用这个模式：上游的 SKILL.md 是另一种语言/内容，从远端
+        拉取会把本地翻译和触发词覆盖掉。
+      - **远端**：仅当显式设置 ``TRADE_SKILLS_RAW_BASE``（例如自己 fork 的
+        raw 地址）时才下载。
 
     用法: trade-skills-update（或 python -m trade.post_install update）
 
-    安全措施：
+    安全措施（仅在远端模式）：
       - 路径穿越校验（skill 目录名限制 b2b- 前缀 + 小写字母连字符）
       - 下载内容校验（禁止以 ".." 开头的异常内容）
       - 最大 1MB 下载限制（防止内存耗尽）
       - 递增退避重试（网络波动时自动恢复）
     """
+    raw_base = (os.environ.get("TRADE_SKILLS_RAW_BASE", "").strip() or "").rstrip("/")
+    if not raw_base:
+        print(
+            "[update_skills] TRADE_SKILLS_RAW_BASE not set — syncing from the "
+            "local installation (offline)."
+        )
+        install_skills()
+        return
+
     hermes_home = _get_hermes_home()
     hermes_skills_dir = hermes_home / "skills"
     # 停用 skill 即使用户机器上有残留，也在更新开始时清掉
@@ -527,10 +539,8 @@ def update_skills() -> None:
         )
         sys.exit(1)
 
-    # GitHub raw 文件 URL 前缀
-    RAW_BASE = (
-        "https://raw.githubusercontent.com/chefroger/smart-trade-ai/main/skills"
-    )
+    # 远端 raw 文件 URL 前缀（由调用方/环境提供，绝不内置上游地址）
+    RAW_BASE = raw_base
 
     updated = 0
     skipped = 0

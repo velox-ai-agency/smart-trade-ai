@@ -519,6 +519,59 @@ CREATE TABLE IF NOT EXISTS osint_facts (
 );
 CREATE INDEX IF NOT EXISTS idx_osint_facts_subject ON osint_facts(company_id, subject);
 
+-- ── Start onboarding (company profile state machine) ──────────────────────
+-- All tenant tables carry company_id with ON DELETE CASCADE; JSON columns are
+-- stored as TEXT and parsed tolerantly by trade/start_onboarding.py.
+-- 当前快照（draft 或 confirmed）。confirmed 之前的增量回答直接落这里。
+CREATE TABLE IF NOT EXISTS start_profiles (
+    company_id   INTEGER PRIMARY KEY REFERENCES companies(id) ON DELETE CASCADE,
+    status       TEXT    NOT NULL DEFAULT 'draft',   -- draft|confirmed
+    basics       TEXT    NOT NULL DEFAULT '{}',
+    products     TEXT    NOT NULL DEFAULT '[]',
+    markets      TEXT    NOT NULL DEFAULT '{}',
+    details      TEXT    NOT NULL DEFAULT '{}',
+    credentials  TEXT    NOT NULL DEFAULT '[]',
+    skipped      TEXT    NOT NULL DEFAULT '[]',
+    version      INTEGER NOT NULL DEFAULT 0,
+    created_at   TEXT    DEFAULT (datetime('now','localtime')),
+    updated_at   TEXT    DEFAULT (datetime('now','localtime')),
+    confirmed_at TEXT    DEFAULT ''
+);
+
+-- 每次 confirm / edit 的完整快照，永不覆盖历史版本。
+CREATE TABLE IF NOT EXISTS start_profile_history (
+    company_id INTEGER NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+    version    INTEGER NOT NULL,
+    snapshot   TEXT    NOT NULL,
+    note       TEXT    NOT NULL DEFAULT '',
+    created_at TEXT    DEFAULT (datetime('now','localtime')),
+    PRIMARY KEY (company_id, version)
+);
+
+-- 编辑草稿：确认之后的所有改动先暂存，apply 时才落 profile。
+CREATE TABLE IF NOT EXISTS start_edit_staging (
+    company_id   INTEGER NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+    token        TEXT    NOT NULL,
+    base_version INTEGER NOT NULL,
+    proposed     TEXT    NOT NULL,
+    summary      TEXT    NOT NULL DEFAULT '',
+    created_at   TEXT    DEFAULT (datetime('now','localtime')),
+    PRIMARY KEY (company_id, token)
+);
+
+-- 装运单据（原产地证/发票/箱单/提单）与 credentials 严格分表存放。
+CREATE TABLE IF NOT EXISTS start_shipment_documents (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    company_id   INTEGER NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+    shipment_ref TEXT    NOT NULL DEFAULT '',
+    doc_type     TEXT    NOT NULL,
+    file_name    TEXT    NOT NULL DEFAULT '',
+    note         TEXT    NOT NULL DEFAULT '',
+    created_at   TEXT    DEFAULT (datetime('now','localtime'))
+);
+CREATE INDEX IF NOT EXISTS idx_start_shipment_docs_company_ref
+    ON start_shipment_documents(company_id, shipment_ref);
+
 -- Schema migrations tracking (for versioned upgrades)
 CREATE TABLE IF NOT EXISTS schema_migrations (
     version     INTEGER PRIMARY KEY,
@@ -778,10 +831,12 @@ _EXPECTED_TABLES = frozenset({
     "customer_facts", "customer_gifts", "inquiries", "visit_plans",
     "app_settings", "todos",
     "osint_jobs", "osint_job_events", "osint_facts",
+    "start_profiles", "start_profile_history", "start_edit_staging",
+    "start_shipment_documents",
 })
 
 # 已知迁移版本集合；_needs_schema_work 与 _apply_pending_migrations 共用
-_KNOWN_MIGRATION_VERSIONS = frozenset({1, 2, 3})
+_KNOWN_MIGRATION_VERSIONS = frozenset({1, 2, 3, 4, 5, 6})
 
 
 def _needs_schema_work(conn: sqlite3.Connection) -> bool:
@@ -956,6 +1011,9 @@ def _apply_pending_migrations(conn: sqlite3.Connection) -> int:
         (4, "osint_facts_verified", ""),
         # v5：待办 reason 列（P2）
         (5, "todos_reason", ""),
+        # v6：Start onboarding 四张表（profile / history / edit staging / 装运单据）。
+        # SQL 占位；实际走下方 _migrate_start_onboarding_v6（幂等 CREATE IF NOT EXISTS）。
+        (6, "start_onboarding_profile", ""),
     ]
 
     # 获取已应用的版本
@@ -975,6 +1033,8 @@ def _apply_pending_migrations(conn: sqlite3.Connection) -> int:
             _migrate_osint_facts_verified_v4(conn)
         elif version == 5:
             _migrate_todos_reason_v5(conn)
+        elif version == 6:
+            _migrate_start_onboarding_v6(conn)
         else:
             conn.executescript(sql)
         conn.execute(
@@ -1111,6 +1171,66 @@ def _migrate_todos_reason_v5(conn: sqlite3.Connection) -> None:
         return
     if cols and "reason" not in cols:
         conn.execute("ALTER TABLE todos ADD COLUMN reason TEXT NOT NULL DEFAULT ''")
+
+
+def _migrate_start_onboarding_v6(conn: sqlite3.Connection) -> None:
+    """迁移 6：为**已有**数据库补建 Start onboarding 四张表。
+
+    全部 CREATE ... IF NOT EXISTS：全新安装的库已由 SCHEMA_SQL 建齐，这里全部
+    是 no-op；旧库则借此补齐。索引同样幂等，避免重复 init_db 报错。
+    """
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS start_profiles (
+            company_id   INTEGER PRIMARY KEY REFERENCES companies(id) ON DELETE CASCADE,
+            status       TEXT    NOT NULL DEFAULT 'draft',
+            basics       TEXT    NOT NULL DEFAULT '{}',
+            products     TEXT    NOT NULL DEFAULT '[]',
+            markets      TEXT    NOT NULL DEFAULT '{}',
+            details      TEXT    NOT NULL DEFAULT '{}',
+            credentials  TEXT    NOT NULL DEFAULT '[]',
+            skipped      TEXT    NOT NULL DEFAULT '[]',
+            version      INTEGER NOT NULL DEFAULT 0,
+            created_at   TEXT    DEFAULT (datetime('now','localtime')),
+            updated_at   TEXT    DEFAULT (datetime('now','localtime')),
+            confirmed_at TEXT    DEFAULT ''
+        )
+    """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS start_profile_history (
+            company_id INTEGER NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+            version    INTEGER NOT NULL,
+            snapshot   TEXT    NOT NULL,
+            note       TEXT    NOT NULL DEFAULT '',
+            created_at TEXT    DEFAULT (datetime('now','localtime')),
+            PRIMARY KEY (company_id, version)
+        )
+    """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS start_edit_staging (
+            company_id   INTEGER NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+            token        TEXT    NOT NULL,
+            base_version INTEGER NOT NULL,
+            proposed     TEXT    NOT NULL,
+            summary      TEXT    NOT NULL DEFAULT '',
+            created_at   TEXT    DEFAULT (datetime('now','localtime')),
+            PRIMARY KEY (company_id, token)
+        )
+    """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS start_shipment_documents (
+            id           INTEGER PRIMARY KEY AUTOINCREMENT,
+            company_id   INTEGER NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+            shipment_ref TEXT    NOT NULL DEFAULT '',
+            doc_type     TEXT    NOT NULL,
+            file_name    TEXT    NOT NULL DEFAULT '',
+            note         TEXT    NOT NULL DEFAULT '',
+            created_at   TEXT    DEFAULT (datetime('now','localtime'))
+        )
+    """)
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_start_shipment_docs_company_ref "
+        "ON start_shipment_documents(company_id, shipment_ref)"
+    )
 
 
 def init_db() -> Path:

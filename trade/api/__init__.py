@@ -8,6 +8,8 @@ server.py 通过 ``from trade.api import router`` 挂载到 /api/trade。
 
 from __future__ import annotations
 
+import re
+
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
 
 from trade.api.brief import router as brief_router
@@ -27,6 +29,7 @@ from trade.api.onboarding import router as onboarding_router
 from trade.api.orders import router as orders_router
 from trade.api.osint_jobs import router as osint_jobs_router
 from trade.api.profile import router as profile_router
+from trade.api.start import router as start_router
 from trade.api.templates import router as templates_router
 from trade.api.todos import router as todos_router
 from trade.api.transfer import router as transfer_router
@@ -62,7 +65,8 @@ def _enforce_company_binding(
     # 先切换当前公司 —— 否则界面上只能给当前公司显示导出按钮，没建立选中状态时
     # 一个按钮都看不到（2026-11-11 Windows 反馈）。公司存在性/激活状态仍由
     # require_company 校验，路由再核对 company_id 与路径一致。
-    if "/switch" in request.url.path or request.url.path.endswith("/export"):
+    # 仅精确放行 /companies/{id}/switch 与 /companies/{id}/export，避免其它含子串路由误绕过
+    if re.match(r"^(?:/api/trade)?/companies/\d+/(?:switch|export)$", request.url.path):
         return
 
     with _company_bind_lock:
@@ -95,6 +99,7 @@ router = APIRouter(
 # 按业务域挂载子路由
 router.include_router(companies_router)
 router.include_router(onboarding_router)
+router.include_router(start_router)
 router.include_router(orders_router)
 router.include_router(libraries_router)
 router.include_router(customers_router)

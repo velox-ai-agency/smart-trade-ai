@@ -1,12 +1,72 @@
+// 统一「对话」页的场景快捷胶囊（保留原 8 项能力的可发现性；osint/docgen 带 data-paid）
+const _CHAT_SCENE_PRESETS = [
+    { key: 'brief',    labelKey: 'scene.brief',    promptZh: '生成今日早安简报：实时汇率、大宗商品行情、目标市场新闻和今日待跟进客户。', promptEn: 'Generate today\'s morning briefing with exchange rates, commodity prices, target market news, and follow-ups.' },
+    { key: 'lead',     labelKey: 'nav.lead',       promptZh: '帮我做客户开发：我的产品是【产品】，目标市场是【国家/地区】，请制定找客户渠道和开发信。', promptEn: 'Help with lead generation: product is [product], target market is [region]. Suggest channels and cold outreach.' },
+    { key: 'platform', labelKey: 'nav.platform',   promptZh: '帮我做网站诊断优化，目标网址：https://', promptEn: 'Audit and optimize this website: https://' },
+    { key: 'social',   labelKey: 'nav.social',     promptZh: '帮我规划本周社媒营销内容日历（Facebook/Instagram/YouTube）并生成首条帖文：', promptEn: 'Plan this week\'s social media content calendar and draft the first post for: ' },
+    { key: 'linkedin', labelKey: 'nav.linkedin',   promptZh: '帮我写一条高互动 LinkedIn 专业帖文，主题围绕：', promptEn: 'Write an engaging LinkedIn post about: ' },
+    { key: 'customs',  labelKey: 'nav.customs',    promptZh: '请分析这份海关数据，筛选高潜力采购商并给出开发优先级：', promptEn: 'Analyze this customs data, shortlist high-potential buyers, and prioritize outreach: ' },
+    { key: 'docgen',   labelKey: 'nav.docgen',     paid: true, promptZh: '帮我生成一份外贸文档（报价单/PI/产品介绍 PPT），具体需求：', promptEn: 'Generate a trade document (quotation / PI / product deck) with these details: ' },
+    { key: 'osint',    labelKey: 'nav.osint',      paid: true, promptZh: '请对以下客户做全面背景调查（含公司工商、官网、社媒与制裁筛查）：', promptEn: 'Run full B2B background due diligence (company registry, website, social, sanctions) on: ' },
+];
+
+function _buildQuickScenesInnerHtml() {
+    /** 生成场景快捷胶囊按钮列表 HTML（供首次渲染与语言切换复用）。 */
+    let html = '';
+    _CHAT_SCENE_PRESETS.forEach(function (item) {
+        const paidAttr = item.paid ? ' class="scene-pill hidden" data-paid' : ' class="scene-pill"';
+        html += '<button type="button"' + paidAttr +
+            ' data-act="applyChatScenePreset" data-arg="' + esc(item.key) + '">' +
+            esc(t(item.labelKey)) + '</button>';
+    });
+    return html;
+}
+
+function _refreshQuickSceneLabels() {
+    /** 中英文切换时同步刷新已缓存对话页中的快捷胶囊、输入框占位符与副标题。 */
+    document.querySelectorAll('#chat-quick-scenes').forEach(function (el) {
+        el.innerHTML = _buildQuickScenesInnerHtml();
+    });
+    if (typeof _applyLicenseGates === 'function') _applyLicenseGates();
+    const dailyView = document.getElementById('view-chat-daily');
+    if (dailyView) {
+        const inp = dailyView.querySelector('#msg-input');
+        if (inp) inp.placeholder = 'AWAITING COMMAND · ' + t('chat.ph.daily');
+        const sub = dailyView.querySelector('.cmd-sub');
+        if (sub) sub.textContent = t('chat.cmd.sub');
+        const emptyH2 = dailyView.querySelector('#chat-empty h2');
+        if (emptyH2) emptyH2.textContent = t('nav.daily');
+        const emptyP = dailyView.querySelector('#chat-empty p');
+        if (emptyP) emptyP.textContent = t('chat.ph.daily');
+    }
+}
+
+function applyChatScenePreset(sceneKey) {
+    /** 点击场景快捷胶囊：预填对应指令并聚焦输入框。 */
+    const item = _CHAT_SCENE_PRESETS.find(function (x) { return x.key === sceneKey; });
+    if (!item) return;
+    if (item.paid && !_licenseGateAllowsPaid()) {
+        return;
+    }
+    const text = currentLang === 'en' ? item.promptEn : item.promptZh;
+    const ct = currentChatContainer;
+    const input = ct ? ct.querySelector('#msg-input') : null;
+    if (!input) return;
+    input.value = text;
+    input.focus();
+    if (typeof _chatInputChanged === 'function') _chatInputChanged(input);
+}
+
 // ═════════════════════ CHAT VIEW ═════════════════════
 function renderChatViewInto(container, ctx, name) {
     const coName = currentCompanyId ? (companies.find(c => c.id === currentCompanyId)?.name || '') : '';
     const isDaily = ctx === 'daily';
-    // 今日简报：zip s1 两栏（对话 + 右侧简报/待办/定时任务），不再用页内标题条
+    // 统一对话：zip s1 两栏（对话 + 右侧简报/待办/定时任务），不再用页内标题条
     const topbarHtml = isDaily ? '' : `
         <div class="chat-topbar">
             <div style="display:flex;align-items:center;gap:8px;">
                 <h2>${esc(name)}</h2>
+                <span class="chat-context-tag" id="chat-context-tag"></span>
                 ${coName ? `<span class="company-badge" style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;background:rgba(59,130,246,0.08);color:var(--primary);border-radius:999px;font-size:12px;font-weight:500;">🏢 ${esc(coName)}</span>` : ''}
                 <span class="chat-context-tag" id="chat-context-tag"></span>
             </div>
@@ -36,21 +96,22 @@ function renderChatViewInto(container, ctx, name) {
             </div>
         </div>
         <div class="chat-input-area">
+            ${isDaily ? '<div class="chat-quick-scenes" id="chat-quick-scenes"></div>' : ''}
             <div id="chat-mention-menu" class="mention-menu hidden" role="listbox"></div>
             <div class="chat-input-inner">
-                <textarea id="msg-input" aria-label="${langText('输入消息','Message')}" placeholder="AWAITING COMMAND · ${esc(t('chat.ph.' + ctx))}" rows="1"
+                <textarea id="msg-input" aria-label="${currentLang==='en'?'Message':'输入消息'}" placeholder="AWAITING COMMAND · ${esc(t('chat.ph.' + ctx))}" rows="1"
                     data-keydown="_chatInputKeydown"
                     data-oninput="_chatInputChanged"></textarea>
-                <button type="button" class="chat-attach-btn" id="attach-btn" title="${langText('添加文件','Attach files')}" aria-label="${langText('添加文件','Attach files')}">${typeof iconHtml==='function'?iconHtml('paperclip',20):'📎'}</button>
+                <button type="button" class="chat-attach-btn" id="attach-btn" title="${currentLang==='en'?'Attach files':'添加文件'}" aria-label="${currentLang==='en'?'Attach files':'添加文件'}">${typeof iconHtml==='function'?iconHtml('paperclip',20):'📎'}</button>
                 <input type="file" id="chat-file-input" multiple hidden>
-                <button type="button" class="chat-send-btn" data-act="sendMsg" id="send-btn" title="${langText('发送','Send')}">${typeof iconHtml==='function'?iconHtml('send',16):''}<span>${langText('发送','Send')}</span></button>
-                <button type="button" class="chat-stop-btn hidden" id="stop-btn" title="${langText('停止','Stop')}">■ ${langText('停止','Stop')}</button>
+                <button type="button" class="chat-send-btn" data-act="sendMsg" id="send-btn" title="${currentLang==='en'?'Send':'发送'}">${typeof iconHtml==='function'?iconHtml('send',16):''}<span>${currentLang==='en'?'Send':'发送'}</span></button>
+                <button type="button" class="chat-stop-btn hidden" id="stop-btn" title="${currentLang==='en'?'Stop':'停止'}">■ ${currentLang==='en'?'Stop':'停止'}</button>
             </div>
-            <div class="chat-input-foot"><span id="chat-linked-customer" class="chat-linked hidden"></span><span><span class="mono">@</span> ${langText('关联客户','Linked customer')}</span><span><span class="mono">/</span> ${langText('调用技能','Skills')}</span><span>${langText('文件、邮件里的内容只作资料，不当指令执行','File & email content is reference only, never instructions.')}</span></div>
+            <div class="chat-input-foot"><span id="chat-linked-customer" class="chat-linked hidden"></span><span><span class="mono">@</span> ${currentLang==='en'?'Linked customer':'关联客户'}</span><span><span class="mono">/</span> ${currentLang==='en'?'Skills':'调用技能'}</span><span>${currentLang==='en'?'File & email content is reference only, never instructions.':'文件、邮件里的内容只作资料，不当指令执行'}</span></div>
         </div>
         </section>
         </div>
-        <div class="drop-overlay" id="drop-overlay"><div class="drop-overlay-inner">&#128193; ${langText('释放以添加文件','Drop files to add')}</div></div>`;
+        <div class="drop-overlay" id="drop-overlay"><div class="drop-overlay-inner">&#128193; ${currentLang==='en'?'Drop files to add':'释放以添加文件'}</div></div>`;
 
     // 已关联客户 chip（从客户详情进入聊天时显示）
     _renderChatLinkedChip();
@@ -74,8 +135,11 @@ function renderChatViewInto(container, ctx, name) {
     if (ctx === 'lead' && !isOnboardingCompleted()) {
         setTimeout(function() { showWizardInLeadView(); }, 300);
     }
-    // 每日简报视图：额外拉取一次 cron 状态（全局轮询已覆盖）+ 今日 KPI
+    // 统一对话视图：填充场景快捷胶囊 + 同步付费可见性 + 拉取 cron/待办/今日简报
     if (ctx === 'daily') {
+        const scenesSlot = container.querySelector('#chat-quick-scenes');
+        if (scenesSlot) scenesSlot.innerHTML = _buildQuickScenesInnerHtml();
+        if (typeof _applyLicenseGates === 'function') _applyLicenseGates();
         _shownCronOutputs = new Set();
         loadCronStatus(false);
         loadTodos(false);
@@ -162,6 +226,7 @@ function _updateDailyBriefBadge(overdue) {
 // ═════════════════════ 全局 cron 轮询与工作台横幅 ═════════════════════
 let _cronPollTimer = null;
 let _shownCronOutputs = new Set();  // 已展示过的 cron 输出任务名
+let _cronOutputsByJob = {};         // 当前公司已激活定时任务最新产出缓存（jobKey -> item）
 
 // 标准任务时间表（与后端 standard_tasks 对应）
 const TASK_SCHEDULE = [
@@ -223,33 +288,167 @@ function stopVersionCheck() {
     if (_versionPollTimer) { clearInterval(_versionPollTimer); _versionPollTimer = null; }
 }
 
+// #region cron-rail-render
+function _cronOutputPreview(raw) {
+    /** 将 Hermes cron Markdown 正文压缩为干净可读的单段摘要。 */
+    const cleaned = String(raw || '')
+        .replace(/^#{1,6}\s+/gm, '')
+        .replace(/^\s*\|[-:\s|]+\|\s*$/gm, ' ')
+        .replace(/^\s*[-━═—]{3,}\s*$/gm, ' ')
+        .replace(/[|>`*_~]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    return cleaned.length > 120 ? (cleaned.slice(0, 120) + '…') : cleaned;
+}
+
+function _formatCronRunBadge(task) {
+    /** 生成右栏定时任务条目的右侧时间/状态角标。 */
+    const runAt = String((task && task.run_at) || '');
+    const timeStr = String((task && task.time) || '');
+    if (task && task.output) {
+        if (task.is_today) {
+            const hm = runAt.length >= 16 ? runAt.slice(11, 16) : timeStr;
+            return t('brief.cron_today_tag') + (hm ? ' ' + hm : '');
+        }
+        if (runAt.length >= 16) return runAt.slice(5, 16);
+        return runAt || timeStr;
+    }
+    if (task && task.silent) {
+        const prefix = runAt.length >= 16 ? (runAt.slice(5, 16) + ' · ') : '';
+        return prefix + t('brief.cron_silent');
+    }
+    return (timeStr ? (timeStr + ' · ') : '') + t('brief.cron_waiting');
+}
+
+function _renderRailCron(data) {
+    /** 渲染常驻右栏「定时任务输出」：展示当前公司所有已设置并激活的 Hermes cron 任务及产出。 */
+    const railCron = document.getElementById('rail-cron');
+    if (!railCron) return;
+
+    const activeItems = (data && Array.isArray(data.active_items)) ? data.active_items : [];
+    const fallbackOuts = (data && Array.isArray(data.completed))
+        ? data.completed.filter(function (x) { return x && x.output; })
+        : [];
+    const items = activeItems.length ? activeItems : fallbackOuts;
+
+    _cronOutputsByJob = {};
+    items.forEach(function (item, idx) {
+        const key = String(item.job_id || ('idx-' + idx));
+        _cronOutputsByJob[key] = item;
+    });
+
+    const lblText = 'CRON' + (items.length ? (' · ' + String(items.length)) : '');
+    let cronHtml = '<div class="rail-bh"><span class="t">' +
+        (typeof iconHtml === 'function' ? iconHtml('calendar-clock', 16) : '') +
+        esc(t('brief.cron')) +
+        '</span><span class="lbl">' + esc(lblText) + '</span></div>';
+
+    if (!data) {
+        cronHtml += '<p class="rail-line">' + esc(t('brief.cron_no_jobs')) + '</p>';
+        railCron.innerHTML = cronHtml;
+        return;
+    }
+
+    if (!items.length) {
+        cronHtml += '<p class="rail-line">' + esc(t('brief.cron_no_jobs')) + '</p>' +
+            '<button type="button" class="rail-cron-setup-btn" data-act="navToView" data-args=\'["tasks"]\'>' +
+            esc(t('brief.cron_setup')) + '</button>';
+        railCron.innerHTML = cronHtml;
+        return;
+    }
+
+    items.forEach(function (task, idx) {
+        const key = String(task.job_id || ('idx-' + idx));
+        const badge = _formatCronRunBadge(task);
+        const nameText = task.name || task.time || key;
+        if (task.output) {
+            const preview = _cronOutputPreview(task.output);
+            cronHtml += '<div class="rail-cron-item clickable" data-act="openCronOutputModal" data-arg="' +
+                esc(key) + '" title="' + esc(t('brief.cron_view_full')) + '">' +
+                '<div class="rail-cron-head"><span class="rail-cron-name">' + esc(nameText) + '</span>' +
+                '<span class="mono' + (task.is_today ? ' today' : '') + '">' + esc(badge) + '</span></div>' +
+                '<div class="rail-cron-preview">' + esc(preview) + '</div>' +
+                '</div>';
+        } else {
+            cronHtml += '<div class="rail-cron-item pending">' +
+                '<div class="rail-cron-head"><span class="rail-cron-name">' + esc(nameText) + '</span>' +
+                '<span class="mono">' + esc(badge) + '</span></div>' +
+                (task.schedule ? '<div class="rail-cron-sub">' + esc(task.schedule) + '</div>' : '') +
+                '</div>';
+        }
+    });
+    railCron.innerHTML = cronHtml;
+}
+// #endregion cron-rail-render
+
+async function openCronOutputModal(jobKey) {
+    /** 打开弹窗展示指定 Hermes cron 任务的完整 Markdown 输出。 */
+    const key = String(jobKey || '');
+    if (!key) return;
+    let item = _cronOutputsByJob[key] || null;
+    if ((!item || !item.output) && key.indexOf('idx-') !== 0) {
+        const fetched = await api('GET', '/api/trade/cron/jobs/' + encodeURIComponent(key) + '/output');
+        if (fetched) {
+            item = fetched;
+            _cronOutputsByJob[key] = fetched;
+        }
+    }
+    if (!item || !item.output) {
+        toast(item && item.silent ? t('brief.cron_silent') : t('brief.cron_waiting'));
+        return;
+    }
+
+    const old = document.getElementById('cron-output-modal');
+    if (old) old.remove();
+
+    const metaParts = [];
+    if (item.run_at) metaParts.push(item.run_at);
+    if (item.schedule) metaParts.push('Cron: ' + item.schedule);
+    const metaText = metaParts.join(' · ');
+
+    const backdrop = document.createElement('div');
+    backdrop.className = 'modal-backdrop';
+    backdrop.id = 'cron-output-modal';
+    backdrop.onclick = function (e) { if (e.target === backdrop) backdrop.remove(); };
+    backdrop.innerHTML =
+        '<div class="modal" style="max-width:760px;width:95%;">' +
+        '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px;">' +
+        '<div><h3 style="margin:0;">' + esc(item.name || t('brief.cron')) + '</h3>' +
+        (metaText ? '<div style="font-size:11.5px;color:var(--text-muted);font-family:var(--mono);margin-top:3px;">' + esc(metaText) + '</div>' : '') +
+        '</div>' +
+        '<button type="button" class="slide-panel-close" data-act="removeById" data-arg="cron-output-modal">×</button>' +
+        '</div>' +
+        '<div class="cron-output-modal-body msg-body" id="cron-output-modal-md"></div>' +
+        '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;">' +
+        '<button type="button" class="btn" data-act="copyCronOutput" data-arg="' + esc(key) + '">' + btnIcon('copy') + ' 复制内容</button>' +
+        '<button type="button" class="btn btn-primary" data-act="removeById" data-arg="cron-output-modal">关闭</button>' +
+        '</div></div>';
+
+    document.body.appendChild(backdrop);
+    const mdBody = backdrop.querySelector('#cron-output-modal-md');
+    if (mdBody) _renderSafeMarkdownInto(mdBody, item.output);
+}
+
+function copyCronOutput(jobKey) {
+    /** 复制指定定时任务输出的 Markdown 原文到剪贴板。 */
+    const item = _cronOutputsByJob[String(jobKey || '')];
+    if (!item || !item.output) return;
+    navigator.clipboard.writeText(String(item.output));
+    toast(t('toast.copied'));
+}
+
 async function loadCronStatus(isPoll = false) {
-    if (!currentCompanyId) return;
+    if (!currentCompanyId) {
+        _renderRailCron(null);
+        return;
+    }
     const data = await api('GET', '/api/trade/cron/today', null, undefined, {
         silent: isPoll,
     });
     if (!data) return;
-    const {completed, pending, current_time} = data;
 
-    // 定时任务输出（待办已迁到独立 /todos，由 loadTodos 渲染）
-    const railCron = document.getElementById('rail-cron');
-    if (railCron) {
-        let cronHtml = '<div class="rail-bh"><span class="t">' +
-            (typeof iconHtml === 'function' ? iconHtml('calendar-clock', 16) : '') +
-            esc(t('brief.cron')) +
-            '</span><span class="lbl">CRON</span></div>';
-        const outs = completed.filter(function (x) { return x.output; }).slice(0, 4);
-        // 今天没有定时任务产出：给一行说明，而不是留空白
-        if (!outs.length) {
-            cronHtml += '<p class="rail-line">' + esc(t('brief.cron_empty')) + '</p>';
-        }
-        outs.forEach(function (task) {
-            const line = String(task.output || '').replace(/\s+/g, ' ').slice(0, 90);
-            cronHtml += '<div class="rail-cron-item"><span class="mono">' +
-                esc(task.time || '') + '</span><span>' + esc(line) + '</span></div>';
-        });
-        railCron.innerHTML = cronHtml;
-    }
+    // 定时任务输出（展示当前公司已设置并激活的 Hermes cron 任务及其最新产出）
+    _renderRailCron(data);
     loadTodayBrief(isPoll).catch(function () {});
 
     // 顶部进度横幅已下线：其功能（今日简报/待办/定时任务）由常驻右栏承载。
@@ -289,7 +488,7 @@ function _todoItemHtml(item, done) {
         '<span class="tx">' + esc(item.title) +
         (sub ? '<span class="sub">' + esc(sub) + '</span>' : '') +
         '</span>' +
-        '<button type="button" class="todo-del" data-role="delete" aria-label="' + langText('删除','Delete') + '">×</button>' +
+        '<button type="button" class="todo-del" data-role="delete" aria-label="删除">×</button>' +
         '</div>';
 }
 
@@ -318,7 +517,7 @@ function _renderRailTodos() {
         esc(t('todo.placeholder')) + '">' +
         '<div class="todo-add-row">' +
         '<input type="date" id="todo-add-due" aria-label="' + esc(t('todo.due')) + '">' +
-        '<input type="text" id="todo-add-reason" maxlength="300" placeholder="' + langText('原因（可选）','Reason (optional)') + '">' +
+        '<input type="text" id="todo-add-reason" maxlength="300" placeholder="原因（可选）">' +
         '<select id="todo-add-customer" aria-label="' + esc(t('todo.customer')) + '">' +
         '<option value="">' + esc(t('todo.no_customer')) + '</option></select>' +
         '<button type="button" class="btn btn-xs primary" id="todo-add-save">' +
@@ -491,24 +690,18 @@ function _ensureScrollHint(container) {
     _update();
 }
 
-function _updateChatSessionTag() {
+function onChatLibraryChange(libId) {
+    currentLibraryId = libId ? parseInt(libId) : null;
     const ct = currentChatContainer;
     if (!ct) return;
     const tag = ct.querySelector('#chat-context-tag');
-    if (!tag) return;
-    if (currentLibraryId) {
+    if (libId) {
         const sel = ct.querySelector('#chat-library-select');
-        tag.textContent = '📁 ' + (sel?.options[sel.selectedIndex]?.text || '');
+        tag.textContent = '📁 ' + (sel.options[sel.selectedIndex]?.text || '');
+        tag.style.display = 'block';
     } else {
-        tag.textContent = '🗂️ ' + (t('chat.session') || 'Session') + ': ' +
-            (currentChatName || currentChatContext || '');
+        tag.style.display = 'none';
     }
-    tag.style.display = 'block';
-}
-
-function onChatLibraryChange(libId) {
-    currentLibraryId = libId ? parseInt(libId) : null;
-    _updateChatSessionTag();
     loadChatHistory();
 }
 
@@ -744,6 +937,27 @@ async function clearChat() {
     ct.querySelector('#chat-messages').innerHTML = `<div class="empty-state"><div class="empty-icon">💬</div><h2>${esc(currentChatName)}</h2></div>`;
 }
 
+function _updateChatSessionTag() {
+    const ct = currentChatContainer;
+    if (!ct) return;
+    const tag = ct.querySelector('#chat-context-tag');
+    if (!tag) return;
+    if (currentLibraryId) {
+        const sel = ct.querySelector('#chat-library-select');
+        tag.textContent = '📁 ' + (sel?.options[sel.selectedIndex]?.text || '');
+    } else {
+        tag.textContent = '🗂️ ' + (t('chat.session') || 'Session') + ': ' +
+            (currentChatName || currentChatContext || '');
+    }
+    tag.style.display = 'block';
+}
+
+function onChatLibraryChange(libId) {
+    currentLibraryId = libId ? parseInt(libId) : null;
+    _updateChatSessionTag();
+    loadChatHistory();
+}
+
 /** Export only the active context's visible session as a Markdown file. */
 function exportChat() {
     const ct = currentChatContainer;
@@ -789,6 +1003,21 @@ function _msgHHMM(ts) {
     return pad(now.getHours()) + ':' + pad(now.getMinutes());
 }
 
+function _renderSafeMarkdownInto(targetEl, content) {
+    /** 将 Markdown 安全渲染进目标节点（禁止 data-* 属性并中和外链图片）。 */
+    const raw = marked.parse(content || '');
+    targetEl.innerHTML = DOMPurify.sanitize(raw, {
+        ALLOWED_TAGS: ['p','br','strong','em','b','i','ul','ol','li','h1','h2','h3','h4','h5','h6',
+            'blockquote','code','pre','a','table','thead','tbody','tr','th','td','hr','span','div','img'],
+        // 不放行 style/id：模型输出不该带自定义样式与可覆盖的 DOM id（审计 P1-E）
+        ALLOWED_ATTR: ['href','target','class','src','alt','width','height'],
+        // S1：模型输出不得携带 data-*（可被委托层当成动作执行）
+        ALLOW_DATA_ATTR: false,
+    });
+    // 跨源图片改为点击加载，防提示注入零点击外带数据
+    if (typeof neutralizeRemoteImages === 'function') neutralizeRemoteImages(targetEl);
+}
+
 function addMsg(role, content, files, save, convId, blocks, timeStr) {
     const ct = currentChatContainer;
     if (!ct) return;
@@ -801,17 +1030,7 @@ function addMsg(role, content, files, save, convId, blocks, timeStr) {
     div.className = `message ${role}`;
     const body = document.createElement('div');
     body.className = 'msg-body';
-    const raw = marked.parse(content || '');
-    body.innerHTML = DOMPurify.sanitize(raw, {
-        ALLOWED_TAGS: ['p','br','strong','em','b','i','ul','ol','li','h1','h2','h3','h4','h5','h6',
-            'blockquote','code','pre','a','table','thead','tbody','tr','th','td','hr','span','div','img'],
-        // 不放行 style/id：模型输出不该带自定义样式与可覆盖的 DOM id（审计 P1-E）
-        ALLOWED_ATTR: ['href','target','class','src','alt','width','height'],
-        // S1：模型输出不得携带 data-*（可被委托层当成动作执行）
-        ALLOW_DATA_ATTR: false,
-    });
-    // 跨源图片改为点击加载，防提示注入零点击外带数据
-    if (typeof neutralizeRemoteImages === 'function') neutralizeRemoteImages(body);
+    _renderSafeMarkdownInto(body, content);
     // 附件 chip：气泡下方单独一行（mockup .att），不再塞进消息正文
     let attachEl = null;
     if (files && files.length) {
@@ -820,7 +1039,7 @@ function addMsg(role, content, files, save, convId, blocks, timeStr) {
         attachEl.innerHTML = files.map(function (f) {
             return '<span class="att-chip">📎 ' + esc(f.file || f) +
                 (f.status === 'cached'
-                    ? ' <span class="muted">（' + (langText('来自缓存提取','cached')) + '）</span>'
+                    ? ' <span class="muted">（' + (currentLang === 'en' ? 'cached' : '来自缓存提取') + '）</span>'
                     : '') + '</span>';
         }).join('');
     }
@@ -836,7 +1055,7 @@ function addMsg(role, content, files, save, convId, blocks, timeStr) {
         head.className = 'msg-head';
         // mockup：TRADE · ASSISTANT // HH:MM → 虚线 → 分析完成
         head.innerHTML = '<span class="mh-tag">▶ TRADE · ASSISTANT // ' + _msgHHMM(timeStr) + '</span>' +
-            '<span class="mh-rule"></span><span class="mh-done">' + (langText('分析完成','Analysis done')) + '</span>';
+            '<span class="mh-rule"></span><span class="mh-done">' + (currentLang === 'en' ? 'Analysis done' : '分析完成') + '</span>';
         msgHead = head;
         div.appendChild(head);
     } else if (role === 'user') {
@@ -853,7 +1072,7 @@ function addMsg(role, content, files, save, convId, blocks, timeStr) {
     if (role === 'assistant' && content) {
         const copyBtn = document.createElement('button');
         copyBtn.innerHTML = (typeof iconHtml === 'function' ? iconHtml('copy', 16) : '📋');
-        copyBtn.title = langText('复制到剪贴板','Copy to clipboard');
+        copyBtn.title = currentLang==='en'?'Copy to clipboard':'复制到剪贴板';
         // 复制按钮：无外框，放进助手标题行右侧（跟随标题，短消息也不会下溢遮挡下一条）
         copyBtn.style.cssText = 'background:none;border:none;padding:0 2px;font-size:15px;line-height:1;cursor:pointer;color:var(--muted);opacity:0.7;transition:opacity 0.15s;';
         copyBtn.onmouseenter = function() { this.style.opacity = '1'; };
@@ -884,7 +1103,7 @@ function addMsg(role, content, files, save, convId, blocks, timeStr) {
             const ratingDiv = document.createElement('div');
             ratingDiv.className = 'msg-rating';
             ratingDiv.style.cssText = 'display:flex;align-items:center;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border-light);';
-            ratingDiv.innerHTML = '<span style="font-size:11px;color:var(--text-muted);">'+(langText('评价此回复：','Rate this reply: '))+'</span>'
+            ratingDiv.innerHTML = '<span style="font-size:11px;color:var(--text-muted);">'+(currentLang==='en'?'Rate this reply: ':'评价此回复：')+'</span>'
                 + '<button class="rating-btn" data-r="👍" style="border:1px solid #D1D5DB;border-radius:4px;padding:2px 8px;font-size:13px;cursor:pointer;background:#fff;">👍</button>'
                 + '<button class="rating-btn" data-r="👎" style="border:1px solid #D1D5DB;border-radius:4px;padding:2px 8px;font-size:13px;cursor:pointer;background:#fff;">👎</button>';
             body.appendChild(ratingDiv);
@@ -896,7 +1115,7 @@ function addMsg(role, content, files, save, convId, blocks, timeStr) {
                         var rated = await api('POST', '/api/trade/conversations/' + convIdForRating + '/rate', { rating: rVal, feedback: '' });
                         // 失败时 api() 已 toast 原因；评分没存上，不能显示"感谢反馈"
                         if (!rated) return;
-                        ratingDiv.innerHTML = '<span style="font-size:11px;color:var(--accent-green);">✅ '+(langText('感谢反馈','Thanks for feedback'))+'</span>';
+                        ratingDiv.innerHTML = '<span style="font-size:11px;color:var(--accent-green);">✅ '+(currentLang==='en'?'Thanks for feedback':'感谢反馈')+'</span>';
                     });
                 });
         }
@@ -990,10 +1209,6 @@ function _renderChatBlocks(blocks) {
     return wrap.childNodes.length ? wrap : null;
 }
 
-// ═════════ @ 关联客户 / / 调用技能 下拉 ═════════
-let _mention = { kind: '', start: 0, items: [], idx: 0, query: '' };
-let _mentionSeq = 0;
-
 // Slash-command insertion map: English phrases that are real backend triggers.
 // Selecting a skill must insert a phrase the skill router recognises (never the
 // Chinese first trigger) so the message still routes to the intended skill.
@@ -1053,6 +1268,10 @@ function _skillText(key, fallback) {
         return (v && v !== key) ? v : fallback;
     } catch (e) { return fallback; }
 }
+
+// ═════════ @ 关联客户 / / 调用技能 下拉 ═════════
+let _mention = { kind: '', start: 0, items: [], idx: 0, query: '' };
+let _mentionSeq = 0;
 let _chatLinkedName = '';
 
 function _chatScope() {
@@ -1206,7 +1425,7 @@ function _chatLinkCustomer(c) {
     currentCustomerId = c.id;
     _chatLinkedName = c.name || ('#' + c.id);
     _renderChatLinkedChip();
-    toast((langText('已关联客户：','Linked customer: ')) + _chatLinkedName);
+    toast((currentLang === 'en' ? 'Linked customer: ' : '已关联客户：') + _chatLinkedName);
 }
 
 function _renderChatLinkedChip(root) {
@@ -1219,7 +1438,7 @@ function _renderChatLinkedChip(root) {
         if (c) _chatLinkedName = c.name || '';
     }
     el.innerHTML = '<span class="mono">@</span> ' + esc(_chatLinkedName || ('#' + currentCustomerId)) +
-        ' <a href="#" class="chat-unlink" title="' + langText('取消关联','Unlink') + '">×</a>';
+        ' <a href="#" class="chat-unlink" title="取消关联">×</a>';
     el.classList.remove('hidden');
     const un = el.querySelector('.chat-unlink');
     if (un) un.addEventListener('click', function (e) {
@@ -1260,7 +1479,9 @@ function _handleNextAction(action) {
     if (act === 'gen_pi') {
         prompt = prompt || t('chat.blocks.gen_pi_prompt');
     } else if (act === 'customs_lookup') {
-        prompt = prompt || (langText('查这家客户的海关进口记录','Look up customs import records for this customer'));
+        prompt = prompt || (currentLang === 'en'
+            ? 'Look up customs import records for this customer'
+            : '查这家客户的海关进口记录');
     } else if (act === 'add_todo') {
         // 待办已独立存储（P2-12）：直接落库，不再往聊天框塞指令
         _addTodoFromAction(action);
@@ -1275,12 +1496,15 @@ async function loadChatHistory() {
     if (!currentCompanyId) return;
     const ct = currentChatContainer;
     if (!ct) return;
-    // 每个屏幕只加载自己的会话：context 永远带上，library 只是附加过滤。
+    // 文档库视图按 library_id 过滤；统一对话（daily）按时间流汇总原 8 个入口历史
+    const isUnified = currentChatContext === 'daily';
     const ctx = encodeURIComponent(currentChatContext || '');
     let params = `?limit=30&context=${ctx}`;
     if (currentLibraryId) params += `&library_id=${currentLibraryId}`;
-    const data = await api('GET', `/api/trade/conversations${params}`);
-    if (!data || !data.length) return;
+    const rawData = await api('GET', `/api/trade/conversations${params}`);
+    if (!rawData || !rawData.length) return;
+    const data = rawData;
+    if (!data.length) return;
     const container = ct.querySelector('#chat-messages');
     if (!container) return;
     // Remove empty state
@@ -1306,33 +1530,13 @@ async function loadChatHistory() {
 
 // ═════════════════════ SSE STREAMING ═════════════════════
 const TOOL_NAMES = {
-    zh: {
-        read_file:'📄 读取文件',list_files:'📂 列出文件',search_files:'🔎 搜索文件',
-        file_extract:'📋 提取文档',
-        web_search:'🌐 搜索',web_fetch:'📥 抓取',memory_recall:'🧠 回忆',
-        memory_retain:'💾 保存',execute_code:'💻 代码',terminal:'🖥️ 终端',
-        delegate_task:'🤖 委派',vision:'👁️ 图像',skill_load:'📦 技能',
-    },
-    en: {
-        read_file:'📄 Read file',list_files:'📂 List files',search_files:'🔎 Search files',
-        file_extract:'📋 Extract document',
-        web_search:'🌐 Web search',web_fetch:'📥 Fetch',memory_recall:'🧠 Recall',
-        memory_retain:'💾 Save',execute_code:'💻 Code',terminal:'🖥️ Terminal',
-        delegate_task:'🤖 Delegate',vision:'👁️ Image',skill_load:'📦 Skill',
-    },
-    ar: {
-        read_file:'📄 قراءة ملف',list_files:'📂 قائمة الملفات',search_files:'🔎 البحث في الملفات',
-        file_extract:'📋 استخراج مستند',
-        web_search:'🌐 بحث ويب',web_fetch:'📥 جلب',memory_recall:'🧠 استذكار',
-        memory_retain:'💾 حفظ',execute_code:'💻 تنفيذ كود',terminal:'🖥️ طرفية',
-        delegate_task:'🤖 تفويض',vision:'👁️ صورة',skill_load:'📦 مهارة',
-    },
+    read_file:'📄 读取文件',list_files:'📂 列出文件',search_files:'🔎 搜索文件',
+    file_extract:'📋 提取文档',
+    web_search:'🌐 搜索',web_fetch:'📥 抓取',memory_recall:'🧠 回忆',
+    memory_retain:'💾 保存',execute_code:'💻 代码',terminal:'🖥️ 终端',
+    delegate_task:'🤖 委派',vision:'👁️ 图像',skill_load:'📦 技能',
 };
-function fmtTool(name) {
-    const lang = (typeof currentLang !== 'undefined' && currentLang) ? currentLang : 'en';
-    const map = TOOL_NAMES[lang] || TOOL_NAMES.en || {};
-    return map[name] || `🔧 ${name.replace(/_/g,' ')}`;
-}
+function fmtTool(name) { return TOOL_NAMES[name] || `🔧 ${name.replace(/_/g,' ')}`; }
 
 async function sendMsg() {
     if (!currentCompanyId) { toast('请先选择公司'); return; }
@@ -1384,8 +1588,7 @@ async function sendMsg() {
         if (typeof TradeWait !== 'undefined') {
             wait = TradeWait.mount(progBody, {
                 mode: 'chat',
-                // title omitted on purpose: wait.js supplies the localized
-                // title_chat ("WAITING FOR REPLY" / "بانتظار الرد" / zh default)
+                title: 'TRADE · ASSISTANT  ///  等待回复',
                 onCancel: function () { streamCtl.abort(); },
             });
         }
@@ -1533,7 +1736,7 @@ async function sendMsg() {
                             const note = document.createElement('div'); note.className='thinking-msg';
                             const ok = data.status === 'complete';
                             note.style.cssText = 'font-size:12px;color:'+(ok?'var(--text-muted)':'var(--accent-red)')+';padding:4px 0;';
-                            note.textContent = (ok ? langText('✓ 已完整读取 ','Fully read ') : langText('⚠ 完整读取未通过，已完整读取 ','Full read check failed; fully read ')) + files + langText(' 个文件',' file(s)');
+                            note.textContent = (ok ? '✓ 已完整读取 ' : '⚠ 完整读取未通过，已完整读取 ') + files + ' 个文件'
                                 + (skipped.length ? '；未纳入：' + skipped.map(function(s){return s.file;}).join(', ') : '');
                             if (data.coverage_note) {
                                 const cap = document.createElement('div');
@@ -1617,8 +1820,11 @@ function _abortOsintJobReaders() {
 }
 
 function _osintStatusText(status) {
-    const key = 'job.' + String(status || '');
-    return (typeof t === 'function' && I18N && I18N[currentLang] && I18N[currentLang][key]) ? t(key) : String(status || '');
+    const map = {
+        queued: '排队中', running: '进行中', done: '已完成',
+        partial: '未完成', failed: '失败', cancelled: '已取消',
+    };
+    return map[status] || String(status || '');
 }
 
 async function loadOsintJobs(isPoll) {
@@ -1651,13 +1857,13 @@ async function loadOsintJobs(isPoll) {
         // 聊天还在生成回复：采集完成也先别结束动画，等 _flushPendingDockVerdicts
         if (job.status === 'done' && _chatStreamActive > 0 && p.wait && !p.wait.final) {
             p.pendingVerdict = p.pendingVerdict || {rating: ''};
-            p.wait.phase('composing', t('dock.composing'));
+            p.wait.phase('composing', '采集完成，正在生成回复…');
             p.wait.cancelBtn.disabled = true;
             return;
         }
         if (p.wait && !p.wait.final) {
             const phase = job.status === 'cancelled' ? 'aborted' : (job.status === 'failed' ? 'failed' : 'acquired');
-            const zh = job.status === 'partial' ? t('dock.partial') : (phase === 'acquired' ? t('dock.collected') : undefined);
+            const zh = job.status === 'partial' ? '未完成 · 已保存部分结果' : (phase === 'acquired' ? '采集完成' : undefined);
             p.wait.finish({phase: phase, zh: zh});
         }
     });
@@ -1671,7 +1877,7 @@ function _renderRailOsintJobs(jobs) {
 
     let html = '<div class="rail-bh"><span class="t">' +
         (typeof iconHtml === 'function' ? iconHtml('search', 16) : '') +
-        esc(t('rail.osint')) + '</span><span class="lbl">OSINT · ' +
+        esc('后台背调') + '</span><span class="lbl">OSINT · ' +
         esc(String(jobs.length)) + '</span></div>';
 
     jobs.slice(0, 5).forEach(function (job) {
@@ -1695,8 +1901,8 @@ function _renderRailOsintJobs(jobs) {
 }
 
 function _osintEventText(type, payload) {
-    if (type === 'job_start') return langText('已启动（预算 ','Started (budget ') + (payload.budget || '?') + langText(' 秒）','s)');
-    if (type === 'source_start') return langText('查询 ','Querying ') + (payload.label || payload.source || '') + '…';
+    if (type === 'job_start') return '已启动（预算 ' + (payload.budget || '?') + ' 秒）';
+    if (type === 'source_start') return '查询 ' + (payload.label || payload.source || '') + '…';
     if (type === 'source_done') {
         const st = {
             hit: '命中', candidate: '同名候选', miss: '未命中',
@@ -1709,7 +1915,7 @@ function _osintEventText(type, payload) {
             low: '低风险', medium: '中风险', high: '高风险',
             incomplete: '未完成核验', limited: '仅完成制裁筛查',
         }[payload.rating] || payload.rating || '未知';
-        return langText('评级 ','Rating ') + zh;
+        return '评级 ' + zh;
     }
     if (type === 'error') return '错误：' + (payload.message || '');
     if (type === 'cancelled') return '已取消';
@@ -1742,7 +1948,7 @@ function _handleOsintJobSse(jobId, block) {
         if (type === 'verdict' && _chatStreamActive > 0 && panel.wait && !panel.wait.final) {
             panel.pendingVerdict = payload;
             panel.status = 'done';
-            panel.wait.phase('composing', t('dock.composing'));
+            panel.wait.phase('composing', '采集完成，正在生成回复…');
             panel.wait.cancelBtn.disabled = true;
             _updateDock();
             return;
@@ -1785,12 +1991,12 @@ function _flushPendingDockVerdicts() {
                             unverified: report.unverified || [],
                         });
                     } else {
-                        p.wait.finish({phase: 'acquired', zh: t('dock.collected')});
+                        p.wait.finish({phase: 'acquired', zh: '采集完成'});
                     }
                 }
             })
             .catch(function () {
-                if (p.wait && !p.wait.final) p.wait.finish({phase: 'acquired', zh: t('dock.collected')});
+                if (p.wait && !p.wait.final) p.wait.finish({phase: 'acquired', zh: '采集完成'});
             });
     });
 }
@@ -1863,8 +2069,8 @@ function _jobShortName(target) {
 }
 
 function _osintStatusZh(status) {
-    const key = 'job.' + String(status || 'running');
-    return (typeof t === 'function' && I18N && I18N[currentLang] && I18N[currentLang][key]) ? t(key) : t('job.running');
+    const map = {queued: '排队中', running: '进行中', done: '已完成', failed: '失败', cancelled: '已取消', partial: '未完成'};
+    return map[status] || '进行中';
 }
 
 function _updateDock() {
@@ -1882,15 +2088,15 @@ function _updateDock() {
         total += srcs.length;
         done += srcs.filter(function (s) { return s.status !== 'running'; }).length;
     });
-    parts.title.textContent = t('dock.bg_tasks', {n: items.length});
+    parts.title.textContent = '后台任务 · ' + items.length + ' 项';
     if (running.length) {
         // 只用真实 source_start / source_done 计数
-        parts.sub.textContent = t('dock.collecting', {done: done, total: total, running: running.length});
+        parts.sub.textContent = '采集中 ' + done + ' / ' + total + ' · ' + running.length + ' 项进行中';
     } else if (_chatStreamActive > 0) {
         // 采集完了但答复还在生成：明确说出来，避免“动画结束=背调结束”的误判
-        parts.sub.textContent = t('dock.composing');
+        parts.sub.textContent = '采集完成，正在生成回复…';
     } else {
-        parts.sub.textContent = t('dock.all_done');
+        parts.sub.textContent = '全部完成';
     }
 
     items.forEach(function (p) {
@@ -1954,7 +2160,7 @@ function _attachOsintTaskPanel(_container, job) {
     const tab = document.createElement('button');
     tab.type = 'button';
     tab.className = 'wd-tab';
-    tab.textContent = target || (langText('任务 ','Task ') + jobId);
+    tab.textContent = target || ('任务 ' + jobId);
     const st = document.createElement('span');
     st.className = 'st';
     st.textContent = '进行中';
@@ -1971,8 +2177,8 @@ function _attachOsintTaskPanel(_container, job) {
     try {
         wait = TradeWait.mount(wrap, {
             mode: 'task',
-            title: t('dock.check_title'),
-            statusLabel: t('dock.check_status'),
+            title: '背调 · BACKGROUND CHECK',
+            statusLabel: '背调进行中',
             onCancel: function () { _cancelOsintJob(jobId); },
         });
     } catch (e) {
@@ -1999,8 +2205,7 @@ function _watchOsintJob(jobId) {
     (async function () {
         try {
             const resp = await fetch('/api/trade/osint/jobs/' + jobId + '/events?after=' +
-                (_osintJobCursors[jobId] || 0) + '&lang=' +
-                encodeURIComponent(typeof currentLang !== 'undefined' ? currentLang : 'en'), {
+                (_osintJobCursors[jobId] || 0), {
                 headers: {'X-Hermes-Session-Token': TOKEN, 'X-Company-ID': String(companyId)},
                 signal: controller.signal,
             });

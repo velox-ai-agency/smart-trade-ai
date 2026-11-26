@@ -22,10 +22,11 @@ from __future__ import annotations
 
 import csv
 import io
+import json
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, UploadFile
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 
 from trade import customer as customer_module
 from trade import mailbox_store
@@ -71,7 +72,7 @@ def create_customer(
     cid: int = Depends(require_company),
 ):
     """创建新客户（归属于当前公司）。"""
-    return customer_module.create(
+    res = customer_module.create(
         payload.name, payload.contact, payload.note, company_id=cid,
         country=payload.country, city=payload.city, tier=payload.tier,
         linkedin_url=payload.linkedin_url,
@@ -86,6 +87,10 @@ def create_customer(
         next_follow_up_date=payload.next_follow_up_date,
         is_starred=payload.is_starred,
     )
+    # 严格去重模式（TRADE_DEDUP_MODE=block）命中重复客户时返回 409 Conflict
+    if isinstance(res, dict) and res.get("error") == "duplicate":
+        return JSONResponse(status_code=409, content=res)
+    return res
 
 
 # ── CSV 列名 → customer 字段映射（批量导入）──────────────────────────────
@@ -145,6 +150,41 @@ def download_customer_template():
         str(template_path),
         media_type="text/csv",
         filename="trade-customer-template.csv",
+    )
+
+
+@router.get("/customers/export")
+def export_customers(cid: int = Depends(require_company)):
+    """Export all customers of the current company as a UTF-8 CSV.
+
+    Reuses the import template's column order so exported files can be
+    re-imported without editing. Extra fields live in extra1/extra2 JSON.
+    """
+    items = customer_module.list_by_company(cid)
+    out = io.StringIO()
+    writer = csv.DictWriter(out, fieldnames=list(_CSV_FIELD_MAP.keys()), extrasaction="ignore")
+    writer.writeheader()
+    for c in items:
+        try:
+            ex1 = json.loads(c.get("extra1") or "{}") or {}
+        except (ValueError, TypeError):
+            ex1 = {}
+        try:
+            ex2 = json.loads(c.get("extra2") or "{}") or {}
+        except (ValueError, TypeError):
+            ex2 = {}
+        row = {"name": c.get("name", ""), "contact": c.get("contact", ""), "note": c.get("note", "")}
+        for k in ("country", "city", "tier", "linkedin_url", "company_website",
+                  "buyer_type", "main_category", "match_score"):
+            row[k] = ex1.get(k, "")
+        for k in ("title", "email", "phone", "whatsapp", "wechat"):
+            row[k] = ex2.get(k, "")
+        writer.writerow(row)
+    # BOM keeps Excel from mangling non-ASCII customer names.
+    return Response(
+        content="\ufeff" + out.getvalue(),
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": 'attachment; filename="customers.csv"'},
     )
 
 

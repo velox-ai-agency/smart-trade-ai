@@ -458,9 +458,62 @@ def _git_head(trade_dir: Path) -> str | None:
 #: 私有仓库/凭证过期时，`git` 会在后台服务里静等账号密码，界面永远停在"更新中"。
 _GIT_ENV = {"GIT_TERMINAL_PROMPT": "0", "GCM_INTERACTIVE": "never"}
 
+def _read_channel_env() -> None:
+    """把 ~/.trade/update-channel.env 里的 KEY=VALUE 读进进程环境。
+
+    为什么需要这个文件：界面里的「更新系统」是由用户随机点击的，不会带着
+    自定义环境变量启动；而本项目的定制版必须把更新源指向自己的仓库。写在
+    一个固定文件里，才能让定制在每次启动后依然生效。
+
+    已存在的真实环境变量优先（不覆盖），方便临时用 CLI 切换测试。
+    """
+    try:
+        path = _get_trade_home() / "update-channel.env"
+        if not path.is_file():
+            return
+        for line in path.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, _, value = line.partition("=")
+            key = key.strip()
+            value = value.strip().strip('"').strip("'")
+            if key and key not in os.environ:
+                os.environ[key] = value
+    except OSError:
+        # 读不到就用默认值；不能因为配置文件问题阻断更新
+        pass
+
+
+_read_channel_env()
+
+# 更新源（2026-11-25 定制版）：默认仍是上游，但可通过 update-channel.env
+# 指向自己的 fork/分支。定制版务必设置，否则「更新系统」会把本地定制
+# 覆盖成上游版本。
+_UPDATE_REMOTE = (os.environ.get("TRADE_UPDATE_REMOTE", "origin").strip() or "origin")
+
 # 更新跟随的分支（2026-11-20 决定）：main 开发，stable 只在验证后快进。
 # 环境变量可覆盖，用于回滚到 main 或临时测试其它分支。
 _UPDATE_BRANCH = (os.environ.get("TRADE_UPDATE_BRANCH", "stable").strip() or "stable")
+
+# 新装时 clone 的仓库地址；定制版改为自己的 fork。
+_REPO_URL = (
+    os.environ.get("TRADE_REPO_URL")
+    or "https://github.com/chefroger/smart-trade-ai.git"
+).strip()
+
+# 一键更新总开关。定制版在确认自己的更新通道之前，建议设为 1 先关掉，
+# 免得误点把本地定制覆盖回上游。
+_UPDATE_DISABLED = os.environ.get("TRADE_UPDATE_DISABLED", "").strip().lower() in {
+    "1", "true", "yes", "on",
+}
+
+# 工作区有未提交改动时是否仍然允许更新。默认**不允许**：更新会 checkout
+# 到远端提交，未提交的定制有被 stash/覆盖的风险（历史事故：stash pop 冲突
+# 后仓库停在新代码 + 冲突态）。确实要更新请先 commit/stash 后再点。
+_ALLOW_DIRTY = os.environ.get("TRADE_UPDATE_ALLOW_DIRTY", "").strip().lower() in {
+    "1", "true", "yes", "on",
+}
 
 
 def _explain_git_error(stderr: str, stdout: str = "") -> str:
@@ -551,12 +604,34 @@ def _remote_main_sha(trade_dir: Path) -> str | None:
     先记下 SHA、拉取后再回读 HEAD 比对，不一致就中止 —— 宁可让用户重试，
     也不要把一个未经确认的提交装进本机。
     """
-    return _remote_main_sha_from("origin", trade_dir)
+    return _remote_main_sha_from(_UPDATE_REMOTE, trade_dir)
 
 
 def _remote_main_sha_ex(trade_dir: Path) -> tuple[str | None, str]:
     """同 `_remote_main_sha`，但失败时返回可读原因（用于界面提示）。"""
-    return _remote_main_sha_diagnose("origin", trade_dir)
+    return _remote_main_sha_diagnose(_UPDATE_REMOTE, trade_dir)
+
+
+def _working_tree_dirty(trade_dir: Path) -> bool:
+    """更新前检查工作区是否有未提交改动。
+
+    只在确实是 git 工作区（存在 .git）时检查：非 git 目录的更新走 clone
+    分支，没有「未提交改动」可言。读不到状态时返回 False（宁可让后面的
+    git 步骤自己报错，也不要因为 git 配置问题把用户永久锁在「无法更新」）。
+    """
+    if not (trade_dir / ".git").exists():
+        return False
+    try:
+        r = subprocess.run(
+            ["git", "status", "--porcelain"],
+            cwd=str(trade_dir), capture_output=True, text=True, timeout=30,
+            env={**os.environ, **_GIT_ENV},
+        )
+    except (FileNotFoundError, OSError, subprocess.SubprocessError):
+        return False
+    if r.returncode != 0:
+        return False
+    return bool((r.stdout or "").strip())
 
 
 def _normalize_sha(value: str | None) -> str | None:
@@ -571,6 +646,12 @@ def _normalize_sha(value: str | None) -> str | None:
 
 def preview_update_target() -> dict:
     """前端确认框用：返回本次更新将要钉选的远端更新分支短 SHA。"""
+    if _UPDATE_DISABLED:
+        return {
+            "ok": False,
+            "error": "Automatic updates are disabled on this installation "
+                     "(TRADE_UPDATE_DISABLED=1).",
+        }
     trade_dir = _get_trade_home() / "foreign-trade-assistant"
     if not trade_dir.is_dir():
         return {"ok": False, "error": "安装目录不存在，无法检查更新目标。"}
@@ -627,20 +708,58 @@ def _verify_pinned_head(
     return False
 
 
+class UnpushedLocalCommits(RuntimeError):
+    """本地存在未推送到更新源的提交。
+
+    `checkout -B <branch> <target>` 会强制把本地分支拨到 target 上：本地
+    已 commit 但未 push 的内容会从分支上消失（只留在 reflog 里）。定制版
+    经常在本地攒提交，所以这种「静默倒车」必须拦下来。
+    """
+
+
+def _unpushed_commits_count(trade_dir: Path, target_sha: str) -> int:
+    """返回「在 HEAD 而不在 target 上」的提交数。
+
+    0  = 本地可快进到 target（或已一致），安全。
+    >0 = 本地有 target 不包含的提交（未推送/分叉），更新会抹掉它们。
+    读不到（浅克隆、git 异常）时返回 0，避免把用户永久锁在「无法更新」。
+    """
+    try:
+        r = subprocess.run(
+            ["git", "rev-list", "--count", f"{target_sha}..HEAD"],
+            cwd=str(trade_dir), capture_output=True, text=True, timeout=60,
+            env={**os.environ, **_GIT_ENV},
+        )
+        if r.returncode != 0:
+            return 0
+        return int((r.stdout or "0").strip() or 0)
+    except (FileNotFoundError, OSError, subprocess.SubprocessError, ValueError):
+        return 0
+
+
 def _sync_to_update_branch(trade_dir: Path, target_sha: str) -> subprocess.CompletedProcess:
     """把本地检出切到更新分支并钉在 target_sha 上。
 
     为什么不用 `git pull origin <branch>`：老用户的仓库还停在 main，pull 会把
     更新分支合进 main 且从此不再快进。`fetch` + `checkout -B` 能一次性完成
     「切换分支 + 对齐到确认过的提交」（2026-11-20 起更新跟随 stable）。
+
+    抛出 `UnpushedLocalCommits`：本地有未推送提交时拒绝倒车。
     """
     fetch = subprocess.run(
-        ["git", "fetch", "origin", _UPDATE_BRANCH],
+        ["git", "fetch", _UPDATE_REMOTE, _UPDATE_BRANCH],
         cwd=str(trade_dir), capture_output=True, text=True, timeout=120,
     )
     # 拉取失败原样返回，交给调用方走现有的 stash/重试流程
     if fetch.returncode != 0:
         return fetch
+    # fetch 成功后先确认本地提交不会被 checkout -B 抹掉
+    ahead = _unpushed_commits_count(trade_dir, target_sha)
+    if ahead > 0:
+        raise UnpushedLocalCommits(
+            f"本地有 {ahead} 个提交未推送到 {_UPDATE_REMOTE}/{_UPDATE_BRANCH}；"
+            "更新会把它们从分支上抹掉。请先 push（或合并）后再试。"
+        )
     # fetch 成功后再把本地分支对齐到钉选提交（checkout 失败同样交给调用方）
     return subprocess.run(
         ["git", "checkout", "-B", _UPDATE_BRANCH, target_sha],
@@ -813,6 +932,20 @@ def update_trade(target_sha_request: str | None = None) -> dict:
         print(msg)
         messages.append(msg)
 
+    # ── Step 0: 总开关 ───────────────────────────────────────────────────
+    if _UPDATE_DISABLED:
+        _emit("  ⛔ 本机已关闭自动更新（TRADE_UPDATE_DISABLED=1）。")
+        return {
+            "ok": False,
+            "version": "",
+            "target_sha": "",
+            "error": "Automatic updates are disabled on this installation.",
+            "errors": ["updates disabled"],
+            "warnings": warnings,
+            "messages": messages,
+            "restart_scheduled": False,
+        }
+
     # ── Step 0: 架构检测 ─────────────────────────────────────────────────
     from trade.bootstrap import check_native_architecture
     if not check_native_architecture():
@@ -869,7 +1002,6 @@ def update_trade(target_sha_request: str | None = None) -> dict:
     # ── Step 1: git fetch + checkout / clone ───────────────────────────────
     # 本次更新钉选的提交（clone 也在 clone 后 checkout 到同一个 SHA）
     target_sha: str | None = None
-    _REPO_URL = "https://github.com/chefroger/smart-trade-ai.git"
     if not trade_dir.is_dir():
         _emit("→ Step 1/7: git clone (install directory not found) ...")
         _emit(f"  Target: {trade_dir}")
@@ -921,6 +1053,22 @@ def update_trade(target_sha_request: str | None = None) -> dict:
             }
         _emit(f"  ✓ Repository cloned to {trade_dir}")
     else:
+        # 定制版保护：工作区有未提交改动时不再自动 stash。更新会把工作区
+        # checkout 到远端提交，未提交的定制要么被带走（和远端冲突），要么
+        # 被 stash 后在 pop 时冲突 —— 两种结果都会让仓库停在混合状态。
+        if not _ALLOW_DIRTY and _working_tree_dirty(trade_dir):
+            _emit("  ❌ 工作区有未提交的改动，已中止更新（不会自动 stash）。")
+            _emit("  💡 请先 `git add -A && git commit -m \"wip\"` 或 `git stash` 后再点更新。")
+            return {
+                "ok": False,
+                "version": "",
+                "target_sha": "",
+                "error": "工作区有未提交的改动，已中止更新；请先提交或 stash 后再试。",
+                "errors": ["working tree dirty"],
+                "warnings": warnings,
+                "messages": messages,
+                "restart_scheduled": False,
+            }
         _emit(f"→ Step 1/7: git fetch + checkout ({_UPDATE_BRANCH}) ...")
         # 目标提交：前端确认过就用它（显示即所用）；否则临场取更新分支当前头。
         if requested_sha:
@@ -940,6 +1088,19 @@ def update_trade(target_sha_request: str | None = None) -> dict:
             _emit(f"  ℹ️ 本次更新钉选提交：{target_sha[:8]}")
         try:
             result = _sync_to_update_branch(trade_dir, target_sha)
+        except UnpushedLocalCommits as e:
+            _emit(f"  ❌ {e}")
+            _emit("  💡 你的提交仍在本地分支上（未丢失）；push 后再点更新。")
+            return {
+                "ok": False,
+                "version": "",
+                "target_sha": target_sha,
+                "error": str(e),
+                "errors": ["unpushed local commits"],
+                "warnings": warnings,
+                "messages": messages,
+                "restart_scheduled": False,
+            }
         except FileNotFoundError:
             _emit("  ❌ git 命令未找到，请先安装 Git for Windows 并重启终端")
             errors.append("git not found")

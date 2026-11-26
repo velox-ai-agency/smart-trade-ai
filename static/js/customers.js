@@ -17,6 +17,7 @@ async function renderCustomersViewInto(container) {
                 <h2 class="cust-title">${langText('客户列表','Customers')}<span class="cust-idx">ASSET INDEX</span>${coName ? '<span class="cust-co">'+esc(coName)+'</span>' : ''}</h2>
                 <div id="cust-summary-bar" class="cust-summary"></div>
                 <div class="cust-head-actions">
+                    <button class="btn" id="cust-export-btn">${typeof iconHtml==='function'?iconHtml('upload',15):''} ${langText('导出 CSV','Export CSV')}</button>
                     <button class="btn" id="cust-import-btn">${typeof iconHtml==='function'?iconHtml('download',15):''} ${langText('导入 CSV','Import CSV')}</button>
                     <input type="file" id="cust-bulk-file" accept=".csv" style="display:none;" data-onchange="bulkImportCustomers">
                     <button class="btn primary" data-act="showCustomerEditModal">＋ ${langText('新建客户','New customer')}</button>
@@ -81,6 +82,8 @@ async function renderCustomersViewInto(container) {
     // 导入 CSV：选择文件直接上传
     const importBtn = $('cust-import-btn');
     if (importBtn) importBtn.addEventListener('click', function () { $('cust-bulk-file')?.click(); });
+    const exportBtn = $('cust-export-btn');
+    if (exportBtn) exportBtn.addEventListener('click', exportCustomers);
     // 分级 / 商机阶段 分段筛选（事件委托）
     const tierSeg = $('cust-tier-seg');
     if (tierSeg) tierSeg.addEventListener('click', function (e) {
@@ -118,10 +121,11 @@ async function loadCustomersData() {
     if (typeof _updateDailyBriefBadge === 'function') {
         _updateDailyBriefBadge(_customerSummary && _customerSummary.overdue);
     }
-    // Enrich with library associations
-    for (let c of allCustomers) {
-        const libs = await api('GET', `/api/trade/customers/${c.id}/libraries`) || [];
-        c._libraries = libs;
+    // 直接复用列表聚合返回的 libraries，消除逐客户 N+1 串行请求
+    for (const c of allCustomers) {
+        if (Array.isArray(c.libraries)) {
+            c._libraries = c.libraries;
+        }
     }
     $('customers-loading').classList.add('hidden');
     _refreshCustomerFilterOptions();
@@ -1800,17 +1804,19 @@ async function bulkImportCustomers() {
     const file = fileInput.files[0];
     const formData = new FormData();
     formData.append('file', file);
-    const btn = fileInput.nextElementSibling;
+    const btn = document.getElementById('cust-import-btn') || $('cust-import-btn') || fileInput.nextElementSibling;
+    const originalLabel = btn.innerHTML;
     btn.disabled = true;
     let restoreBtn = null;
     try {
         if (typeof TradeWait !== 'undefined') restoreBtn = TradeWait.inline(btn, {en: 'IMPORTING', zh: '导入中'});
-        else btn.textContent = '导入中...';
+        else btn.textContent = langText('导入中...', 'Importing...');
         // 走 api() 统一封装：拿到 120s 超时与 401 自愈（原先裸 fetch 无超时）
         const result = await api('POST', '/api/trade/customers/bulk', formData);
         // result 为 null 时 api() 已经 toast 过失败原因，这里不重复提示
         if (result) {
-            toast(`导入完成：新增 ${result.created} 条，跳过 ${result.skipped} 条（重复或空行）`);
+            toast(langText('导入完成：新增 %n% 条，跳过 %s% 条（重复或空行）', 'Imported: %n% added, %s% skipped (duplicates or empty rows)')
+                .replace('%n%', result.created).replace('%s%', result.skipped));
             await loadCustomersData();
             if (currentView === 'customers') renderCustomersTable(allCustomers);
         }
@@ -1818,7 +1824,8 @@ async function bulkImportCustomers() {
         toast(langText('导入失败: ','Import failed: ') + e.message);
     }
     if (restoreBtn) restoreBtn();
-    btn.disabled = false; btn.innerHTML = btnIcon('upload') + ' ' + langText('上传导入','Import upload');
+    btn.disabled = false;
+    btn.innerHTML = originalLabel;
     fileInput.value = '';
 }
 
@@ -1842,6 +1849,31 @@ async function downloadManagementTables() {
 }
 
 // ── 下载 CSV 模板（需携带 auth header） ─────────────
+async function exportCustomers() {
+    try {
+        const headers = {};
+        if (TOKEN) headers['X-Hermes-Session-Token'] = TOKEN;
+        if (currentCompanyId) headers['X-Company-ID'] = String(currentCompanyId);
+        const resp = await fetch('/api/trade/customers/export', { headers });
+        if (!resp.ok) {
+            const err = await resp.json().catch(() => ({ detail: resp.statusText }));
+            throw new Error(err.detail || ('HTTP ' + resp.status));
+        }
+        const blob = await resp.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'customers-' + (currentCompanyId || 'all') + '.csv';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        toast(langText('客户已导出为 CSV', 'Customers exported to CSV'));
+    } catch (err) {
+        toast(langText('导出失败', 'Export failed') + ': ' + err.message);
+    }
+}
+
 async function downloadCsvTemplate() {
     try {
         const headers = {};
