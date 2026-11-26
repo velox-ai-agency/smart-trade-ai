@@ -389,4 +389,4 @@ def test_non_preflight_upload_is_rejected(api_client, tmp_path):
         files={"file": ("x.zip", b"not-a-zip", "application/zip")},
     )
     assert resp.status_code == 409
-    assert "预检" in resp.json()["detail"]
+    assert "preflight" in resp.json()["detail"]

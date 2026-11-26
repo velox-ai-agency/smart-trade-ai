@@ -293,9 +293,9 @@ def update_copilot_settings(
     # 记忆回写尚未实现：UI 已隐藏该开关，后端也强制关闭，避免"没开过却已开启"。
     current.write_memory = False
     if data.get("enabled") and not current.consent_ok():
-        raise HTTPException(status_code=400, detail="请先阅读并同意副驾隐私说明。")
+        raise HTTPException(status_code=400, detail="Please read and accept the Copilot privacy notice first.")
     if not save_settings(current):
-        raise HTTPException(status_code=500, detail="保存副驾设置失败。")
+        raise HTTPException(status_code=500, detail="Failed to save Copilot settings.")
 
     changed = any(getattr(current, key) != value for key, value in before.items())
     runtime: dict = {"running": False, "pid": None}

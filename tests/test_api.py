@@ -198,7 +198,7 @@ class TestCompanyBinding:
         finally:
             deps._ACTIVE_COMPANY.pop("import-token", None)
         assert resp.status_code == 403
-        assert "当前绑定" in resp.json()["detail"]
+        assert "currently bound" in resp.json()["detail"]
 
     def test_export_allowed_for_non_active_company(self, setup_mocks):
         """导出是用户对列表某一行的显式只读操作，不因绑定在别的公司被 403。
@@ -901,7 +901,7 @@ class TestPaidFeatureGate:
         with pytest.raises(HTTPException) as exc:
             transfer._require_paid_feature()
         assert exc.value.status_code == 402
-        assert "付费功能" in exc.value.detail
+        assert "paid feature" in exc.value.detail
 
     def test_active_user_passes(self, monkeypatch):
         from trade.api import transfer

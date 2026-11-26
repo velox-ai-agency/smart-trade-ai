@@ -1,7 +1,8 @@
 /**
- * CSV import failures must be readable: the backend returns Chinese 400
- * details and api() used to show them in a 3-second, auto-dismissing toast.
- * Users saw a Chinese flash they could not read or translate.
+ * Backend failures must be readable in the UI language. The backend now
+ * emits English details (Chinese removed 2026-11-26); localizeApiError maps
+ * the known English literals to Arabic when the UI runs in Arabic, and
+ * unknown details pass through untouched so nothing is ever hidden.
  */
 const test = require('node:test');
 const assert = require('node:assert');
@@ -27,13 +28,30 @@ function loadLocalizer(lang) {
 test('backend CSV errors are shown in English instead of Chinese', () => {
     const localize = loadLocalizer('en');
     for (const detail of [
-        '文件编码不是 UTF-8，请用 Excel 另存为 CSV UTF-8',
-        'CSV 中没有有效数据（至少需要 name 列）',
-        'CSV 文件为空或缺少表头',
+        'File is not UTF-8 encoded. In Excel use "Save As → CSV UTF-8 (Comma delimited)" and import again.',
+        'CSV is empty or has no header row',
+        'Failed to parse the CSV format',
     ]) {
         const msg = localize(detail);
-        assert.doesNotMatch(msg, /[\u4e00-\u9fff]/, `untranslated detail: ${detail}`);
         assert.notEqual(msg, detail, `detail was not mapped: ${detail}`);
+    }
+});
+
+test('dynamic CSV row detail keeps the detected-headers hint in English', () => {
+    const localize = loadLocalizer('en');
+    const msg = localize('No valid rows found. The CSV needs a "name" column; detected headers: company_title, tel');
+    assert.match(msg, /No valid rows found/);
+    assert.match(msg, /detected headers: company_title, tel/);
+});
+
+test('Arabic UI maps the same backend details to Arabic (via AR_TERMS)', () => {
+    const ar = fs.readFileSync(path.join(JS_DIR, 'i18n.js'), 'utf8');
+    for (const key of [
+        'Failed to parse the CSV format',
+        'Company data import/export is a paid feature — activate your license to use it.',
+        'Currency must be 3 uppercase letters (e.g. USD/EUR).',
+    ]) {
+        assert.ok(ar.includes(JSON.stringify(key)), `AR_TERMS must carry: ${key}`);
     }
 });
 

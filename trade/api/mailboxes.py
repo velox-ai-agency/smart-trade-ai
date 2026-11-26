@@ -26,7 +26,7 @@ def _resolve_imap(payload: MailboxTestRequest) -> tuple[str, int, str]:
     else:
         # 自定义预设必须提供 host
         if not payload.host:
-            raise HTTPException(status_code=400, detail="自定义邮箱必须填写 IMAP 服务器地址")
+            raise HTTPException(status_code=400, detail="A custom mailbox requires the IMAP server address")
         host = payload.host.strip()
         port = payload.port if payload.port is not None else 993
     username = (payload.username or payload.email_address).strip()

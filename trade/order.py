@@ -91,7 +91,7 @@ def reconcile_amounts(
             return q, p, round(expected, 2)
         if abs(expected - t) > _AMOUNT_TOLERANCE:
             raise ValueError(
-                f"总金额 {t:g} 与 数量×单价（{q:g}×{p:g}={expected:g}）不一致，请核对后重填。"
+                f"Total {t:g} does not match quantity × unit price ({q:g}×{p:g}={expected:g}) — recheck and re-enter."
             )
         return q, p, t
 
@@ -143,10 +143,10 @@ def _prepare_items(items, currency: str = "USD") -> list[dict]:
     prepared: list[dict] = []
     for idx, raw in enumerate(items or []):
         if not isinstance(raw, dict):
-            raise ValueError("订单明细格式不正确。")
+            raise ValueError("Invalid order item format.")
         name = str(raw.get("product_name") or "").strip()
         if not name:
-            raise ValueError(f"第 {idx + 1} 行商品缺少品名。")
+            raise ValueError(f"Row {idx + 1}: item is missing the product name.")
         raw_cur = str(raw.get("currency") or "").strip()
         # 单笔订单不支持混用多种币种，防止跨币种金额被直接累加到订单头
         if raw_cur and raw_cur.upper() != header_currency.upper():
@@ -168,7 +168,7 @@ def _prepare_items(items, currency: str = "USD") -> list[dict]:
             "notes": str(raw.get("notes") or ""),
         })
     if not prepared:
-        raise ValueError("订单至少需要一行商品。")
+        raise ValueError("An order needs at least one item line.")
     return prepared
 
 

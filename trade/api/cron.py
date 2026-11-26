@@ -347,7 +347,7 @@ def get_cron_job_output(job_id: str, cid: int = Depends(require_company)):
     # 校验 job_id 格式，禁止路径穿越字符
     clean_id = (job_id or "").strip()
     if not clean_id or "/" in clean_id or "\\" in clean_id or ".." in clean_id:
-        raise HTTPException(status_code=400, detail="非法任务 ID")
+        raise HTTPException(status_code=400, detail="Invalid task ID")
 
     matched_job: dict | None = None
     if _JOBS_FILE.is_file():
@@ -367,7 +367,7 @@ def get_cron_job_output(job_id: str, cid: int = Depends(require_company)):
 
     # 任务不存在或不属于当前公司时统一返回 404，避免探测其它公司任务
     if matched_job is None or not _job_visible(clean_id, cid, job=matched_job):
-        raise HTTPException(status_code=404, detail="未找到该定时任务")
+        raise HTTPException(status_code=404, detail="Scheduled task not found")
 
     output, run_at, is_silent = _find_latest_cron_output(clean_id)
     today = date.today().isoformat()
@@ -447,7 +447,7 @@ def api_update_skills(request: Request):
     """从 GitHub 拉取最新 B2B skill 定义。"""
     _tk = request.headers.get("X-Hermes-Session-Token", "")
     if _tk and not _check_skills_rate_limit(_tk[:16]):
-        raise HTTPException(status_code=429, detail="Skills 更新请求过于频繁，请稍后重试。")
+        raise HTTPException(status_code=429, detail="Skills update is rate-limited — please retry later.")
 
     from trade.post_install import update_skills as _do_update
     return _capture_output(_do_update)

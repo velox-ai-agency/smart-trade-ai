@@ -202,7 +202,7 @@ class TestReconcileAmounts:
 
     def test_contradiction_raises(self):
         from trade import order
-        with pytest.raises(ValueError, match="不一致"):
+        with pytest.raises(ValueError, match="does not match"):
             order.reconcile_amounts(10, 3.5, 999)
 
     def test_total_only_without_qty_and_price_is_kept(self):
@@ -348,7 +348,7 @@ class TestOrderApiValidation:
         with pytest.raises(HTTPException) as exc:
             self._create(co["id"], cust["id"], quantity=10, unit_price=3.5, total_amount=999)
         assert exc.value.status_code == 400
-        assert "不一致" in exc.value.detail
+        assert "not match" in exc.value.detail or "consistent" in exc.value.detail
 
     def test_create_computes_blank_total(self, db):
         co, cust = self._mk(db)
@@ -363,7 +363,7 @@ class TestOrderApiValidation:
         with pytest.raises(HTTPException) as exc:
             self._create(co["id"], cust["id"], status=status)
         assert exc.value.status_code == 400
-        assert "终态" in exc.value.detail or "已完成" in exc.value.detail
+        assert "Completed or Cancelled" in exc.value.detail
 
     @pytest.mark.parametrize("status", ["报价中", "已下单", "已出货"])
     def test_create_allows_active_status(self, db, status):
@@ -417,7 +417,7 @@ class TestOrderApiValidation:
         with pytest.raises(HTTPException) as exc:
             update_order(o["id"], OrderUpdate(quantity=20), cid=co["id"])
         assert exc.value.status_code == 400
-        assert "不一致" in exc.value.detail
+        assert "not match" in exc.value.detail or "consistent" in exc.value.detail
 
     def test_update_blocks_invalid_transition(self, db):
         from fastapi import HTTPException
@@ -432,7 +432,7 @@ class TestOrderApiValidation:
         with pytest.raises(HTTPException) as exc:
             update_order(o["id"], OrderUpdate(status="报价中"), cid=co["id"])
         assert exc.value.status_code == 400
-        assert "已完成" in exc.value.detail
+        assert "cannot move from" in exc.value.detail
 
     def test_update_allows_forward_transition(self, db):
         from trade.api.models import OrderUpdate
@@ -526,13 +526,13 @@ class TestOrderApiValidation:
         with pytest.raises(HTTPException) as exc:
             self._create(co["id"], cust["id"], quantity=-5)
         assert exc.value.status_code == 400
-        assert "数量" in exc.value.detail
+        assert "quantity" in exc.value.detail
 
         o = self._create(co["id"], cust["id"], quantity=1)
         with pytest.raises(HTTPException) as exc2:
             update_order(o["id"], OrderUpdate(unit_price=-1), cid=co["id"])
         assert exc2.value.status_code == 400
-        assert "单价" in exc2.value.detail
+        assert "unit price" in exc2.value.detail
 
     def test_notes_edit_on_completed_order_still_works(self, db):
         from trade.api.models import OrderUpdate

@@ -22,7 +22,7 @@ def _clean_currency(value) -> str | None:
     if not s:
         return None
     if not _CURRENCY_RE.fullmatch(s):
-        raise HTTPException(status_code=400, detail="币种必须是 3 位大写字母（如 USD/EUR）。")
+        raise HTTPException(status_code=400, detail="Currency must be 3 uppercase letters (e.g. USD/EUR).")
     return s
 
 
@@ -39,12 +39,12 @@ def _clean_shipped_at(value) -> str | None:
     except ValueError:
         raise HTTPException(
             status_code=400,
-            detail="出货日必须是 YYYY-MM 或 YYYY-MM-DD。",
+            detail="Ship date must be YYYY-MM or YYYY-MM-DD.",
         ) from None
     if len(s) not in (7, 10):
         raise HTTPException(
             status_code=400,
-            detail="出货日必须是 YYYY-MM 或 YYYY-MM-DD。",
+            detail="Ship date must be YYYY-MM or YYYY-MM-DD.",
         )
     return s
 
@@ -56,9 +56,9 @@ def _clean_item_currencies(items: list[dict]) -> None:
 
 
 _NUMERIC_LABELS = {
-    "quantity": "数量",
-    "unit_price": "单价",
-    "total_amount": "总金额",
+    "quantity": "quantity",
+    "unit_price": "unit price",
+    "total_amount": "total amount",
 }
 
 
@@ -99,7 +99,7 @@ def _reject_negatives(values: dict) -> None:
     if bad:
         raise HTTPException(
             status_code=400,
-            detail=f"{'、'.join(bad)}不能为负数，请修正后重试。",
+            detail=f"{', '.join(bad)} must not be negative — fix and retry.",
         )
 
 
@@ -111,7 +111,7 @@ def _reject_negative_items(items: list[dict]) -> None:
             if isinstance(value, (int, float)) and value < 0:
                 raise HTTPException(
                     status_code=400,
-                    detail=f"第 {idx} 行{label}不能为负数，请修正后重试。",
+                    detail=f"Row {idx}: {label} must not be negative — fix and retry.",
                 )
 
 
@@ -124,7 +124,7 @@ def list_orders(
     """列出当前公司的订单（可按 status 过滤）。"""
     # 走 400 而不是 FastAPI 的 422：前端 toast 只认 detail 字符串
     if limit < 1 or limit > 500:
-        raise HTTPException(status_code=400, detail="limit 必须在 1–500 之间。")
+        raise HTTPException(status_code=400, detail="limit must be between 1 and 500.")
     return order_module.list_by_company(cid, limit=limit, status=status)
 
 
@@ -152,7 +152,7 @@ def create_order(payload: OrderCreate, cid: int = Depends(require_company)):
     if (payload.status or "") in {"已完成", "已取消"}:
         raise HTTPException(
             status_code=400,
-            detail="新建订单不能直接设置为已完成或已取消，请先按正常流程创建。",
+            detail="A new order cannot be set to Completed or Cancelled directly — create it through the normal flow first.",
         )
 
     items = (
@@ -161,7 +161,7 @@ def create_order(payload: OrderCreate, cid: int = Depends(require_company)):
     )
     if items is not None:
         if not items:
-            raise HTTPException(status_code=400, detail="订单至少需要一行商品。")
+            raise HTTPException(status_code=400, detail="An order needs at least one item line.")
         _reject_negative_items(items)
         _clean_item_currencies(items)
         return order_module.create(
@@ -182,7 +182,7 @@ def create_order(payload: OrderCreate, cid: int = Depends(require_company)):
         )
 
     if not (payload.product_name or "").strip():
-        raise HTTPException(status_code=400, detail="请填写品名，或至少添加一行商品。")
+        raise HTTPException(status_code=400, detail="Fill in the product name, or add at least one item line.")
     _reject_negatives({
         "quantity": payload.quantity,
         "unit_price": payload.unit_price,
@@ -253,7 +253,7 @@ def update_order(order_id: int, payload: OrderUpdate, cid: int = Depends(require
     _reject_negatives(changes)
     if items is not None:
         if not items:
-            raise HTTPException(status_code=400, detail="订单至少需要一行商品。")
+            raise HTTPException(status_code=400, detail="An order needs at least one item line.")
         _reject_negative_items(items)
         _clean_item_currencies(items)
 
@@ -261,7 +261,7 @@ def update_order(order_id: int, payload: OrderUpdate, cid: int = Depends(require
     if new_status and not order_module.can_transition_status(existing.get("status") or "", new_status):
         raise HTTPException(
             status_code=400,
-            detail=f"订单状态不能从「{existing.get('status') or '未知'}」变为「{new_status}」。",
+            detail=f"Status cannot move from \"{existing.get('status') or 'unknown'}\" to \"{new_status}\".",
         )
 
     # 只有真的改了金额才校验：旧记录本就可能不一致，改备注不该被它挡住。

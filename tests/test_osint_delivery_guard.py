@@ -65,43 +65,43 @@ class TestEnsureSection:
     def test_appends_when_osint_tool_not_used(self, monkeypatch):
         monkeypatch.setattr(
             chat, "_sanctions_fallback_text",
-            lambda query, language="zh": "制裁名单筛查：未命中（哨兵）",
+            lambda query, language="en": "Sanctions screening: no match (sentinel)",
         )
         tools = CompletedToolTracker()
 
         out = chat._ensure_sanctions_section(
             query="Jane Doe 是谁", response="她是采购负责人。", skill="b2b-osint", tools=tools,
         
-            language="zh",
+            language="en",
         )
 
-        assert "【制裁名单筛查】" in out
-        assert "未命中（哨兵）" in out
+        assert "【Sanctions screening】" in out
+        assert "no match (sentinel)" in out
         assert out.startswith("她是采购负责人。")
 
     def test_skips_when_tool_used_and_section_present(self, monkeypatch):
         monkeypatch.setattr(
             chat, "_sanctions_fallback_text",
-            lambda query, language="zh": "不应调用",
+            lambda query, language="en": "should not be called",
         )
         tools = CompletedToolTracker()
         tools.on_complete("osint_job_start", {"target": "acme.com"}, "{}")
 
         out = chat._ensure_sanctions_section(
             query="查一下 acme.com",
-            response="制裁名单：未命中。",
+            response="Sanctions list: no match.",
             skill="b2b-osint",
             tools=tools,
         
-            language="zh",
+            language="en",
         )
 
-        assert out == "制裁名单：未命中。"
+        assert out == "Sanctions list: no match."
 
     def test_appends_when_tool_used_but_answer_omits_sanctions(self, monkeypatch):
         monkeypatch.setattr(
             chat, "_sanctions_fallback_text",
-            lambda query, language="zh": "制裁名单筛查：未命中（哨兵）",
+            lambda query, language="en": "Sanctions screening: no match (sentinel)",
         )
         tools = CompletedToolTracker()
         tools.on_complete("osint_job_start", {"target": "acme.com"}, "{}")
@@ -110,18 +110,18 @@ class TestEnsureSection:
             query="查一下 acme.com", response="公司成立 2020 年。",
             skill="b2b-osint", tools=tools,
         
-            language="zh",
+            language="en",
         )
 
-        assert "【制裁名单筛查】" in out
+        assert "【Sanctions screening】" in out
 
     def test_other_skills_untouched(self, monkeypatch):
-        monkeypatch.setattr(chat, "_sanctions_fallback_text", lambda q, language="zh": "不应调用")
+        monkeypatch.setattr(chat, "_sanctions_fallback_text", lambda q, language="en": "should not be called")
         out = chat._ensure_sanctions_section(
             query="写一封开发信", response="正文", skill="b2b-cold-outreach",
             tools=CompletedToolTracker(),
         
-            language="zh",
+            language="en",
         )
         assert out == "正文"
 
@@ -137,8 +137,8 @@ class TestFallbackText:
             "hits": [], "is_sanctioned": False,
             "coverage": {"degraded": True, "total_entries": 0, "lists": {}},
         })
-        text = chat._sanctions_fallback_text("Jane Doe 是谁", language="zh")
-        assert "未执行" in text and "不构成" in text
+        text = chat._sanctions_fallback_text("Jane Doe 是谁", language="en")
+        assert "not run" in text and "not a clean record" in text
 
     def test_miss_reports_lists_and_stale(self, monkeypatch):
         self._patch_check(monkeypatch, {
@@ -151,9 +151,9 @@ class TestFallbackText:
                 },
             },
         })
-        text = chat._sanctions_fallback_text("Jane Doe 是谁", language="zh")
-        assert "未命中" in text and "2 份名单" in text and "1200" in text
-        assert "OFAC SDN 过期 80 小时" in text
+        text = chat._sanctions_fallback_text("Jane Doe 是谁", language="en")
+        assert "no match" in text and "2 lists" in text and "1200" in text
+        assert "OFAC SDN stale by 80h" in text
 
     def test_sanctioned_is_marked(self, monkeypatch):
         self._patch_check(monkeypatch, {
@@ -161,8 +161,8 @@ class TestFallbackText:
             "is_sanctioned": True,
             "coverage": {"degraded": False, "total_entries": 10, "lists": {"OFAC": {}}},
         })
-        text = chat._sanctions_fallback_text("Acme Corp 有没有被制裁", language="zh")
-        assert "命中" in text and "ACME CORP" in text
+        text = chat._sanctions_fallback_text("Acme Corp 有没有被制裁", language="en")
+        assert "MATCH" in text and "ACME CORP" in text
 
 
 # ── 端点集成：同步路径确实把兜底写进回答与历史 ─────────────────────────────
@@ -210,7 +210,7 @@ async def test_sync_route_appends_sanctions_section(company, monkeypatch):
 
     monkeypatch.setattr(
         chat, "_sanctions_fallback_text",
-        lambda query, language="zh": "制裁名单筛查：未命中（哨兵）",
+        lambda query, language="en": "Sanctions screening: no match (sentinel)",
     )
     saved: list[dict] = []
     with patch.object(chat, "build_query", return_value=("Q", "## 当前技能：b2b-osint")), \
@@ -219,11 +219,11 @@ async def test_sync_route_appends_sanctions_section(company, monkeypatch):
                       side_effect=lambda **kw: saved.append(kw) or {"id": 1}), \
          patch("trade.license.check_license", return_value=(True, "")), \
          patch("trade.license.license_state", return_value=("active", "")):
-        result = await chat.trade_chat(ChatRequest(query="Jane Doe 是谁", language="zh"), company["id"])
+        result = await chat.trade_chat(ChatRequest(query="Jane Doe 是谁", language="en"), company["id"])
 
-    assert "【制裁名单筛查】" in result["response"]
-    assert "未命中（哨兵）" in result["response"]
-    assert saved and "未命中（哨兵）" in saved[0]["response"]
+    assert "【Sanctions screening】" in result["response"]
+    assert "no match (sentinel)" in result["response"]
+    assert saved and "no match (sentinel)" in saved[0]["response"]
 
 
 @pytest.mark.asyncio
@@ -233,7 +233,7 @@ async def test_stream_route_appends_sanctions_section(company, monkeypatch):
 
     monkeypatch.setattr(
         chat, "_sanctions_fallback_text",
-        lambda query, language="zh": "制裁名单筛查：未命中（哨兵）",
+        lambda query, language="en": "Sanctions screening: no match (sentinel)",
     )
     saved: list[dict] = []
     with patch.object(chat, "build_query", return_value=("Q", "## 当前技能：b2b-osint")), \
@@ -243,23 +243,23 @@ async def test_stream_route_appends_sanctions_section(company, monkeypatch):
          patch("trade.license.check_license", return_value=(True, "")), \
          patch("trade.license.license_state", return_value=("active", "")):
         resp = await chat.trade_chat_stream(
-            ChatRequest(query="Jane Doe 是谁", language="zh"), company["id"]
+            ChatRequest(query="Jane Doe 是谁", language="en"), company["id"]
         )
         chunks = []
         async for chunk in resp.body_iterator:
             chunks.append(chunk if isinstance(chunk, str) else chunk.decode("utf-8", "replace"))
     body = "".join(chunks)
 
-    assert "【制裁名单筛查】" in body and "未命中（哨兵）" in body
-    assert saved and "未命中（哨兵）" in saved[0]["response"]
+    assert "【Sanctions screening】" in body and "no match (sentinel)" in body
+    assert saved and "no match (sentinel)" in saved[0]["response"]
 
 
 def test_question_sentences_are_not_used_as_target(monkeypatch):
     """W2：疑问/指代句不能被整句当成筛查目标。"""
     for query in ("这个买家是不是骗子", "帮我查下这个客户靠谱吗"):
         assert chat._osint_target_from_query(query) is None
-        text = chat._sanctions_fallback_text(query, language="zh")
-        assert "未执行" in text and "无法从问题中确定筛查对象" in text
+        text = chat._sanctions_fallback_text(query, language="en")
+        assert "not run" in text and "no screening target could be identified" in text
 
 
 def test_bare_targets_still_screened(monkeypatch):
@@ -272,12 +272,12 @@ def test_bare_targets_still_screened(monkeypatch):
     )
     # 英文裸名照常给「未命中」
     assert chat._osint_target_from_query("Huawei") == "Huawei"
-    assert "未命中" in chat._sanctions_fallback_text("Huawei", language="zh")
+    assert "no match" in chat._sanctions_fallback_text("Huawei", language="en")
     # S2：中文裸名能取到目标、也真的查过了，但英文名单无法比对 → 不写「未命中」
     assert chat._osint_target_from_query("天津赛得") == "天津赛得"
-    text = chat._sanctions_fallback_text("天津赛得", language="zh")
-    assert "未执行" in text and "中文名称无法比对" in text
-    assert "未命中" not in text
+    text = chat._sanctions_fallback_text("天津赛得", language="en")
+    assert "not run" in text and "cannot be compared" in text
+    assert "no match" not in text
 
 
 class TestS2ChineseAndQuestionFallback:
@@ -316,9 +316,9 @@ class TestS2ChineseAndQuestionFallback:
     )
     def test_cjk_targets_without_hits_are_not_executed(self, monkeypatch, query):
         self._no_hit_complete(monkeypatch)
-        text = chat._sanctions_fallback_text(query, language="zh")
-        assert "未执行" in text and "中文名称无法比对" in text
-        assert "未命中" not in text
+        text = chat._sanctions_fallback_text(query, language="en")
+        assert "not run" in text and "cannot be compared" in text
+        assert "no match" not in text
 
     @pytest.mark.parametrize(
         "query",
@@ -330,15 +330,15 @@ class TestS2ChineseAndQuestionFallback:
     )
     def test_latin_proper_name_is_screened(self, monkeypatch, query):
         self._confirmed_hit(monkeypatch)
-        text = chat._sanctions_fallback_text(query, language="zh")
-        assert "⚠️ 命中" in text
+        text = chat._sanctions_fallback_text(query, language="en")
+        assert "⚠️ MATCH" in text
         assert "ROSNEFT" in text
 
     def test_pronoun_questions_stay_not_executed(self, monkeypatch):
         self._no_hit_complete(monkeypatch)
         for query in ("这个买家是不是骗子", "帮我查下这个客户靠谱吗"):
-            text = chat._sanctions_fallback_text(query, language="zh")
-            assert "未执行" in text and "无法从问题中确定筛查对象" in text
+            text = chat._sanctions_fallback_text(query, language="en")
+            assert "not run" in text and "no screening target could be identified" in text
 
 
 def test_verb_prefix_is_stripped_but_pronouns_still_blocked():
@@ -371,10 +371,11 @@ class TestO26EnglishQuestionTargets:
     def test_english_questions_use_bare_target(self, monkeypatch, query):
         self._complete(monkeypatch)
         assert chat._osint_target_info(query) == ("Huawei", "")
-        text = chat._sanctions_fallback_text(query, language="zh")
-        # 现在比对的是 Huawei 本身：可以如实写未命中，但不能再出现 "Is Huawei"
+        text = chat._sanctions_fallback_text(query, language="en")
+        # Huawei itself is now compared: a clean miss is allowed, but "Is Huawei"
+        # must never leak into the target
         assert "Is Huawei" not in text and "Can Huawei" not in text
-        assert "未命中" in text
+        assert "no match" in text
 
     def test_chinese_cases_unchanged(self):
         assert chat._osint_target_info("帮我查一下华为有没有被制裁") == ("华为", "cjk")
@@ -392,6 +393,6 @@ def test_o29_known_limitation_multi_target_not_split(monkeypatch):
     )
     # 现状：整串当一个中文目标（「和」不拆，避免误伤和记黄埔这类名称）
     assert chat._osint_target_info("华为和中兴有没有被制裁") == ("华为和中兴", "cjk")
-    text = chat._sanctions_fallback_text("华为和中兴有没有被制裁", language="zh")
-    assert "未执行" in text and "中文名称无法比对" in text
-    assert "未命中" not in text
+    text = chat._sanctions_fallback_text("华为和中兴有没有被制裁", language="en")
+    assert "not run" in text and "cannot be compared" in text
+    assert "no match" not in text

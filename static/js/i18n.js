@@ -1836,6 +1836,40 @@ var AR_TERMS = {
    "，客户类型=": "، نوع المشتري=",
    "，市场=": "، السوق=",
    "；未纳入：": "؛ غير مشمولة: ",
+   // Backend API details (English literals, added 2026-11-26). Keyed by the
+   // English backend message because there is no Chinese source anymore.
+   "File is not UTF-8 encoded. In Excel use \"Save As → CSV UTF-8 (Comma delimited)\" and import again.": "ملف CSV غير مشفّر بـ UTF-8. في Excel استخدم \"حفظ باسم → CSV UTF-8 (مفصول بفواصل)\" ثم استورد مرة أخرى.",
+   "This is an Excel workbook (.xlsx), not a CSV; re-save it as CSV UTF-8 first": "هذا مصنف Excel (‏.xlsx) وليس ملف CSV. في Excel استخدم \"حفظ باسم → CSV UTF-8 (مفصول بفواصل)\" ثم استورد مرة أخرى.",
+   "This is a web/HTML table, not a CSV; copy the data into a CSV file first": "هذا جدول ويب/HTML وليس ملف CSV. انسخ الصفوف إلى ملف CSV ثم استورد مرة أخرى.",
+   "CSV is empty or has no header row": "ملف CSV فارغ أو بلا صف عناوين. استخدم القالب من \"تصدير CSV\".",
+   "Please upload a .csv file": "اختر ملفًا بامتداد .csv من فضلك.",
+   "CSV file too large (limit 10MB)": "ملف CSV كبير جدًا (الحد 10 ميغابايت).",
+   "Failed to parse the CSV format": "تعذّر تحليل ملف CSV. تأكد أنه ملف UTF-8 مفصول بفواصل.",
+   "Company data import/export is a paid feature — activate your license to use it.": "استيراد/تصدير بيانات الشركة ميزة مدفوعة — فعّل الترخيص لاستخدامها.",
+   "Export target does not match the bound X-Company-ID": "هدف التصدير لا يطابق الشركة المرتبطة.",
+   "Export is rate-limited — please retry later": "التصدير محدود المعدل — أعد المحاولة لاحقًا.",
+   "You can only import into the currently bound company — switch to the target company first.": "يمكن الاستيراد إلى الشركة المرتبطة حاليًا فقط — بدّل إلى الشركة الهدف أولًا.",
+   "Run the preflight upload first (preflight=true) and confirm how same-name customers are handled before importing": "شغّل رفع الفحص المسبق أولًا وحدد كيفية التعامل مع العملاء المكررين قبل الاستيراد.",
+   "Preflight is rate-limited — please retry later": "الفحص المسبق محدود المعدل — أعد المحاولة لاحقًا.",
+   "Package exceeds the upload size limit": "حجم الحزمة يتجاوز حد الرفع.",
+   "The file is not a valid company data package (zip)": "الملف ليس حزمة بيانات شركة صالحة (zip).",
+   "Preflight failed — please retry later": "فشل الفحص المسبق — أعد المحاولة لاحقًا.",
+   "The import link has expired — pick the file again": "انتهت صلاحية رابط الاستيراد — اختر الملف مرة أخرى.",
+   "An import is already running": "هناك استيراد قيد التنفيذ بالفعل.",
+   "Import is rate-limited — please retry later": "الاستيراد محدود المعدل — أعد المحاولة لاحقًا.",
+   "Import job not found or expired": "مهمة الاستيراد غير موجودة أو انتهت صلاحيتها.",
+   "Currency must be 3 uppercase letters (e.g. USD/EUR).": "يجب أن تكون العملة 3 أحرف كبيرة (مثل USD/EUR).",
+   "An order needs at least one item line.": "يحتاج الطلب إلى سطر صنف واحد على الأقل.",
+   "Fill in the product name, or add at least one item line.": "أدخل اسم المنتج، أو أضف سطر صنف واحد على الأقل.",
+   "Passphrase is locked — retry in": "العبارة السرية مقفلة — أعد المحاولة بعد",
+   "Incorrect passphrase": "العبارة السرية غير صحيحة.",
+   "Passphrase is not configured yet": "لم تُضبط العبارة السرية بعد.",
+   "Customer not found": "العميل غير موجود.",
+   "Todo not found": "المهمة غير موجودة.",
+   // dynamic CSV detail (localizeApiError prefix matcher)
+   "No valid rows found": "لا توجد صفوف صالحة. يحتاج ملف CSV إلى عمود \"name\" (بعنوان إنجليزي أو عربي) — أو استخدم القالب من تصدير CSV.",
+   "detected headers: ": "العناوين المكتشفة: ",
+   "the \"name\" column exists but is empty in every row": "عمود \"name\" موجود لكنه فارغ في كل الصفوف.",
 };
 function langText(zh, en) {
     // zh is the lookup key only (Arabic terms are keyed by the Chinese source
@@ -1845,57 +1879,144 @@ function langText(zh, en) {
     return en;
 }
 
-// Backend validation errors are Chinese literals; the UI is English by default.
-// Map the known CSV-import details to actionable English/Arabic text. Unknown
-// details pass through untouched so new backend errors are never hidden.
+// Backend details are English literals now (Chinese removed 2026-11-26).
+// pair[0] is the AR_TERMS lookup key (the English backend message itself),
+// pair[1] the English fallback. Unknown details pass through untouched.
 const API_ERROR_L10N = {
-    '文件编码不是 UTF-8，请用 Excel 另存为 CSV UTF-8': [
-        'CSV 文件编码不是 UTF-8，请用 Excel 另存为 CSV UTF-8',
+    'File is not UTF-8 encoded. In Excel use "Save As → CSV UTF-8 (Comma delimited)" and import again.': [
+        'File is not UTF-8 encoded. In Excel use "Save As → CSV UTF-8 (Comma delimited)" and import again.',
         'CSV file is not UTF-8 encoded. In Excel use "Save As → CSV UTF-8 (Comma delimited)" and import again.',
     ],
-    'CSV 中没有有效数据（至少需要 name 列）': [
-        'CSV 中没有有效数据（至少需要 name 列）',
-        'No valid rows found. The CSV needs a "name" column with English headers — download the template via Export CSV.',
-    ],
-    '这是 Excel 工作簿（.xlsx）不是 CSV；请在 Excel 里「另存为 → CSV UTF-8（逗号分隔）」后再导入': [
-        '这是 Excel 工作簿（.xlsx）不是 CSV；请在 Excel 里「另存为 → CSV UTF-8（逗号分隔）」后再导入',
+    'This is an Excel workbook (.xlsx), not a CSV; re-save it as CSV UTF-8 first': [
+        'This is an Excel workbook (.xlsx), not a CSV; re-save it as CSV UTF-8 first',
         'This is an Excel workbook (.xlsx), not a CSV. In Excel use "Save As → CSV UTF-8 (Comma delimited)" and import again.',
     ],
-    '这是网页/HTML 表格不是 CSV；请在 Excel 里「另存为 → CSV UTF-8（逗号分隔）」后再导入': [
-        '这是网页/HTML 表格不是 CSV；请在 Excel 里「另存为 → CSV UTF-8（逗号分隔）」后再导入',
-        'This is a web/HTML table, not a CSV. In Excel use "Save As → CSV UTF-8 (Comma delimited)" and import again.',
+    'This is a web/HTML table, not a CSV; copy the data into a CSV file first': [
+        'This is a web/HTML table, not a CSV; copy the data into a CSV file first',
+        'This is a web/HTML table, not a CSV. Copy the rows into a CSV file and import again.',
     ],
-    'CSV 文件为空或缺少表头': [
-        'CSV 文件为空或缺少表头',
+    'CSV is empty or has no header row': [
+        'CSV is empty or has no header row',
         'The CSV is empty or has no header row. Use the template from Export CSV.',
     ],
-    '请上传 .csv 格式的文件': [
-        '请上传 .csv 格式的文件',
+    'Please upload a .csv file': [
+        'Please upload a .csv file',
         'Please choose a .csv file.',
     ],
-    'CSV 文件过大（上限 10MB）': [
-        'CSV 文件过大（上限 10MB）',
+    'CSV file too large (limit 10MB)': [
+        'CSV file too large (limit 10MB)',
         'The CSV file is too large (10 MB limit).',
     ],
-    'CSV 格式解析失败': [
-        'CSV 格式解析失败',
+    'Failed to parse the CSV format': [
+        'Failed to parse the CSV format',
         'Could not parse the CSV. Check it is a comma-separated UTF-8 file.',
     ],
+    // company import / export
+    'Company data import/export is a paid feature — activate your license to use it.': [
+        'Company data import/export is a paid feature — activate your license to use it.',
+        'Company data import/export is a paid feature — activate your license to use it.',
+    ],
+    'Export target does not match the bound X-Company-ID': [
+        'Export target does not match the bound X-Company-ID',
+        'Export target does not match the bound company.',
+    ],
+    'Export is rate-limited — please retry later': [
+        'Export is rate-limited — please retry later',
+        'Export is rate-limited — please retry later.',
+    ],
+    'You can only import into the currently bound company — switch to the target company first.': [
+        'You can only import into the currently bound company — switch to the target company first.',
+        'You can only import into the currently bound company — switch to the target company first.',
+    ],
+    'Run the preflight upload first (preflight=true) and confirm how same-name customers are handled before importing': [
+        'Run the preflight upload first (preflight=true) and confirm how same-name customers are handled before importing',
+        'Run the preflight upload first and confirm how same-name customers are handled before importing.',
+    ],
+    'Preflight is rate-limited — please retry later': [
+        'Preflight is rate-limited — please retry later',
+        'Preflight is rate-limited — please retry later.',
+    ],
+    'Package exceeds the upload size limit': [
+        'Package exceeds the upload size limit',
+        'The package exceeds the upload size limit.',
+    ],
+    'The file is not a valid company data package (zip)': [
+        'The file is not a valid company data package (zip)',
+        'The file is not a valid company data package (zip).',
+    ],
+    'Preflight failed — please retry later': [
+        'Preflight failed — please retry later',
+        'Preflight failed — please retry later.',
+    ],
+    'The import link has expired — pick the file again': [
+        'The import link has expired — pick the file again',
+        'The import link has expired — pick the file again.',
+    ],
+    'An import is already running': [
+        'An import is already running',
+        'An import is already running.',
+    ],
+    'Import is rate-limited — please retry later': [
+        'Import is rate-limited — please retry later',
+        'Import is rate-limited — please retry later.',
+    ],
+    'Import job not found or expired': [
+        'Import job not found or expired',
+        'Import job not found or expired.',
+    ],
+    // orders
+    'Currency must be 3 uppercase letters (e.g. USD/EUR).': [
+        'Currency must be 3 uppercase letters (e.g. USD/EUR).',
+        'Currency must be 3 uppercase letters (e.g. USD/EUR).',
+    ],
+    'An order needs at least one item line.': [
+        'An order needs at least one item line.',
+        'An order needs at least one item line.',
+    ],
+    'Fill in the product name, or add at least one item line.': [
+        'Fill in the product name, or add at least one item line.',
+        'Fill in the product name, or add at least one item line.',
+    ],
+    // customer profile / memo
+    'Passphrase is locked — retry in': [
+        'Passphrase is locked — retry in',
+        'Passphrase is locked — retry in',
+    ],
+    'Incorrect passphrase': [
+        'Incorrect passphrase',
+        'Incorrect passphrase.',
+    ],
+    'Passphrase is not configured yet': [
+        'Passphrase is not configured yet',
+        'Passphrase is not configured yet.',
+    ],
+    'Customer not found': [
+        'Customer not found',
+        'Customer not found.',
+    ],
+    'Todo not found': [
+        'Todo not found',
+        'Todo not found.',
+    ],
 };
-// 后端会在错误详情里带上「识别到的表头」，属于动态文本，不能靠精确查表翻译。
-const _CSV_NO_ROWS = 'CSV 中没有有效数据（至少需要 name 列）';
-const _CSV_HEADERS_HINT = '识别到的表头：';
-const _CSV_NAME_EMPTY = 'name 列存在但整列为空';
+delete API_ERROR_L10N['No valid rows found']; // keep only real exact matches
+
+// Dynamic CSV detail: the backend appends either the detected headers or the
+// "name column empty" hint after the fixed prefix. Match on the English prefix.
+const _CSV_NO_ROWS = 'No valid rows found';
+const _CSV_HEADERS_HINT = 'detected headers: ';
+const _CSV_NAME_EMPTY = 'the "name" column exists but is empty in every row';
 function localizeApiError(msg) {
     if (typeof msg !== 'string') return msg;
     const pair = API_ERROR_L10N[msg];
     if (pair) return langText(pair[0], pair[1]);
     if (msg.indexOf(_CSV_NO_ROWS) === 0) {
-        const base = langText(
-            _CSV_NO_ROWS + '。',
-            'No valid rows found. The CSV needs a "name" column (English or Arabic header) — or use the template from Export CSV.'
-        );
-        let rest = msg.slice(_CSV_NO_ROWS.length).replace(/^；/, '').replace(/^。/, '');
+        // Dynamic detail: the backend appends the detected headers or the
+        // "name column empty" hint. English UI shows the backend text as-is;
+        // Arabic UI rebuilds the sentence from AR_TERMS lookups.
+        const base = langText(_CSV_NO_ROWS, null);
+        if (!base) return msg;
+        let rest = msg.slice(_CSV_NO_ROWS.length).replace(/^\.\s*/, '');
         if (rest.indexOf(_CSV_HEADERS_HINT) === 0) {
             return base + ' ' + langText(_CSV_HEADERS_HINT, 'Detected headers: ') + rest.slice(_CSV_HEADERS_HINT.length);
         }
@@ -1903,6 +2024,13 @@ function localizeApiError(msg) {
             return base + ' ' + langText(_CSV_NAME_EMPTY, 'The "name" column exists but is empty in every row.');
         }
         return rest ? base + ' ' + rest : base;
+    }
+    if (msg.indexOf('Passphrase is locked — retry in') === 0) {
+        const m = msg.match(/retry in (\d+) seconds/);
+        return langText(
+            'Passphrase is locked — retry in',
+            (m ? 'Passphrase is locked — retry in ' + m[1] + ' seconds' : msg)
+        );
     }
     return msg;
 }

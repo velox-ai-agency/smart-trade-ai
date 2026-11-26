@@ -95,15 +95,15 @@ def test_no_name_column_reports_detected_headers():
     with pytest.raises(HTTPException) as exc:
         parse_customer_csv(_csv("company_title,tel\nAcme,123\n"))
     detail = exc.value.detail
-    assert detail.startswith("CSV 中没有有效数据")
-    assert "识别到的表头" in detail
+    assert detail.startswith("No valid rows found")
+    assert "detected headers" in detail
     assert "company_title" in detail and "tel" in detail
 
 
 def test_name_column_present_but_empty_says_so():
     with pytest.raises(HTTPException) as exc:
         parse_customer_csv(_csv("name,email\n,a@acme.com\n"))
-    assert "整列为空" in exc.value.detail
+    assert "empty in every row" in exc.value.detail
 
 
 def test_empty_file_is_rejected():

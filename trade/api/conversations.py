@@ -173,15 +173,15 @@ def set_conversation_note(
     title = payload.title if payload.title is not None else ""
     summary = payload.summary if payload.summary is not None else ""
     if not isinstance(title, str):
-        raise HTTPException(status_code=400, detail="标题必须是字符串")
+        raise HTTPException(status_code=400, detail="Title must be a string")
     if not isinstance(summary, str):
-        raise HTTPException(status_code=400, detail="摘要必须是字符串")
+        raise HTTPException(status_code=400, detail="Summary must be a string")
     title = title.strip()
     summary = summary.strip()
     if len(title) > 60:
-        raise HTTPException(status_code=400, detail="标题最多 60 个字符")
+        raise HTTPException(status_code=400, detail="Title is limited to 60 characters")
     if len(summary) > 200:
-        raise HTTPException(status_code=400, detail="摘要最多 200 个字符")
+        raise HTTPException(status_code=400, detail="Summary is limited to 200 characters")
     result = chat_memory.set_conversation_note(
         x_company_id, conversation_id, title=title, summary=summary,
     )

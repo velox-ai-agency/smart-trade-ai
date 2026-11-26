@@ -171,12 +171,12 @@ def _decode_csv_bytes(content: bytes) -> str:
     if content[:4] == b"PK\x03\x04":
         raise HTTPException(
             status_code=400,
-            detail="这是 Excel 工作簿（.xlsx）不是 CSV；请在 Excel 里「另存为 → CSV UTF-8（逗号分隔）」后再导入",
+            detail="This is an Excel workbook (.xlsx), not a CSV. In Excel use \"Save As → CSV UTF-8 (Comma delimited)\" and import again.",
         )
     if content.lstrip()[:1] == b"<":
         raise HTTPException(
             status_code=400,
-            detail="这是网页/HTML 表格不是 CSV；请在 Excel 里「另存为 → CSV UTF-8（逗号分隔）」后再导入",
+            detail="This is a web/HTML table, not a CSV. In Excel use \"Save As → CSV UTF-8 (Comma delimited)\" and import again.",
         )
     if content[:2] in (b"\xff\xfe", b"\xfe\xff"):
         return content.decode("utf-16")
@@ -185,7 +185,7 @@ def _decode_csv_bytes(content: bytes) -> str:
             return content.decode(encoding)
         except UnicodeDecodeError:
             continue
-    raise HTTPException(status_code=400, detail="文件编码不是 UTF-8，请用 Excel 另存为 CSV UTF-8")
+    raise HTTPException(status_code=400, detail="File is not UTF-8 encoded. In Excel use \"Save As → CSV UTF-8 (Comma delimited)\" and import again.")
 
 
 def _sniff_delimiter(text: str) -> str:
@@ -214,16 +214,16 @@ def parse_customer_csv(content: bytes) -> tuple[list[dict], list[str]]:
     """
     text = _strip_sep_line(_decode_csv_bytes(content))
     if not text.strip():
-        raise HTTPException(status_code=400, detail="CSV 文件为空或缺少表头")
+        raise HTTPException(status_code=400, detail="CSV is empty or has no header row")
 
     delimiter = _sniff_delimiter(text)
     try:
         reader = csv.DictReader(io.StringIO(text), delimiter=delimiter)
         raw_headers = [str(h) for h in (reader.fieldnames or [])]
         if not raw_headers:
-            raise HTTPException(status_code=400, detail="CSV 文件为空或缺少表头")
+            raise HTTPException(status_code=400, detail="CSV is empty or has no header row")
     except csv.Error:
-        raise HTTPException(status_code=400, detail="CSV 格式解析失败")
+        raise HTTPException(status_code=400, detail="Failed to parse the CSV format")
 
     col_map = {}
     for raw_header in raw_headers:
@@ -248,14 +248,14 @@ def parse_customer_csv(content: bytes) -> tuple[list[dict], list[str]]:
         customers.append(cust)
 
     if not customers:
-        seen = "、".join(h.strip() for h in raw_headers[:12] if h.strip())
+        seen = ", ".join(h.strip() for h in raw_headers[:12] if h.strip())
         if "name" in col_map.values():
-            hint = "name 列存在但整列为空"
+            hint = "the \"name\" column exists but is empty in every row"
         else:
-            hint = f"识别到的表头：{seen or '（空）'}"
+            hint = f"detected headers: {seen or '(none)'}"
         raise HTTPException(
             status_code=400,
-            detail=f"CSV 中没有有效数据（至少需要 name 列）；{hint}",
+            detail=f"No valid rows found. The CSV needs a \"name\" column; {hint}",
         )
     return customers, raw_headers
 
@@ -343,19 +343,19 @@ async def bulk_import_customers(
     跳过空名称行和重名行，返回导入统计。
     """
     if not file.filename or not file.filename.lower().endswith(".csv"):
-        raise HTTPException(status_code=400, detail="请上传 .csv 格式的文件")
+        raise HTTPException(status_code=400, detail="Please upload a .csv file")
 
     # 预检文件大小，拒绝超大 CSV 防止内存耗尽
     _MAX_CSV_BYTES = 10 * 1024 * 1024  # 10MB
     f_size = getattr(file, "size", None)
     if f_size is not None and f_size > _MAX_CSV_BYTES:
-        raise HTTPException(status_code=413, detail="CSV 文件过大（上限 10MB）")
+        raise HTTPException(status_code=413, detail="CSV file too large (limit 10MB)")
 
     content = await file.read()
     # 分块上传时 `file.size` 可能为 None，预检会被绕过 —— 读完后必须再量一次
     # 实际字节数（审计 P2-26）。
     if len(content) > _MAX_CSV_BYTES:
-        raise HTTPException(status_code=413, detail="CSV 文件过大（上限 10MB）")
+        raise HTTPException(status_code=413, detail="CSV file too large (limit 10MB)")
     customers, _headers = parse_customer_csv(content)
 
     result = customer_module.bulk_save(company_id=cid, customers=customers)
@@ -465,24 +465,24 @@ def get_customer_timeline(
 def _normalize_tags_or_400(raw) -> list[str]:
     """路由层校验 tags：400 + 中文字符串；按 Unicode 码点计长。"""
     if not isinstance(raw, list):
-        raise HTTPException(status_code=400, detail="标签必须是字符串数组")
+        raise HTTPException(status_code=400, detail="Tags must be an array of strings")
     cleaned: list[str] = []
     seen_lower: set[str] = set()
     for item in raw:
         if not isinstance(item, str):
-            raise HTTPException(status_code=400, detail="每个标签必须是字符串")
+            raise HTTPException(status_code=400, detail="Every tag must be a string")
         s = item.strip()
         if not s:
             continue
         if len(s) > 20:
-            raise HTTPException(status_code=400, detail="单个标签最多 20 个字符")
+            raise HTTPException(status_code=400, detail="A tag is limited to 20 characters")
         key = s.lower()
         if key in seen_lower:
             continue
         seen_lower.add(key)
         cleaned.append(s)
     if len(cleaned) > 20:
-        raise HTTPException(status_code=400, detail="标签最多 20 个")
+        raise HTTPException(status_code=400, detail="At most 20 tags")
     return cleaned
 
 

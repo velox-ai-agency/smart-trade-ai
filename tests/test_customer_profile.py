@@ -1025,6 +1025,6 @@ class TestMemoBackendLockout:
             locked = client.post(url, headers=_h(token, cid),
                                  json={"passphrase": "secret-123"})
             assert locked.status_code == 429
-            assert "秒后重试" in locked.json()["detail"]
+            assert "retry in" in locked.json()["detail"]
         finally:
             memo.reset_throttle()

@@ -74,7 +74,7 @@ def update_todo(todo_id: int, body: TodoBody, cid: int = Depends(require_company
         raise HTTPException(status_code=400, detail=str(e))
     # 目标不存在或属于别家公司：404
     if not row:
-        raise HTTPException(status_code=404, detail="待办不存在")
+        raise HTTPException(status_code=404, detail="Todo not found")
     return row
 
 
@@ -82,5 +82,5 @@ def update_todo(todo_id: int, body: TodoBody, cid: int = Depends(require_company
 def delete_todo(todo_id: int, cid: int = Depends(require_company)):
     # 没删到行 = 不存在或属于别家公司
     if not todo_mod.delete_todo(todo_id, company_id=cid):
-        raise HTTPException(status_code=404, detail="待办不存在")
+        raise HTTPException(status_code=404, detail="Todo not found")
     return {"ok": True}

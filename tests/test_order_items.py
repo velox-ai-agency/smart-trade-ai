@@ -232,7 +232,7 @@ class TestMultiItemCreate:
         from trade import order
 
         co, cust = _mk(db)
-        with pytest.raises(ValueError, match="品名"):
+        with pytest.raises(ValueError, match="product name"):
             order.create(
                 company_id=co["id"], customer_id=cust["id"],
                 items=[{"product_name": "  ", "quantity": 1}],
@@ -491,7 +491,7 @@ class TestItemsApi:
             )
 
         assert exc.value.status_code == 400
-        assert "第 2 行" in exc.value.detail
+        assert "Row 2" in exc.value.detail
 
     def test_update_replaces_items(self, db):
         from trade.api.models import OrderCreate, OrderItemIn, OrderUpdate

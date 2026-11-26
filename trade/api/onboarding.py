@@ -31,11 +31,11 @@ def create_first_company(payload: OnboardingFirstCompany):
     if onboarding_module.is_onboarding_done():
         raise HTTPException(
             status_code=409,
-            detail="系统已完成首次引导。如需添加新公司，请使用 POST /companies。",
+            detail="First-run onboarding is already complete. To add another company use POST /companies.",
         )
 
     if not payload.company_name.strip():
-        raise HTTPException(status_code=400, detail="company_name 不能为空")
+        raise HTTPException(status_code=400, detail="company_name must not be empty")
 
     try:
         return onboarding_module.create_first_company(

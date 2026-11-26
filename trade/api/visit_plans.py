@@ -36,9 +36,9 @@ def _days_or_400(v):
     try:
         n = int(v)
     except (TypeError, ValueError):
-        raise HTTPException(status_code=400, detail="天数必须是整数")
+        raise HTTPException(status_code=400, detail="Days must be an integer")
     if n < 1:
-        raise HTTPException(status_code=400, detail="天数至少为 1")
+        raise HTTPException(status_code=400, detail="Days must be at least 1")
     return n
 
 
@@ -76,7 +76,7 @@ def create_visit_plan(body: VisitPlanBody, cid: int = Depends(require_company)):
 def get_visit_plan(plan_id: int, cid: int = Depends(require_company)):
     plan = visit_mod.get_plan(plan_id, company_id=cid)
     if not plan:
-        raise HTTPException(status_code=404, detail="验厂计划不存在")
+        raise HTTPException(status_code=404, detail="Factory-visit plan not found")
     return plan
 
 
@@ -102,12 +102,12 @@ def update_visit_plan(plan_id: int, body: VisitPlanBody, cid: int = Depends(requ
     except visit_mod.VisitPlanError as e:
         raise HTTPException(status_code=400, detail=str(e))
     if not plan:
-        raise HTTPException(status_code=404, detail="验厂计划不存在")
+        raise HTTPException(status_code=404, detail="Factory-visit plan not found")
     return plan
 
 
 @router.delete("/visit-plans/{plan_id}")
 def delete_visit_plan(plan_id: int, cid: int = Depends(require_company)):
     if not visit_mod.delete_plan(plan_id, company_id=cid):
-        raise HTTPException(status_code=404, detail="验厂计划不存在")
+        raise HTTPException(status_code=404, detail="Factory-visit plan not found")
     return {"ok": True}

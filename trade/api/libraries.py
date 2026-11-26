@@ -32,13 +32,13 @@ async def upload_to_work_dir(
     from trade.company import _WORK_DIR_CATEGORIES
     _valid_subdirs = frozenset(name for name, _ in _WORK_DIR_CATEGORIES)
     if subdir not in _valid_subdirs:
-        raise HTTPException(status_code=400, detail=f"无效的子目录: {subdir}")
+        raise HTTPException(status_code=400, detail=f"Invalid subdirectory: {subdir}")
 
     # 2. 获取公司桌面工作目录：从 extra1 取已保存的路径，不存在时重建
     from trade import company as _co
     co = _co.get(x_company_id)
     if not co:
-        raise HTTPException(status_code=404, detail="公司不存在")
+        raise HTTPException(status_code=404, detail="Company not found")
 
     work_dir = None
     tc = _co.get_trade_company(x_company_id)
@@ -90,7 +90,7 @@ async def upload_to_work_dir(
     if len(files) > _MAX_FILES_PER_UPLOAD:
         raise HTTPException(
             status_code=413,
-            detail=f"单次最多上传 {_MAX_FILES_PER_UPLOAD} 个文件（收到 {len(files)} 个）",
+            detail=f"At most {_MAX_FILES_PER_UPLOAD} files per upload (received {len(files)})",
         )
 
     uploaded = []
@@ -117,16 +117,16 @@ async def upload_to_work_dir(
         try:
             dest.resolve().relative_to(work_dir.resolve())
         except ValueError:
-            raise HTTPException(status_code=400, detail=f"路径穿越拒绝: {rel}")
+            raise HTTPException(status_code=400, detail=f"Path traversal rejected: {rel}")
 
         dest.parent.mkdir(parents=True, exist_ok=True)
         # NUL 字节拒绝
         if "\0" in rel:
-            raise HTTPException(status_code=400, detail="文件名含非法字符")
+            raise HTTPException(status_code=400, detail="File name contains illegal characters")
         # 逐个文件大小预检（利用 Starlette 在 multipart part header 中的 size 信息）
         f_size = getattr(f, "size", None)
         if f_size is not None and f_size > _MAX_FILE_BYTES:
-            raise HTTPException(status_code=413, detail=f"文件过大: {rel} ({f_size} bytes)")
+            raise HTTPException(status_code=413, detail=f"File too large: {rel} ({f_size} bytes)")
         # 分块读取防止内存耗尽：达到上限即中止
         chunks = []
         total = 0
@@ -136,16 +136,16 @@ async def upload_to_work_dir(
                 break
             total += len(chunk)
             if total > _MAX_FILE_BYTES:
-                raise HTTPException(status_code=413, detail=f"文件过大: {rel}")
+                raise HTTPException(status_code=413, detail=f"File too large: {rel}")
             chunks.append(chunk)
         content = b"".join(chunks)
         if not content:
-            raise HTTPException(status_code=400, detail=f"空文件: {rel}")
+            raise HTTPException(status_code=400, detail=f"Empty file: {rel}")
         total_uploaded_bytes += len(content)
         if total_uploaded_bytes > _MAX_TOTAL_BYTES:
             raise HTTPException(
                 status_code=413,
-                detail=f"单次上传总量超过 {_MAX_TOTAL_BYTES // (1024 * 1024)}MB",
+                detail=f"Total upload exceeds {_MAX_TOTAL_BYTES // (1024 * 1024)}MB per batch",
             )
         dest.write_bytes(content)
         uploaded.append(str(dest.relative_to(work_dir)))

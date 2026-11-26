@@ -130,7 +130,7 @@ def _require_paid_feature() -> None:
     if state != "active":
         raise HTTPException(
             status_code=402,
-            detail="公司数据导入/导出为付费功能，激活后可用。",
+            detail="Company data import/export is a paid feature — activate your license to use it.",
         )
 
 
@@ -168,10 +168,10 @@ def export_company_package(company_id: int, cid: int = Depends(require_company))
     """下载单个公司的数据包。"""
     # 越权判断先于付费判断：跨公司请求应先得到 403，不暴露「这是付费功能」
     if cid != company_id:
-        raise HTTPException(status_code=403, detail="导出目标与 X-Company-ID 不一致")
+        raise HTTPException(status_code=403, detail="Export target does not match the bound X-Company-ID")
     _require_paid_feature()
     if not _rate_ok(f"export:{cid}", 2, 60):
-        raise HTTPException(status_code=429, detail="导出过于频繁，请稍后再试")
+        raise HTTPException(status_code=429, detail="Export is rate-limited — please retry later")
     try:
         result = export_company(company_id)
     except PackageTooLargeError as exc:
@@ -181,7 +181,7 @@ def export_company_package(company_id: int, cid: int = Depends(require_company))
                 "code": "package_too_large",
                 "limit_bytes": exc.limit_bytes,
                 "measured_bytes": exc.measured_bytes,
-                "hint": "数据包过大（压缩后 >1GB 或解压后超过导入上限），请手动拷贝数据库、公司目录和桌面资料库",
+                "hint": "The package is too large (>1GB compressed or above the import limit). Copy the database, company folder and desktop library manually instead",
                 "paths": exc.paths,
             },
         )
@@ -235,7 +235,7 @@ async def import_company_package(
     if target_company_id is not None and bound is not None and bound != target_company_id:
         raise HTTPException(
             status_code=403,
-            detail="只能导入到当前绑定的公司，请先切换到目标公司再导入。",
+            detail="You can only import into the currently bound company — switch to the target company first.",
         )
     _require_paid_feature()
     if not preflight:
@@ -244,12 +244,12 @@ async def import_company_package(
         await file.close()
         raise HTTPException(
             status_code=409,
-            detail="请先上传预检（preflight=true），确认同名客户处置后再导入",
+            detail="Run the preflight upload first (preflight=true) and confirm how same-name customers are handled before importing",
         )
     # 预检只读分析使用独立宽松限流，避免预检或包校验失败锁死后续 5 分钟正式导入
     if not _rate_ok("import_preflight", 10, 60):
         await file.close()
-        raise HTTPException(status_code=429, detail="预检请求过于频繁，请稍后再试")
+        raise HTTPException(status_code=429, detail="Preflight is rate-limited — please retry later")
     fd, temp_name = mkstemp(prefix="trade-company-upload-", suffix=".zip")
     total = 0
     try:
@@ -260,7 +260,7 @@ async def import_company_package(
                     break
                 total += len(chunk)
                 if total > MAX_UPLOAD_BYTES:
-                    raise HTTPException(status_code=413, detail="数据包超过上传上限")
+                    raise HTTPException(status_code=413, detail="Package exceeds the upload size limit")
                 out.write(chunk)
     except Exception:
         Path(temp_name).unlink(missing_ok=True)
@@ -281,7 +281,7 @@ async def import_company_package(
             # 上传的根本不是 zip：删掉临时文件后给出可读提示
             _cleanup(temp_name)
             raise HTTPException(
-                status_code=400, detail="文件不是有效的公司数据包（zip）"
+                status_code=400, detail="The file is not a valid company data package (zip)"
             ) from exc
         except AmbiguousCompanyError as exc:
             # 目标机有多个同名公司：返回候选让调用方指定目标，不做猜测
@@ -289,7 +289,7 @@ async def import_company_package(
             return JSONResponse(
                 status_code=409,
                 content={
-                    "detail": "目标机存在多个同名公司，请指定要合并的目标公司",
+                    "detail": "This machine has multiple companies with that name — specify the target company to merge into",
                     "candidates": exc.candidates,
                 },
             )
@@ -300,7 +300,7 @@ async def import_company_package(
         except Exception as exc:  # noqa: BLE001 — 预检失败不能影响其它接口
             _cleanup(temp_name)
             raise HTTPException(
-                status_code=500, detail="预检失败，请稍后重试"
+                status_code=500, detail="Preflight failed — please retry later"
             ) from exc
 
         # 未显式传 target_company_id 时，analyze_package 可能按名称/slug 自动匹配已有公司；
@@ -311,7 +311,7 @@ async def import_company_package(
             _cleanup(temp_name)
             raise HTTPException(
                 status_code=403,
-                detail="只能导入到当前绑定的公司，请先切换到目标公司再导入。",
+                detail="You can only import into the currently bound company — switch to the target company first.",
             )
 
         upload_id = uuid.uuid4().hex
@@ -378,16 +378,16 @@ def confirm_import_package(upload_id: str, body: ConfirmImportBody,
         entry = _PENDING.get(upload_id)
         # 不存在（从未创建 / 已被确认清理）：让用户重新选文件
         if entry is None:
-            raise HTTPException(status_code=410, detail="导入链接已过期，请重新选择文件")
+            raise HTTPException(status_code=410, detail="The import link has expired — pick the file again")
         # 已过期：移出登记表并删掉临时包
         if entry.get("expires_at", 0) < now:
             popped = _PENDING.pop(upload_id, None)
             if popped and popped.get("zip_path") is not None:
                 _cleanup(str(popped["zip_path"]))
-            raise HTTPException(status_code=410, detail="导入链接已过期，请重新选择文件")
+            raise HTTPException(status_code=410, detail="The import link has expired — pick the file again")
         # 已被另一个请求认领：不允许两个导入并行跑
         if entry.get("claimed"):
-            raise HTTPException(status_code=409, detail="导入正在进行中")
+            raise HTTPException(status_code=409, detail="An import is already running")
 
         conflicts = (entry.get("preflight") or {}).get("conflicts") or []
         conflict_ids = [
@@ -398,7 +398,7 @@ def confirm_import_package(upload_id: str, body: ConfirmImportBody,
         for decision in body.customer_decisions:
             # 指向本次预检之外的客户：拒绝，且不消耗 upload_id
             if str(decision.source_id) not in known:
-                raise HTTPException(status_code=400, detail="未知的客户选择")
+                raise HTTPException(status_code=400, detail="Unknown customer decision")
             decisions[str(decision.source_id)] = decision.action
         # 有冲突未选择：能靠默认动作补齐就补，否则要求用户补选
         missing = [cid for cid in conflict_ids if str(cid) not in decisions]
@@ -411,14 +411,14 @@ def confirm_import_package(upload_id: str, body: ConfirmImportBody,
             return JSONResponse(
                 status_code=409,
                 content={
-                    "detail": "还有同名客户未选择处置方式",
+                    "detail": "Some same-name customers have no decision yet",
                     "missing": missing,
                 },
             )
 
         # 校验全部通过准备真正启动后台写库前检查正式导入配额（不消耗在缺决定/400 上）
         if not _rate_ok("import", 1, 300):
-            raise HTTPException(status_code=429, detail="导入过于频繁，请稍后再试")
+            raise HTTPException(status_code=429, detail="Import is rate-limited — please retry later")
 
         # 校验通过：认领并移出登记表，重复确认一律 410
         entry["claimed"] = True
@@ -445,7 +445,7 @@ def import_company_status(job_id: str, _session: str = Depends(require_session))
     with _JOB_LOCK:
         job = dict(_JOBS.get(job_id) or {})
     if not job:
-        raise HTTPException(status_code=404, detail="导入任务不存在或已过期")
+        raise HTTPException(status_code=404, detail="Import job not found or expired")
     return job
 
 

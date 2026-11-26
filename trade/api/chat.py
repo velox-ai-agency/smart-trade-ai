@@ -237,20 +237,8 @@ def _osint_sanctions_used(tools: CompletedToolTracker) -> bool:
 
 
 # 交付前制裁兜底文案：UI 语言优先（Hisham 2026-11-25：UI wins）。
-# 默认英文；前端传 ar 时整段本地结论跟随界面语言。中文已停用。
+# UI language wins (English or Arabic); unknown langs fall back to English.
 _SANCTIONS_TEXT = {
-    "zh": {
-        "header": "【制裁名单筛查】", "check": "制裁", "prefix": "制裁名单筛查：",
-        "no_target": "未执行（无法从问题中确定筛查对象）",
-        "error": "未执行（{}: {}）", "hit": "命中", "possible": "发现 {} 条疑似匹配（非精确），需人工核查",
-        "cjk": "未执行（名单为英文/拼音，中文名称无法比对，请提供英文或拼音名称）",
-        "degraded": "未执行（本地名单未就绪，不构成「无制裁记录」的结论）",
-        "stale": "{} 过期 {:.0f} 小时", "join": "、", "sep": "；",
-        "clean": "未命中（已比对 {} 份名单、本地 {} 条{}）。",
-        "advise": "强烈建议拒绝交易或咨询法律部门。",
-        "missing_item": "{}未就绪", "missing_tail": "，结论不完整",
-        "dot": "。", "warn": "⚠️ ",
-    },
     "en": {
         "header": "【Sanctions screening】", "check": "sanction", "prefix": "Sanctions screening: ",
         "no_target": "not run (no screening target could be identified from the question)",
@@ -779,7 +767,7 @@ def _require_paid_chat_skill(query: str, context: str = "") -> None:
     if state != "active":
         raise HTTPException(
             status_code=402,
-            detail=f"{feature_label}为付费功能，激活后可用。",
+            detail=f"{feature_label} is a paid feature — activate your license to use it.",
         )
 
 
@@ -799,7 +787,7 @@ async def trade_chat(
         raise HTTPException(status_code=400, detail="query is required")
 
     if not _check_chat_rate_limit(cid):
-        raise HTTPException(status_code=429, detail="请求过于频繁，请稍后重试。")
+        raise HTTPException(status_code=429, detail="Too many requests — please retry later.")
     _validate_scope(payload, cid)
     _require_paid_chat_skill(query, payload.context or "")
 
@@ -1140,7 +1128,7 @@ async def trade_chat_stream(
         raise HTTPException(status_code=400, detail="query is required")
 
     if not _check_chat_rate_limit(cid):
-        raise HTTPException(status_code=429, detail="请求过于频繁，请稍后重试。")
+        raise HTTPException(status_code=429, detail="Too many requests — please retry later.")
     _validate_scope(payload, cid)
     _require_paid_chat_skill(query, payload.context or "")
 
@@ -1637,7 +1625,7 @@ async def trade_chat_stream(
                             if exc is not None:
                                 _log.error("Agent task died without emitting: %r", exc)
                                 yield _sse("error", {
-                                    "message": f"⚠️ Agent 失败（{type(exc).__name__}）：{exc}"
+                                    "message": f"⚠️ Agent failed ({type(exc).__name__}): {exc}"
                                 })
                         break
                     yield ": ping\n\n"

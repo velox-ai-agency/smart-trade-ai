@@ -36,15 +36,15 @@ class LooseBody(BaseModel):
 def _map_err(exc: Exception) -> None:
     """把存取层异常映射成 HTTP。"""
     if isinstance(exc, profile_mod.ProfileNotFoundError):
-        raise HTTPException(status_code=404, detail=str(exc) or "不存在") from exc
+        raise HTTPException(status_code=404, detail=str(exc) or "Not found") from exc
     if isinstance(exc, profile_mod.ProfileConflictError):
-        raise HTTPException(status_code=409, detail=str(exc) or "冲突") from exc
+        raise HTTPException(status_code=409, detail=str(exc) or "Conflict") from exc
     if isinstance(exc, profile_mod.ProfileError):
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     if isinstance(exc, RuntimeError) and "表不存在" in str(exc):
         raise HTTPException(
             status_code=503,
-            detail="客户画像功能需要重启 Trade 后才能使用",
+            detail="Customer profile requires a Trade restart to become available",
         ) from exc
     if isinstance(exc, RuntimeError) and str(exc).startswith("提取失败"):
         raise HTTPException(status_code=502, detail=str(exc)) from exc
@@ -56,7 +56,7 @@ def _ensure_customer(customer_id: int, company_id: int) -> None:
     try:
         profile_mod._require_customer(customer_id, company_id)
     except profile_mod.ProfileNotFoundError as exc:
-        raise HTTPException(status_code=404, detail="客户不存在") from exc
+        raise HTTPException(status_code=404, detail="Customer not found") from exc
 
 
 # ── Facts ───────────────────────────────────────────────────────────────────
@@ -93,7 +93,7 @@ def post_fact(
     if not profile_mod.facts_available():
         raise HTTPException(
             status_code=503,
-            detail="客户画像功能需要重启 Trade 后才能使用",
+            detail="Customer profile requires a Trade restart to become available",
         )
     try:
         result = profile_mod.create_fact_manual(
@@ -135,7 +135,7 @@ def put_fact(
     if not profile_mod.facts_available():
         raise HTTPException(
             status_code=503,
-            detail="客户画像功能需要重启 Trade 后才能使用",
+            detail="Customer profile requires a Trade restart to become available",
         )
     updates = body.model_dump(exclude_unset=True)
     try:
@@ -156,7 +156,7 @@ def confirm_fact(
     if not profile_mod.facts_available():
         raise HTTPException(
             status_code=503,
-            detail="客户画像功能需要重启 Trade 后才能使用",
+            detail="Customer profile requires a Trade restart to become available",
         )
     try:
         return profile_mod.confirm_fact(
@@ -176,7 +176,7 @@ def void_fact(
     if not profile_mod.facts_available():
         raise HTTPException(
             status_code=503,
-            detail="客户画像功能需要重启 Trade 后才能使用",
+            detail="Customer profile requires a Trade restart to become available",
         )
     try:
         return profile_mod.void_fact(
@@ -196,7 +196,7 @@ def delete_fact(
     if not profile_mod.facts_available():
         raise HTTPException(
             status_code=503,
-            detail="客户画像功能需要重启 Trade 后才能使用",
+            detail="Customer profile requires a Trade restart to become available",
         )
     try:
         profile_mod.delete_fact(
@@ -219,7 +219,7 @@ def extract_facts(
     if not profile_mod.facts_available() or not profile_mod.gifts_available():
         raise HTTPException(
             status_code=503,
-            detail="客户画像功能需要重启 Trade 后才能使用",
+            detail="Customer profile requires a Trade restart to become available",
         )
     try:
         return profile_mod.extract_from_sources(
@@ -267,7 +267,7 @@ def post_gift(
     if not profile_mod.gifts_available():
         raise HTTPException(
             status_code=503,
-            detail="客户画像功能需要重启 Trade 后才能使用",
+            detail="Customer profile requires a Trade restart to become available",
         )
     try:
         return profile_mod.create_gift_manual(
@@ -300,7 +300,7 @@ def put_gift(
     if not profile_mod.gifts_available():
         raise HTTPException(
             status_code=503,
-            detail="客户画像功能需要重启 Trade 后才能使用",
+            detail="Customer profile requires a Trade restart to become available",
         )
     updates = body.model_dump(exclude_unset=True)
     try:
@@ -321,7 +321,7 @@ def confirm_gift(
     if not profile_mod.gifts_available():
         raise HTTPException(
             status_code=503,
-            detail="客户画像功能需要重启 Trade 后才能使用",
+            detail="Customer profile requires a Trade restart to become available",
         )
     try:
         return profile_mod.confirm_gift(
@@ -341,7 +341,7 @@ def void_gift(
     if not profile_mod.gifts_available():
         raise HTTPException(
             status_code=503,
-            detail="客户画像功能需要重启 Trade 后才能使用",
+            detail="Customer profile requires a Trade restart to become available",
         )
     try:
         return profile_mod.void_gift(
@@ -361,7 +361,7 @@ def delete_gift(
     if not profile_mod.gifts_available():
         raise HTTPException(
             status_code=503,
-            detail="客户画像功能需要重启 Trade 后才能使用",
+            detail="Customer profile requires a Trade restart to become available",
         )
     try:
         profile_mod.delete_gift(
@@ -430,11 +430,11 @@ def memo_configure(body: MemoPassBody, cid: int = Depends(require_company)):
     remaining = memo_mod.lock_remaining(cid)
     if remaining:
         raise HTTPException(
-            status_code=429, detail=f"密语已锁定，请 {remaining} 秒后重试",
+            status_code=429, detail=f"Passphrase is locked — retry in {remaining} seconds",
         )
     if not memo_mod.verify(body.passphrase):
         memo_mod.register_failure(cid)
-        raise HTTPException(status_code=403, detail="密语不正确")
+        raise HTTPException(status_code=403, detail="Incorrect passphrase")
     memo_mod.register_success(cid)
     return {"configured": True, "created": False}
 
@@ -448,16 +448,16 @@ def customer_memo(
 
     _ensure_customer(customer_id, cid)
     if not memo_mod.is_configured():
-        raise HTTPException(status_code=409, detail="尚未设置密语")
+        raise HTTPException(status_code=409, detail="Passphrase is not configured yet")
     # O-新6：后端节流，刷新页面不能绕过前端锁定
     # O-新28：按公司分桶 —— A 公司锁住不影响 B 公司
     remaining = memo_mod.lock_remaining(cid)
     if remaining:
         raise HTTPException(
-            status_code=429, detail=f"密语已锁定，请 {remaining} 秒后重试",
+            status_code=429, detail=f"Passphrase is locked — retry in {remaining} seconds",
         )
     if not memo_mod.verify(body.passphrase):
         memo_mod.register_failure(cid)
-        raise HTTPException(status_code=403, detail="密语不正确")
+        raise HTTPException(status_code=403, detail="Incorrect passphrase")
     memo_mod.register_success(cid)
     return memo_mod.memo_items(cid, customer_id)
