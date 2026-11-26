@@ -1385,6 +1385,10 @@ function _mentionRender() {
         });
     });
     m.classList.remove('hidden');
+    // 保持高亮行可见：箭头移动/继续输入后 innerHTML 重建会把 scrollTop 归零，
+    // 选区会走出可视区（用户看到的就是“按 ↓ 没反应、输入像没过滤”）。
+    const onEl = m.querySelector('.mention-item.on');
+    if (onEl && onEl.scrollIntoView) onEl.scrollIntoView({block: 'nearest'});
 }
 
 function _mentionMove(delta) {

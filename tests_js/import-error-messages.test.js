@@ -71,3 +71,15 @@ test('CSV import asks api() for a sticky, localized error toast', () => {
     assert.match(api, /localizeApiError\(/,
         'api() must localize backend detail strings before toasting');
 });
+
+test('mention menu keeps the highlighted row in view (2026-11-27: scroll reset bug)', () => {
+    // _mentionRender rebuilds the list via innerHTML, which resets scrollTop;
+    // without a scrollIntoView the ArrowDown selection walks below the fold and
+    // typing looks like it does nothing. The render must re-anchor .on.
+    const chat = fs.readFileSync(path.join(JS_DIR, 'chat.js'), 'utf8');
+    const start = chat.indexOf('function _mentionRender');
+    const stop = chat.indexOf('function _mentionMove', start);
+    const body = chat.slice(start, stop);
+    assert.match(body, /scrollIntoView\(\{block:\s*'nearest'\}\)/,
+        '_mentionRender must scroll the .on item into view');
+});
