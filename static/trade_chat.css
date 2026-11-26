@@ -1569,6 +1569,13 @@ body {
 .theme-toggle .icon-sun { display: none; }
 html[data-theme="dark"] .theme-toggle .icon-sun { display: block; }
 html[data-theme="dark"] .theme-toggle .icon-moon { display: none; }
+
+/* rating buttons: JS generates them with token styles, but keep a CSS anchor
+   so any leftover hardcoded copy still adapts to the theme. */
+.rating-btn {
+    background: var(--chip); color: var(--text-primary); border: 1px solid var(--border);
+}
+.rating-btn:hover { background: var(--fill-hover, var(--chip)); }
 .main > .dd { height: 1px; background: var(--dd); flex: none; }
 /* #main-content > div 的通用 flex:1 会命中分隔线，必须显式钉住 1px */
 #main-content > #app-top-dd { height: 1px !important; flex: 0 0 1px !important; }

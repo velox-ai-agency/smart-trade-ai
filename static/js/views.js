@@ -74,8 +74,8 @@ function renderTasksViewInto(container) {
                 <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
                     <input type="checkbox" class="task-template-check" data-id="${t.id}" ${t.required ? 'checked disabled' : ''}>
                     <span class="task-card-name">${esc(t.name)}</span>
-                    ${t.required ? '<span style="font-size:10px;color:var(--accent);background:#FEF3C7;padding:1px 6px;border-radius:999px;">' + langText('必选','Required') + '</span>' : ''}
-                    ${isCustom ? '<span style="font-size:10px;color:var(--primary);background:#EFF6FF;padding:1px 6px;border-radius:999px;">' + langText('自定义','Custom') + '</span>' : ''}
+                    ${t.required ? '<span style="font-size:10px;color:var(--accent);background:var(--warning-subtle,var(--chip));padding:1px 6px;border-radius:999px;">' + langText('必选','Required') + '</span>' : ''}
+                    ${isCustom ? '<span style="font-size:10px;color:var(--primary);background:var(--primary-subtle,var(--chip));padding:1px 6px;border-radius:999px;">' + langText('自定义','Custom') + '</span>' : ''}
                 </label>
             </div>
             <div style="display:flex;align-items:center;gap:6px;margin:6px 0;">
@@ -608,7 +608,7 @@ function renderConversationsList(data) {
             <div style="flex:1;min-width:0;" data-act="showConversationDetail" data-arg="${c.id}">
                 <div class="conv-meta">
                     <span>${esc((c.created_at||'').slice(0,16))}</span>
-                    ${c.library_id ? '<span style="background:#EFF6FF;color:var(--primary);padding:2px 6px;border-radius:4px;">📁 '+t('nav.docs')+'</span>' : ''}
+                    ${c.library_id ? '<span style="background:var(--primary-subtle,var(--chip));color:var(--primary);padding:2px 6px;border-radius:4px;">📁 '+t('nav.docs')+'</span>' : ''}
                 </div>
                 <div class="conv-q">${esc(c.query||'').slice(0,100)}</div>
                 <div class="conv-a">${esc(c.response||'').slice(0,150)}</div>

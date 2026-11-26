@@ -1105,8 +1105,8 @@ function addMsg(role, content, files, save, convId, blocks, timeStr) {
             ratingDiv.className = 'msg-rating';
             ratingDiv.style.cssText = 'display:flex;align-items:center;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border-light);';
             ratingDiv.innerHTML = '<span style="font-size:11px;color:var(--text-muted);">'+langText('评价此回复：', 'Rate this reply: ')+'</span>'
-                + '<button class="rating-btn" data-r="👍" style="border:1px solid #D1D5DB;border-radius:4px;padding:2px 8px;font-size:13px;cursor:pointer;background:#fff;">👍</button>'
-                + '<button class="rating-btn" data-r="👎" style="border:1px solid #D1D5DB;border-radius:4px;padding:2px 8px;font-size:13px;cursor:pointer;background:#fff;">👎</button>';
+                + '<button class="rating-btn" data-r="👍" style="border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-size:13px;cursor:pointer;background:var(--chip);color:var(--text-primary);">👍</button>'
+                + '<button class="rating-btn" data-r="👎" style="border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-size:13px;cursor:pointer;background:var(--chip);color:var(--text-primary);">👎</button>';
             body.appendChild(ratingDiv);
 
                 ratingDiv.querySelectorAll('.rating-btn').forEach(function(btn) {
