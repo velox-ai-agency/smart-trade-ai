@@ -1183,14 +1183,6 @@ def create_app() -> FastAPI:
         dependencies=[Depends(require_session), Depends(_enforce_company_binding)],
     )
 
-    # 流程卡片（子步骤按钮）：数据在 trade/api/processes.py，单一事实来源。
-    # 与 start 同一套依赖，路径 /api/trade/processes/{context}。
-    from trade.api.processes import router as processes_router
-    app.include_router(
-        processes_router,
-        dependencies=[Depends(require_session), Depends(_enforce_company_binding)],
-    )
-
     # 本地构建已移除到期只读门禁：所有写入请求正常放行。
 
     # Health check

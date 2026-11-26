@@ -170,7 +170,6 @@ const I18N = {
         'todo.empty':'No to-dos yet — click + to add','todo.confirm_delete':'Delete this to-do?',
         'todo.empty_label':'This to-do has no text','todo.added':'Added to to-do',
         'chat.cmd.sub':'Give a command · customer dev, inquiry reply, quotes, docs — just say it',
-        'proc.do_in_order':'DO IN ORDER','proc.collapse':'Collapse','proc.expand':'Expand',
         'brief.dash':'—',
         'chat.blocks.draft_warn':'Draft · will not auto-send','chat.blocks.copy_draft':'Copy draft',
         'chat.blocks.next':'NEXT','chat.blocks.copied':'Copied',
@@ -837,7 +836,6 @@ const I18N = {
         'todo.empty_label': "هذه المهمة لا تحتوي على نص",
         'todo.added': "تمت الإضافة إلى المهام",
         'chat.cmd.sub': "أصدر أمراً · تطوير العملاء، الرد على الاستفسارات، عروض الأسعار، المستندات — قلها مباشرة",
-        'proc.do_in_order': "اتبع الترتيب",'proc.collapse': "تصغير",'proc.expand': "توسيع",
         'brief.dash': "—",
         'chat.blocks.draft_warn': "مسودة · لن تُرسل تلقائيًا",
         'chat.blocks.copy_draft': "نسخ المسودة",
@@ -1868,7 +1866,6 @@ var AR_TERMS = {
    "Passphrase is not configured yet": "لم تُضبط العبارة السرية بعد.",
    "Customer not found": "العميل غير موجود.",
    "Todo not found": "المهمة غير موجودة.",
-   "点击步骤会预填聊天输入框，审阅后再发送；不会自动发送。": "النقر على أي خطوة يملأ خانة المحادثة بقالب جاهز — راجع ثم أرسل بنفسك. لا إرسال تلقائي.",
    // dynamic CSV detail (localizeApiError prefix matcher)
    "No valid rows found": "لا توجد صفوف صالحة. يحتاج ملف CSV إلى عمود \"name\" (بعنوان إنجليزي أو عربي) — أو استخدم القالب من تصدير CSV.",
    "detected headers: ": "العناوين المكتشفة: ",
