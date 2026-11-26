@@ -188,7 +188,9 @@ test('客户等级 / 订单数量单位 渲染点都带 esc()', () => {
 
 test('商机阶段文本必须 esc(stage) 后渲染', () => {
     // s2 列表用「点阵 + 阶段名」；阶段名来自自由文本，必须转义
-    assert.ok(/esc\(stage\)/.test(SRC), '商机阶段必须 esc(stage) 后插入');
+    // 阶段名来自自由文本：先经 _stageLabel 翻译显示，再整体 esc 后插入。
+    // 两种写法都必须被 esc() 包住：esc(stage) 或 esc(_stageLabel(stage))。
+    assert.ok(/esc\((?:_stageLabel\()?stage/.test(SRC), '商机阶段必须 esc 后插入');
     // 不得把用户 stage 以未转义形式拼进模板
     assert.ok(!/\$\{\s*stage\s*\}/.test(SRC), '不得使用未转义的 ${stage}');
 });

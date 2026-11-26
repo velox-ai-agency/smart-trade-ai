@@ -25,6 +25,9 @@ describe('wall-inquiries', () => {
                 .replace(/>/g, '&gt;')
                 .replace(/"/g, '&quot;'),
             t: (k) => tmap[k] || k,
+            // 该区段在隔离作用域里求值，需要注入与线上一致的中文基线 helper。
+            langText: (zh) => zh,
+            _stageLabel: (s) => s,
             _CRM_STAGES: ['询盘', '报价', '样品', '订单'],
         }
     );

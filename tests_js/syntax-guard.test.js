@@ -35,10 +35,12 @@ test('HTML 先内联 TOKEN，再按模块顺序加载', () => {
     assert.ok(tokenAt !== -1, 'TOKEN 内联脚本必须留在模块脚本之前');
     let cursor = tokenAt;
     for (const name of JS_ORDER) {
-        const tag = `<script src="/static/js/${name}"></script>`;
-        const at = html.indexOf(tag, cursor);
+        // 版本号查询串（?v=...）用于击穿浏览器缓存，必须同样通过顺序校验
+        const re = new RegExp('<script src="/static/js/' + name.replace(/\./g, '\\.') + '(\\?[^"]*)?"></script>', 'g');
+        re.lastIndex = cursor;
+        const m = re.exec(html);
         // 顺序错了或漏了一个模块，后加载的脚本会在依赖还没声明时执行
-        assert.ok(at > cursor, `trade_chat.html 未按顺序加载 ${name}`);
-        cursor = at + tag.length;
+        assert.ok(m && m.index > cursor, `trade_chat.html 未按顺序加载 ${name}`);
+        cursor = m.index + m[0].length;
     }
 });

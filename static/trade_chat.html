@@ -3,20 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/png" href="/static/trade-icon.png">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<link rel="icon" type="image/png" href="/static/trade-icon.png?v=20261126j">
 <title>Trade AI Assistant</title>
 <!-- 本地打包（审计 P2-23）：离线也能渲染 markdown / 做 XSS 清洗，不再依赖 CDN。
      注意：**不要**给同源本地文件加 integrity（SRI）。SRI 防的是第三方 CDN 被投毒；
      能改本地文件的人已经拿下机器，没有安全收益。而哈希按 LF 字节计算，
      Windows 检出（core.autocrlf）把文件转成 CRLF 后校验必失败 → 脚本被拒绝执行
      → marked/DOMPurify 为 undefined → 发消息静默失败（2026-10-29 实测事故）。 -->
-<script src="/static/vendor/marked.umd.js"></script>
-<script src="/static/vendor/purify.min.js"></script>
-<script src="/static/vendor/three.min.js"></script>
+<script src="/static/vendor/marked.umd.js?v=20261126j"></script>
+<script src="/static/vendor/purify.min.js?v=20261126j"></script>
+<script src="/static/vendor/three.min.js?v=20261126j"></script>
 <script nonce="__TRADE_CSP_NONCE__">marked.setOptions({ breaks: true, gfm: true });</script>
-<link rel="stylesheet" href="/static/fonts/fonts.css">
-<link rel="stylesheet" href="/static/trade_chat.css">
-<link rel="stylesheet" href="/static/wait.css">
+<link rel="stylesheet" href="/static/fonts/fonts.css?v=20261126j">
+<link rel="stylesheet" href="/static/trade_chat.css?v=20261126j">
+<link rel="stylesheet" href="/static/wait.css?v=20261126j">
 <link rel="stylesheet" href="/static/rtl.css?v=2">
 <body>
 <canvas id="bg3d" aria-hidden="true"></canvas>
@@ -379,19 +380,19 @@
 <div id="toast-container"></div>
 
 <script nonce="__TRADE_CSP_NONCE__">let TOKEN = "__TRADE_SESSION_TOKEN__";</script>
-<script src="/static/js/state.js"></script>
-<script src="/static/js/i18n.js"></script>
-<script src="/static/js/wizard.js"></script>
-<script src="/static/js/api.js"></script>
-<script src="/static/js/skills.js"></script>
-<script src="/static/js/ui.js"></script>
-<script src="/static/js/chat.js"></script>
-<script src="/static/js/customers.js"></script>
-<script src="/static/js/mailboxes.js"></script>
-<script src="/static/js/views.js"></script>
-<script src="/static/js/fx.js"></script>
+<script src="/static/js/state.js?v=20261126j"></script>
+<script src="/static/js/i18n.js?v=20261126j"></script>
+<script src="/static/js/wizard.js?v=20261126j"></script>
+<script src="/static/js/api.js?v=20261126j"></script>
+<script src="/static/js/skills.js?v=20261126j"></script>
+<script src="/static/js/ui.js?v=20261126j"></script>
+<script src="/static/js/chat.js?v=20261126j"></script>
+<script src="/static/js/customers.js?v=20261126j"></script>
+<script src="/static/js/mailboxes.js?v=20261126j"></script>
+<script src="/static/js/views.js?v=20261126j"></script>
+<script src="/static/js/fx.js?v=20261126j"></script>
 <!-- #region wait：统一等待界面（Canvas2D 兜底 + task 模式 3D 推镜） -->
-<script src="/static/js/wait.js"></script>
-<script src="/static/js/wait3d.js"></script>
-<script src="/static/js/init.js"></script>
+<script src="/static/js/wait.js?v=20261126j"></script>
+<script src="/static/js/wait3d.js?v=20261126j"></script>
+<script src="/static/js/init.js?v=20261126j"></script>
 </html>

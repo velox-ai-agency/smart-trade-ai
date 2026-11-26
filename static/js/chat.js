@@ -519,7 +519,7 @@ async function loadChatLibrarySelect() {
         return true;
     });
     sel.innerHTML = '<option value="">' + t('chat.library') + '</option>' +
-        unique.map(l => `<option value="${l.id}">${esc(l.name)}</option>`).join('');
+        unique.map(l => `<option value="${l.id}">${esc(_libLabel(l.name))}</option>`).join('');
 }
 
 // ═════════════════════ DRAG & DROP / PASTE FILES ═════════════════════

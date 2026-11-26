@@ -1,45 +1,57 @@
-// ═════════════════════ TASKS VIEW ═════════════════════
-// ═══ 定时任务模板（基于外贸业务员标准工作流程）═════
-const TASK_TEMPLATES = [
-    {id:'morning-brief',name:'🌅 早安简报',time:'09:00',required:true,
-     desc:'使用 web_search 获取实时汇率、大宗商品价格、目标市场新闻，结合昨日对话生成简报',
-     prompt:'按照 b2b-daily-automation 技能中的早安简报规范生成今日简报。必须使用 web_search 逐项搜索实时汇率（USD/EUR/GBP→CNY）、大宗商品价格（金/铜/铝/原油）、目标市场新闻。查询昨日对话记录和客户待跟进清单。所有数值必须来自搜索结果，不得编造或留空。'},
-    {id:'email-followup',name:'📧 邮件处理与跟进',time:'09:00-10:30',required:false,
-     desc:'回复所有未读消息，发送跟进邮件。新消息 2 小时内回复 100%',
-     prompt:'帮我整理今天待处理的邮件和跟进事项：列出昨日至今天收到的客户消息、需要跟进的客户（按 A/B/C 优先级）、明天需要发送的提醒邮件模板。'},
-    {id:'linkedin-add',name:'🔍 精准加人 (LinkedIn)',time:'10:00-11:30',required:false,
-     desc:'搜索关键词+职位，发送连接请求+Add Note，目标 30-50 人/天',
-     prompt:'生成本日 LinkedIn 精准加人计划：根据我公司的产品和目标市场，列出今天应该搜索的 5 个关键词组合，每个关键词推荐 3-5 个搜索过滤条件（行业/地区/职位），并生成 Add Note 模板。'},
-    {id:'linkedin-engage',name:'💬 评论互动与私信致谢',time:'11:30-12:00',required:false,
-     desc:'评论目标客户 10-15 条动态，新增连接发送感谢私信',
-     prompt:'帮我生成本日 LinkedIn 互动计划：列出需要评论的客户类型和评论模板（3 种场景），以及新增连接后的感谢私信模板。'},
-    {id:'linkedin-content',name:'📢 LinkedIn 内容发布',time:'15:30',required:false,
-     desc:'发布或转发 1 条内容（案例/痛点/工厂/证书），≥3 帖/周',
-     prompt:'请生成本日的 LinkedIn 帖子（5 维度轮换：视频/照片/文章/投票/Document）。内容围绕我公司产品和行业，带 5 个 hashtag，可直接复制粘贴发布。'},
-    {id:'platform-check',name:'🏪 B2B 平台检查',time:'15:30-17:00',required:false,
-     desc:'检查阿里国际站/Made-in-China 等平台询盘、排名、发布产品',
-     prompt:'生成今日 B2B 平台检查清单：新询盘数量、待回复询盘、产品排名变化、需要发布的产品数量。给出具体可执行的操作步骤。'},
-    {id:'customer-dev',name:'👥 客户开发',time:'13:30-15:30',required:false,
-     desc:'新客户搜索/加人/开发信发送，目标日均 20-30 个有效触达',
-     prompt:'生成本日客户开发计划：根据我公司的产品和目标市场，列出 5 个找客户渠道（LinkedIn/Facebook/Google Maps/B2B平台/海关数据），每个渠道给出具体搜索方法和开发信模板。'},
-    {id:'daily-summary',name:'📊 每日工作总结',time:'17:00',required:false,
-     desc:'更新客户表/CRM，复盘当日完成情况，规划次日优先级',
-     prompt:'请帮我生成今日工作总结模板，包含：今日完成事项清单、客户互动汇总、新增客户统计、待跟进事项、明日优先级安排。如果是周五，加上本周 KPI 对比和下周计划。'},
-    {id:'weekly-report',name:'📋 每周复盘报告',time:'周五 17:30',required:false,
-     desc:'周复盘：亮点/短板/KPI对比/下周行动清单',
-     prompt:'请生成本周复盘报告模板，包含：本周完成事项、KPI 完成情况（新增人脉/有效对话/需求线索/预约会议/内容发布）、亮点与短板分析、竞品洞察、下周行动清单。'},
+                                                         
+                                 
+// #region task-templates
+function buildTaskTemplates() {
+return [
+    {id:'morning-brief',name:langText('早安简报','Morning Brief'),time:'09:00',required:true,
+     desc:langText('使用 web_search 获取实时汇率、大宗商品价格、目标市场新闻，结合昨日对话生成简报','Use web_search to get real-time exchange rates, commodity prices, and target market news, and generate a briefing with yesterday\'s conversation'),
+     prompt:langText('按照 b2b-daily-automation 技能中的早安简报规范生成今日简报。必须使用 web_search 逐项搜索实时汇率（USD/EUR/GBP→CNY）、大宗商品价格（金/铜/铝/原油）、目标市场新闻。查询昨日对话记录和客户待跟进清单。所有数值必须来自搜索结果，不得编造或留空。','Follow the b2b-daily-automation morning-briefing spec: use web_search to look up live exchange rates (USD/EUR/GBP→CNY), commodity prices (gold/copper/aluminum/crude) and target-market news. Review yesterday\'s chat history and the customer follow-up list. Every figure must come from search results — never invent or leave blanks.')},
+    {id:'email-followup',name:langText('邮件处理与跟进','Email processing and follow-up'),time:'09:00-10:30',required:false,
+     desc:langText('回复所有未读消息，发送跟进邮件。新消息 2 小时内回复 100%','Reply to all unread messages and send follow-up emails. 100% of new messages answered within 2 hours'),
+     prompt:langText('帮我整理今天待处理的邮件和跟进事项：列出昨日至今天收到的客户消息、需要跟进的客户（按 A/B/C 优先级）、明天需要发送的提醒邮件模板。','Help me organize today\'s pending emails and follow-ups: list customer messages received from yesterday to today, customers who need follow-up (by A/B/C priority), and reminder email templates to send tomorrow.')},
+    {id:'linkedin-add',name:langText('精准加人 (LinkedIn)','Targeted connections (LinkedIn)'),time:'10:00-11:30',required:false,
+     desc:langText('搜索关键词+职位，发送连接请求+Add Note，目标 30-50 人/天','Search keywords + job titles, send connection requests + Add Note, target 30-50 people/day'),
+     prompt:langText('生成本日 LinkedIn 精准加人计划：根据我公司的产品和目标市场，列出今天应该搜索的 5 个关键词组合，每个关键词推荐 3-5 个搜索过滤条件（行业/地区/职位），并生成 Add Note 模板。','Generate today’s precise LinkedIn connection plan: Based on my company’s products and target market, list 5 keyword combinations to search today, recommend 3–5 search filters (industry / region / job title) for each keyword, and generate Add Note templates.')},
+    {id:'linkedin-engage',name:langText('评论互动与私信致谢','Comment engagement & DM thanks'),time:'11:30-12:00',required:false,
+     desc:langText('评论目标客户 10-15 条动态，新增连接发送感谢私信','Comment on 10-15 posts of target customers; send a thank-you DM to new connections'),
+     prompt:langText('帮我生成本日 LinkedIn 互动计划：列出需要评论的客户类型和评论模板（3 种场景），以及新增连接后的感谢私信模板。','Generate today\'s LinkedIn engagement plan: list the customer types to comment on, comment templates (3 scenarios), and thank-you DM templates for new connections.')},
+    {id:'linkedin-content',name:langText('LinkedIn 内容发布','LinkedIn Content Publishing'),time:'15:30',required:false,
+     desc:langText('发布或转发 1 条内容（案例/痛点/工厂/证书），≥3 帖/周','Publish or repost 1 piece of content (case study/pain point/factory/certificate), at least 3 posts/week'),
+     prompt:langText('请生成本日的 LinkedIn 帖子（5 维度轮换：视频/照片/文章/投票/Document）。内容围绕我公司产品和行业，带 5 个 hashtag，可直接复制粘贴发布。','Please generate today\'s LinkedIn post (rotating across 5 formats: video/photo/article/poll/Document). The content should focus on my company\'s products and industry, include 5 hashtags, and be ready to copy and paste directly.')},
+    {id:'platform-check',name:langText('B2B 平台检查','B2B platform check'),time:'15:30-17:00',required:false,
+     desc:langText('检查阿里国际站/Made-in-China 等平台询盘、排名、发布产品','Check inquiries, rankings, and product posts on Alibaba.com / Made-in-China and other platforms'),
+     prompt:langText('生成今日 B2B 平台检查清单：新询盘数量、待回复询盘、产品排名变化、需要发布的产品数量。给出具体可执行的操作步骤。','Generate today\'s B2B platform checklist: number of new inquiries, inquiries awaiting reply, product ranking changes, products to publish. Provide specific, actionable steps.')},
+    {id:'customer-dev',name:langText('客户开发','Customer Development'),time:'13:30-15:30',required:false,
+     desc:langText('新客户搜索/加人/开发信发送，目标日均 20-30 个有效触达','New customer search/add people/send outreach emails, target 20-30 valid touches per day'),
+     prompt:langText('生成本日客户开发计划：根据我公司的产品和目标市场，列出 5 个找客户渠道（LinkedIn/Facebook/Google Maps/B2B平台/海关数据），每个渠道给出具体搜索方法和开发信模板。','Generate today\'s customer development plan: based on our products and target markets, list 5 customer-finding channels (LinkedIn/Facebook/Google Maps/B2B platforms/customs data), and give a specific search method and outreach email template for each channel.')},
+    {id:'daily-summary',name:langText('每日工作总结','Daily work summary'),time:'17:00',required:false,
+     desc:langText('更新客户表/CRM，复盘当日完成情况，规划次日优先级','Update customer sheet/CRM, review daily completion, and plan next day\'s priorities'),
+     prompt:langText('请帮我生成今日工作总结模板，包含：今日完成事项清单、客户互动汇总、新增客户统计、待跟进事项、明日优先级安排。如果是周五，加上本周 KPI 对比和下周计划。','Please generate a daily work summary template for me, including: a list of tasks completed today, a summary of customer interactions, new customer statistics, items pending follow-up, and tomorrow’s priority plan. If it’s Friday, add this week’s KPI comparison and next week’s plan.')},
+    {id:'weekly-report',name:langText('每周复盘报告','Weekly review report'),time:langText('周五 17:30','Friday 17:30'),required:false,
+     desc:langText('周复盘：亮点/短板/KPI对比/下周行动清单','Weekly review: highlights / weaknesses / KPI comparison / next week\'s action list'),
+     prompt:langText('请生成本周复盘报告模板，包含：本周完成事项、KPI 完成情况（新增人脉/有效对话/需求线索/预约会议/内容发布）、亮点与短板分析、竞品洞察、下周行动清单。','Generate this week\'s review report template, including: tasks completed this week, KPI status (new contacts/effective conversations/requirement leads/meetings booked/content published), strengths and weaknesses analysis, competitor insights, and next week\'s action list.')},
 ];
+}
+let TASK_TEMPLATES = null;
+let _taskTplLang = null;
 
 function getCustomTemplates() {
     try { return JSON.parse(localStorage.getItem('trade_custom_templates') || '[]'); } catch(e) { return []; }
 }
 
+// 模板文案在首次用到时才按当前语言生成：脚本加载时 currentLang 仍是默认中文，
+// 而语言偏好在 init 阶段才从 localStorage 读取，提前生成会把中文名留在英文/阿文界面。
 function getAllTemplates() {
+    if (_taskTplLang !== currentLang) {
+        TASK_TEMPLATES = buildTaskTemplates();
+        _taskTplLang = currentLang;
+    }
     return [...TASK_TEMPLATES, ...getCustomTemplates()];
 }
+// #endregion task-templates
 
 function deleteCustomTemplate(id) {
-    if (!confirm('删除此自定义模板？')) return;
+    if (!confirm(langText('删除此自定义模板？','Delete this custom template?'))) return;
     let customs = getCustomTemplates();
     customs = customs.filter(t => t.id !== id);
     localStorage.setItem('trade_custom_templates', JSON.stringify(customs));
@@ -62,8 +74,8 @@ function renderTasksViewInto(container) {
                 <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
                     <input type="checkbox" class="task-template-check" data-id="${t.id}" ${t.required ? 'checked disabled' : ''}>
                     <span class="task-card-name">${esc(t.name)}</span>
-                    ${t.required ? '<span style="font-size:10px;color:var(--accent);background:#FEF3C7;padding:1px 6px;border-radius:999px;">必选</span>' : ''}
-                    ${isCustom ? '<span style="font-size:10px;color:var(--primary);background:#EFF6FF;padding:1px 6px;border-radius:999px;">自定义</span>' : ''}
+                    ${t.required ? '<span style="font-size:10px;color:var(--accent);background:#FEF3C7;padding:1px 6px;border-radius:999px;">' + langText('必选','Required') + '</span>' : ''}
+                    ${isCustom ? '<span style="font-size:10px;color:var(--primary);background:#EFF6FF;padding:1px 6px;border-radius:999px;">' + langText('自定义','Custom') + '</span>' : ''}
                 </label>
             </div>
             <div style="display:flex;align-items:center;gap:6px;margin:6px 0;">
@@ -73,8 +85,8 @@ function renderTasksViewInto(container) {
             </div>
             <div style="font-size:11px;color:var(--text-secondary);margin-bottom:8px;">${esc(t.desc || '')}</div>
             <div class="task-card-actions">
-                <button data-act="editTemplatePrompt" data-arg="${t.id}" style="font-size:11px;">${btnIcon('pencil')} 编辑 Prompt</button>
-                <button data-act="runSingleTemplate" data-arg="${t.id}" style="font-size:11px;">▶ 执行一次</button>
+                <button data-act="editTemplatePrompt" data-arg="${t.id}" style="font-size:11px;">${btnIcon('pencil')}${langText('编辑 Prompt','Edit Prompt')}</button>
+                <button data-act="runSingleTemplate" data-arg="${t.id}" style="font-size:11px;">▶${langText('执行一次','Run once')}</button>
             </div>
         </div>`;
     };
@@ -82,133 +94,133 @@ function renderTasksViewInto(container) {
     container.innerHTML = `
     <div class="panel-view" style="display:flex;flex-direction:column;height:100%;overflow-y:auto;">
         <div class="panel-topbar">
-            <h2>⏰ 定时任务${coName ? `<span style="margin-left:10px;padding:3px 10px;background:rgba(59,130,246,0.08);color:var(--primary);border-radius:999px;font-size:12px;font-weight:500;">🏢 ${esc(coName)}</span>` : ''}</h2>
+            <h2>⏰${langText('定时任务','Scheduled Tasks')}${coName ? `<span style="margin-left:10px;padding:3px 10px;background:rgba(59,130,246,0.08);color:var(--primary);border-radius:999px;font-size:12px;font-weight:500;">🏢 ${esc(coName)}</span>` : ''}</h2>
             <div class="panel-topbar-actions">
-                <button class="btn btn-primary" data-act="batchCreateCronTasks">${btnIcon('refresh-cw')} 批量生成选中任务</button>
-                <button class="btn btn-danger" data-act="clearAllCronTasks">${btnIcon('trash')} 清空全部任务</button>
+                <button class="btn btn-primary" data-act="batchCreateCronTasks">${btnIcon('refresh-cw')}${langText('批量生成选中任务','Batch generate selected tasks')}</button>
+                <button class="btn btn-danger" data-act="clearAllCronTasks">${btnIcon('trash')}${langText('清空全部任务','Clear all tasks')}</button>
             </div>
         </div>
         <div class="panel-body" style="overflow-y:auto;padding:16px 20px;">
             <!-- 定时任务使用说明书 -->
             <details style="margin-bottom:16px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
                 <summary style="cursor:pointer;padding:12px 16px;font-weight:600;font-size:14px;background:var(--bg);user-select:none;">
-                    📖 定时任务使用说明书（点击展开 / 收起）
+                    📖${langText('定时任务使用说明书（点击展开 / 收起）','Scheduled Task User Guide (click to expand / collapse)')}
                 </summary>
                 <div style="padding:16px 20px;font-size:13px;line-height:1.8;color:var(--text-secondary);">
 
-                <h4 style="margin:0 0 10px 0;color:var(--text-primary);">一、什么是定时任务？</h4>
-                <p>定时任务就像一个闹钟。你告诉它「每天几点要做什么事」，时间一到，系统会自动帮你去执行。</p>
-                <p>比如你可以设置：每天早上 9 点自动搜索当日汇率、每周五下午 5 点生成周报。</p>
+                <h4 style="margin:0 0 10px 0;color:var(--text-primary);">${langText('一、什么是定时任务？','1. What are scheduled tasks?')}</h4>
+                <p>${langText('定时任务就像一个闹钟。你告诉它「每天几点要做什么事」，时间一到，系统会自动帮你去执行。','A scheduled task is like an alarm clock. You tell it what to do and when each day, and when the time comes, the system automatically does it for you.')}</p>
+                <p>${langText('比如你可以设置：每天早上 9 点自动搜索当日汇率、每周五下午 5 点生成周报。','For example, you can set: search the day\'s exchange rates automatically every morning at 9:00, and generate a weekly report every Friday at 5:00 PM.')}</p>
 
-                <h4 style="margin:18px 0 10px 0;color:var(--text-primary);">二、Cron 表达式是什么？</h4>
-                <p>Cron 表达式是用来描述「什么时候执行」的一串代码。它由 <b>5 个数字</b>组成，用空格隔开：</p>
+                <h4 style="margin:18px 0 10px 0;color:var(--text-primary);">${langText('二、Cron 表达式是什么？','II. What is a Cron expression?')}</h4>
+                <p>${langText('Cron 表达式是用来描述「什么时候执行」的一串代码。它由','A Cron expression is a piece of code that describes when a task runs. It consists of')}<b>${langText('5 个数字','5 numbers')}</b>${langText('组成，用空格隔开：','separated by spaces:')}</p>
                 <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:12px 16px;font-family:monospace;font-size:14px;text-align:center;margin:8px 0;">
-                    <b>分钟 小时 日 月 星期</b>
+                    <b>${langText('分钟 小时 日 月 星期','Minute Hour Day Month Weekday')}</b>
                 </div>
-                <p>看不懂没关系，下面逐个解释 👇</p>
+                <p>${langText('看不懂没关系，下面逐个解释','Don\'t worry if you don\'t understand; we\'ll explain each one below')}👇</p>
 
                 <table style="width:100%;border-collapse:collapse;margin:10px 0;font-size:13px;">
                 <thead>
                 <tr style="background:var(--bg);">
-                    <th style="padding:8px 12px;text-align:left;border:1px solid var(--border);">位置</th>
-                    <th style="padding:8px 12px;text-align:left;border:1px solid var(--border);">叫什么</th>
-                    <th style="padding:8px 12px;text-align:left;border:1px solid var(--border);">可以填什么</th>
-                    <th style="padding:8px 12px;text-align:left;border:1px solid var(--border);">什么意思</th>
+                    <th style="padding:8px 12px;text-align:left;border:1px solid var(--border);">${langText('位置','Location')}</th>
+                    <th style="padding:8px 12px;text-align:left;border:1px solid var(--border);">${langText('叫什么','What to call it')}</th>
+                    <th style="padding:8px 12px;text-align:left;border:1px solid var(--border);">${langText('可以填什么','What can be entered')}</th>
+                    <th style="padding:8px 12px;text-align:left;border:1px solid var(--border);">${langText('什么意思','What does it mean')}</th>
                 </tr>
                 </thead>
                 <tbody>
-                <tr><td style="padding:8px 12px;border:1px solid var(--border);"><b>第 1 个</b></td><td style="padding:8px 12px;border:1px solid var(--border);">分钟</td><td style="padding:8px 12px;border:1px solid var(--border);">0 ~ 59</td><td style="padding:8px 12px;border:1px solid var(--border);">在每小时的第几分运行。填 0 代表整点，填 30 代表半点</td></tr>
-                <tr><td style="padding:8px 12px;border:1px solid var(--border);"><b>第 2 个</b></td><td style="padding:8px 12px;border:1px solid var(--border);">小时</td><td style="padding:8px 12px;border:1px solid var(--border);">0 ~ 23</td><td style="padding:8px 12px;border:1px solid var(--border);">在几点运行。0=半夜12点，8=早上8点，14=下午2点，20=晚上8点</td></tr>
-                <tr><td style="padding:8px 12px;border:1px solid var(--border);"><b>第 3 个</b></td><td style="padding:8px 12px;border:1px solid var(--border);">日</td><td style="padding:8px 12px;border:1px solid var(--border);">1 ~ 31</td><td style="padding:8px 12px;border:1px solid var(--border);">在每月第几天运行。填 * 代表每天都行</td></tr>
-                <tr><td style="padding:8px 12px;border:1px solid var(--border);"><b>第 4 个</b></td><td style="padding:8px 12px;border:1px solid var(--border);">月</td><td style="padding:8px 12px;border:1px solid var(--border);">1 ~ 12</td><td style="padding:8px 12px;border:1px solid var(--border);">在几月运行。填 * 代表每月都行</td></tr>
-                <tr><td style="padding:8px 12px;border:1px solid var(--border);"><b>第 5 个</b></td><td style="padding:8px 12px;border:1px solid var(--border);">星期</td><td style="padding:8px 12px;border:1px solid var(--border);">0 ~ 7</td><td style="padding:8px 12px;border:1px solid var(--border);">星期几运行。0=周日，1=周一...6=周六。填 * 代表每天</td></tr>
+                <tr><td style="padding:8px 12px;border:1px solid var(--border);"><b>${langText('第 1 个','1st')}</b></td><td style="padding:8px 12px;border:1px solid var(--border);">${langText('分钟','minutes')}</td><td style="padding:8px 12px;border:1px solid var(--border);">0 ~ 59</td><td style="padding:8px 12px;border:1px solid var(--border);">${langText('在每小时的第几分运行。填 0 代表整点，填 30 代表半点','Runs at the Nth minute of every hour. Enter 0 for the top of the hour, 30 for the half hour')}</td></tr>
+                <tr><td style="padding:8px 12px;border:1px solid var(--border);"><b>${langText('第 2 个','2nd')}</b></td><td style="padding:8px 12px;border:1px solid var(--border);">${langText('小时','Hour')}</td><td style="padding:8px 12px;border:1px solid var(--border);">0 ~ 23</td><td style="padding:8px 12px;border:1px solid var(--border);">${langText('在几点运行。0','Which hour to run at. 0')}=${langText('半夜12点，8','Midnight 12, 8')}=${langText('早上8点，14','8:00 AM, 14')}=${langText('下午2点，20','2 PM, 20')}=${langText('晚上8点','8:00 PM')}</td></tr>
+                <tr><td style="padding:8px 12px;border:1px solid var(--border);"><b>${langText('第 3 个','3rd')}</b></td><td style="padding:8px 12px;border:1px solid var(--border);">${langText('日','Day')}</td><td style="padding:8px 12px;border:1px solid var(--border);">1 ~ 31</td><td style="padding:8px 12px;border:1px solid var(--border);">${langText('在每月第几天运行。填','Which day of the month to run. Enter')}*${langText('代表每天都行','means any day will do')}</td></tr>
+                <tr><td style="padding:8px 12px;border:1px solid var(--border);"><b>${langText('第 4 个','The 4th one')}</b></td><td style="padding:8px 12px;border:1px solid var(--border);">${langText('月','Month')}</td><td style="padding:8px 12px;border:1px solid var(--border);">1 ~ 12</td><td style="padding:8px 12px;border:1px solid var(--border);">${langText('在几月运行。填','Which month to run. Enter')}*${langText('代表每月都行','Means any month is fine')}</td></tr>
+                <tr><td style="padding:8px 12px;border:1px solid var(--border);"><b>${langText('第 5 个','5th')}</b></td><td style="padding:8px 12px;border:1px solid var(--border);">${langText('星期','Day of week')}</td><td style="padding:8px 12px;border:1px solid var(--border);">0 ~ 7</td><td style="padding:8px 12px;border:1px solid var(--border);">${langText('星期几运行。0','Which day of the week to run. 0')}=${langText('周日，1','Sunday, 1')}=${langText('周一...6','Mon...6')}=${langText('周六。填','Saturday. Enter')}*${langText('代表每天','means every day')}</td></tr>
                 </tbody>
                 </table>
 
-                <h4 style="margin:18px 0 10px 0;color:var(--text-primary);">三、常用写法速查表</h4>
+                <h4 style="margin:18px 0 10px 0;color:var(--text-primary);">${langText('三、常用写法速查表','III. Common patterns quick reference')}</h4>
                 <table style="width:100%;border-collapse:collapse;margin:10px 0;font-size:13px;">
                 <thead>
                 <tr style="background:var(--bg);">
-                    <th style="padding:8px 12px;text-align:left;border:1px solid var(--border);">你想要的</th>
-                    <th style="padding:8px 12px;text-align:left;border:1px solid var(--border);">Cron 表达式</th>
-                    <th style="padding:8px 12px;text-align:left;border:1px solid var(--border);">大白话解释</th>
+                    <th style="padding:8px 12px;text-align:left;border:1px solid var(--border);">${langText('你想要的','What you want')}</th>
+                    <th style="padding:8px 12px;text-align:left;border:1px solid var(--border);">${langText('Cron 表达式','Cron Expression')}</th>
+                    <th style="padding:8px 12px;text-align:left;border:1px solid var(--border);">${langText('大白话解释','Plain-language explanation')}</th>
                 </tr>
                 </thead>
                 <tbody>
-                <tr><td style="padding:8px 12px;border:1px solid var(--border);">每天上午 9:00</td><td style="padding:8px 12px;border:1px solid var(--border);font-family:monospace;">0 9 * * *</td><td style="padding:8px 12px;border:1px solid var(--border);">每天 9 点整触发</td></tr>
-                <tr><td style="padding:8px 12px;border:1px solid var(--border);">每天下午 3:30</td><td style="padding:8px 12px;border:1px solid var(--border);font-family:monospace;">30 15 * * *</td><td style="padding:8px 12px;border:1px solid var(--border);">每天 15:30 触发</td></tr>
-                <tr><td style="padding:8px 12px;border:1px solid var(--border);">每个工作日（周一到周五）9:00</td><td style="padding:8px 12px;border:1px solid var(--border);font-family:monospace;">0 9 * * 1-5</td><td style="padding:8px 12px;border:1px solid var(--border);">周一至周五的早上 9 点</td></tr>
-                <tr><td style="padding:8px 12px;border:1px solid var(--border);">每周一早上 8:30</td><td style="padding:8px 12px;border:1px solid var(--border);font-family:monospace;">30 8 * * 1</td><td style="padding:8px 12px;border:1px solid var(--border);">只在每周一 8:30 触发</td></tr>
-                <tr><td style="padding:8px 12px;border:1px solid var(--border);">每周五下午 5:30</td><td style="padding:8px 12px;border:1px solid var(--border);font-family:monospace;">30 17 * * 5</td><td style="padding:8px 12px;border:1px solid var(--border);">只在每周五 17:30 触发</td></tr>
-                <tr><td style="padding:8px 12px;border:1px solid var(--border);">每月 1 号上午 10:00</td><td style="padding:8px 12px;border:1px solid var(--border);font-family:monospace;">0 10 1 * *</td><td style="padding:8px 12px;border:1px solid var(--border);">每个月 1 号触发</td></tr>
-                <tr><td style="padding:8px 12px;border:1px solid var(--border);">每隔 30 分钟</td><td style="padding:8px 12px;border:1px solid var(--border);font-family:monospace;">*/30 * * * *</td><td style="padding:8px 12px;border:1px solid var(--border);">每 30 分钟跑一次</td></tr>
+                <tr><td style="padding:8px 12px;border:1px solid var(--border);">${langText('每天上午 9:00','9:00 AM every day')}</td><td style="padding:8px 12px;border:1px solid var(--border);font-family:monospace;">0 9 * * *</td><td style="padding:8px 12px;border:1px solid var(--border);">${langText('每天 9 点整触发','Trigger at 9:00 AM every day')}</td></tr>
+                <tr><td style="padding:8px 12px;border:1px solid var(--border);">${langText('每天下午 3:30','Every day at 3:30 PM')}</td><td style="padding:8px 12px;border:1px solid var(--border);font-family:monospace;">30 15 * * *</td><td style="padding:8px 12px;border:1px solid var(--border);">${langText('每天 15:30 触发','Triggers daily at 15:30')}</td></tr>
+                <tr><td style="padding:8px 12px;border:1px solid var(--border);">${langText('每个工作日（周一到周五）9:00','Every weekday (Monday to Friday) at 9:00')}</td><td style="padding:8px 12px;border:1px solid var(--border);font-family:monospace;">0 9 * * 1-5</td><td style="padding:8px 12px;border:1px solid var(--border);">${langText('周一至周五的早上 9 点','9:00 AM Monday to Friday')}</td></tr>
+                <tr><td style="padding:8px 12px;border:1px solid var(--border);">${langText('每周一早上 8:30','Every Monday at 8:30 AM')}</td><td style="padding:8px 12px;border:1px solid var(--border);font-family:monospace;">30 8 * * 1</td><td style="padding:8px 12px;border:1px solid var(--border);">${langText('只在每周一 8:30 触发','Triggers only every Monday at 8:30')}</td></tr>
+                <tr><td style="padding:8px 12px;border:1px solid var(--border);">${langText('每周五下午 5:30','Every Friday at 5:30 PM')}</td><td style="padding:8px 12px;border:1px solid var(--border);font-family:monospace;">30 17 * * 5</td><td style="padding:8px 12px;border:1px solid var(--border);">${langText('只在每周五 17:30 触发','Triggers only every Friday at 17:30')}</td></tr>
+                <tr><td style="padding:8px 12px;border:1px solid var(--border);">${langText('每月 1 号上午 10:00','10:00 AM on the 1st of every month')}</td><td style="padding:8px 12px;border:1px solid var(--border);font-family:monospace;">0 10 1 * *</td><td style="padding:8px 12px;border:1px solid var(--border);">${langText('每个月 1 号触发','Triggers on the 1st of every month')}</td></tr>
+                <tr><td style="padding:8px 12px;border:1px solid var(--border);">${langText('每隔 30 分钟','Every 30 minutes')}</td><td style="padding:8px 12px;border:1px solid var(--border);font-family:monospace;">*/30 * * * *</td><td style="padding:8px 12px;border:1px solid var(--border);">${langText('每 30 分钟跑一次','Run every 30 minutes')}</td></tr>
                 </tbody>
                 </table>
 
-                <h4 style="margin:18px 0 10px 0;color:var(--text-primary);">四、特殊符号说明</h4>
+                <h4 style="margin:18px 0 10px 0;color:var(--text-primary);">${langText('四、特殊符号说明','4. Special symbols')}</h4>
                 <table style="width:100%;border-collapse:collapse;margin:10px 0;font-size:13px;">
                 <thead>
                 <tr style="background:var(--bg);">
-                    <th style="padding:8px 12px;text-align:left;border:1px solid var(--border);">符号</th>
-                    <th style="padding:8px 12px;text-align:left;border:1px solid var(--border);">名字</th>
-                    <th style="padding:8px 12px;text-align:left;border:1px solid var(--border);">怎么用</th>
-                    <th style="padding:8px 12px;text-align:left;border:1px solid var(--border);">举例</th>
+                    <th style="padding:8px 12px;text-align:left;border:1px solid var(--border);">${langText('符号','Symbol')}</th>
+                    <th style="padding:8px 12px;text-align:left;border:1px solid var(--border);">${langText('名字','Name')}</th>
+                    <th style="padding:8px 12px;text-align:left;border:1px solid var(--border);">${langText('怎么用','How to use')}</th>
+                    <th style="padding:8px 12px;text-align:left;border:1px solid var(--border);">${langText('举例','Example')}</th>
                 </tr>
                 </thead>
                 <tbody>
-                <tr><td style="padding:8px 12px;border:1px solid var(--border);font-family:monospace;">*</td><td style="padding:8px 12px;border:1px solid var(--border);">星号（通配）</td><td style="padding:8px 12px;border:1px solid var(--border);">代表「所有可能的值」。填在小时位置就是每小时，填在日位置就是每天</td><td style="padding:8px 12px;border:1px solid var(--border);"><code>0 9 * * *</code> = 每天 9 点</td></tr>
-                <tr><td style="padding:8px 12px;border:1px solid var(--border);font-family:monospace;">,</td><td style="padding:8px 12px;border:1px solid var(--border);">逗号（列举）</td><td style="padding:8px 12px;border:1px solid var(--border);">列出多个值，用逗号隔开</td><td style="padding:8px 12px;border:1px solid var(--border);"><code>0 9,14,18 * * *</code> = 每天 9点、14点、18点各跑一次</td></tr>
-                <tr><td style="padding:8px 12px;border:1px solid var(--border);font-family:monospace;">-</td><td style="padding:8px 12px;border:1px solid var(--border);">横线（范围）</td><td style="padding:8px 12px;border:1px solid var(--border);">从 A 到 B 的所有值</td><td style="padding:8px 12px;border:1px solid var(--border);"><code>0 9 * * 1-5</code> = 周一到周五</td></tr>
-                <tr><td style="padding:8px 12px;border:1px solid var(--border);font-family:monospace;">/</td><td style="padding:8px 12px;border:1px solid var(--border);">斜杠（间隔）</td><td style="padding:8px 12px;border:1px solid var(--border);">每隔多少就触发一次</td><td style="padding:8px 12px;border:1px solid var(--border);"><code>*/15 * * * *</code> = 每 15 分钟跑一次</td></tr>
+                <tr><td style="padding:8px 12px;border:1px solid var(--border);font-family:monospace;">*</td><td style="padding:8px 12px;border:1px solid var(--border);">${langText('星号（通配）','Asterisk (wildcard)')}</td><td style="padding:8px 12px;border:1px solid var(--border);">${langText('代表「所有可能的值」。填在小时位置就是每小时，填在日位置就是每天','Means "all possible values". In the hour field it means every hour; in the day field it means every day')}</td><td style="padding:8px 12px;border:1px solid var(--border);"><code>0 9 * * *</code> =${langText('每天 9 点','Every day at 9:00')}</td></tr>
+                <tr><td style="padding:8px 12px;border:1px solid var(--border);font-family:monospace;">,</td><td style="padding:8px 12px;border:1px solid var(--border);">${langText('逗号（列举）','Comma (list)')}</td><td style="padding:8px 12px;border:1px solid var(--border);">${langText('列出多个值，用逗号隔开','List multiple values, separated by commas')}</td><td style="padding:8px 12px;border:1px solid var(--border);"><code>0 9,14,18 * * *</code> =${langText('每天 9点、14点、18点各跑一次','Runs once each day at 9:00, 14:00, and 18:00')}</td></tr>
+                <tr><td style="padding:8px 12px;border:1px solid var(--border);font-family:monospace;">-</td><td style="padding:8px 12px;border:1px solid var(--border);">${langText('横线（范围）','Dash (range)')}</td><td style="padding:8px 12px;border:1px solid var(--border);">${langText('从 A 到 B 的所有值','All values from A to B')}</td><td style="padding:8px 12px;border:1px solid var(--border);"><code>0 9 * * 1-5</code> =${langText('周一到周五','Monday to Friday')}</td></tr>
+                <tr><td style="padding:8px 12px;border:1px solid var(--border);font-family:monospace;">/</td><td style="padding:8px 12px;border:1px solid var(--border);">${langText('斜杠（间隔）','Slash (interval)')}</td><td style="padding:8px 12px;border:1px solid var(--border);">${langText('每隔多少就触发一次','Triggers at a set interval')}</td><td style="padding:8px 12px;border:1px solid var(--border);"><code>*/15 * * * *</code> =${langText('每 15 分钟跑一次','Runs every 15 minutes')}</td></tr>
                 </tbody>
                 </table>
 
-                <h4 style="margin:18px 0 10px 0;color:var(--text-primary);">五、执行时间怎么填？</h4>
-                <p>在模板中，<b>「执行时间」</b>字段不需要写 Cron 表达式，直接写时间就行：</p>
+                <h4 style="margin:18px 0 10px 0;color:var(--text-primary);">${langText('五、执行时间怎么填？','5. How do I fill in the execution time?')}</h4>
+                <p>${langText('在模板中，','In the template,')}<b>${langText('「执行时间」','Execution time')}</b>${langText('字段不需要写 Cron 表达式，直接写时间就行：','You don\'t need to write a Cron expression in this field — just write the time:')}</p>
                 <ul style="margin:4px 0;padding-left:20px;">
-                    <li>写 <code>09:00</code> — 系统会自动生成 <code>0 9 * * 1-5</code>（工作日早 9 点）</li>
-                    <li>写 <code>09:00-10:30</code> — 代表一个时间段，系统会用开始时间 09:00</li>
-                    <li>写 <code>周五 17:30</code> — 如果你在 Cron 表达式里填了覆盖值，则以 Cron 表达式为准</li>
+                    <li>${langText('写','write')}<code>09:00</code>${langText('— 系统会自动生成','The system will generate it automatically')}<code>0 9 * * 1-5</code>${langText('（工作日早 9 点）','(9:00 AM on weekdays)')}</li>
+                    <li>${langText('写','write')}<code>09:00-10:30</code>${langText('— 代表一个时间段，系统会用开始时间 09:00','represents a time period; the system will use the start time 09:00')}</li>
+                    <li>${langText('写','write')}<code>${langText('周五 17:30','Friday 17:30')}</code>${langText('— 如果你在 Cron 表达式里填了覆盖值，则以 Cron 表达式为准','If you entered an override value in the Cron expression, the Cron expression takes precedence')}</li>
                 </ul>
-                <p>如果你想精确控制，直接改右边的 <b>「Cron 表达式」</b>框。</p>
+                <p>${langText('如果你想精确控制，直接改右边的','If you want precise control, edit the one on the right directly')}<b>${langText('「Cron 表达式」','Cron expression')}</b>${langText('框。','field.')}</p>
 
-                <h4 style="margin:18px 0 10px 0;color:var(--text-primary);">六、执行 Prompt 怎么写？</h4>
-                <p>Prompt 就是告诉 Agent「你要帮我做什么」的一段话。用大白话写就行，就像你在聊天框里打字一样。</p>
-                <p><b>写好 Prompt 的 3 个要点：</b></p>
+                <h4 style="margin:18px 0 10px 0;color:var(--text-primary);">${langText('六、执行 Prompt 怎么写？','6. How to write the execution Prompt?')}</h4>
+                <p>${langText('Prompt 就是告诉 Agent「你要帮我做什么」的一段话。用大白话写就行，就像你在聊天框里打字一样。','Prompt It\'s simply a message telling the Agent "what you want it to do". Write it in plain language, just like typing in a chat box.')}</p>
+                <p><b>${langText('写好 Prompt 的 3 个要点：','3 key points for writing a good Prompt:')}</b></p>
                 <ol style="margin:4px 0;padding-left:20px;">
-                    <li><b>说清楚目标</b>：不要写「帮我查资料」，要写「帮我查今天的 USD/CNY 汇率、铜价、铝价」</li>
-                    <li><b>说清楚格式</b>：不要写「生成简报」，要写「用表格列出，包含实时数值、变化幅度、数据来源」</li>
-                    <li><b>说清楚要求</b>：不要写「写开发信」，要写「用英语写，100 字以内，先提客户痛点再讲我们的解决方案」</li>
+                    <li><b>${langText('说清楚目标','State the goal clearly')}</b>${langText('：不要写「帮我查资料」，要写「帮我查今天的 USD/CNY 汇率、铜价、铝价」','Don’t write “help me research”; write “help me check today’s USD/CNY exchange rate, copper price, and aluminum price”')}</li>
+                    <li><b>${langText('说清楚格式','Specify the format clearly')}</b>${langText('：不要写「生成简报」，要写「用表格列出，包含实时数值、变化幅度、数据来源」','Don\'t write 「generate a brief」; write 「list it in a table, including real-time values, change magnitude, and data sources」')}</li>
+                    <li><b>${langText('说清楚要求','State your requirements clearly')}</b>${langText('：不要写「写开发信」，要写「用英语写，100 字以内，先提客户痛点再讲我们的解决方案」','Don\'t write “write a cold email”; write “write in English, 100 words or fewer, mention the customer\'s pain point first, then our solution”')}</li>
                 </ol>
-                <p>💡 <b>重要提醒</b>：Prompt 要写<b>任务本身做什么</b>，不要写多余的话。Agent 会自动执行，不需要你说「请」、「谢谢」。</p>
+                <p>💡 <b>${langText('重要提醒','Important note')}</b>${langText('：Prompt 要写',': the Prompt must describe')}<b>${langText('任务本身做什么','What the task itself does')}</b>${langText('，不要写多余的话。Agent 会自动执行，不需要你说「请」、「谢谢」。',', with no extra words. The Agent runs automatically — no need to say "please" or "thank you".')}</p>
 
-                <h4 style="margin:18px 0 10px 0;color:var(--text-primary);">七、操作步骤</h4>
+                <h4 style="margin:18px 0 10px 0;color:var(--text-primary);">${langText('七、操作步骤','7. Steps')}</h4>
                 <ol style="margin:4px 0;padding-left:20px;">
-                    <li><b>钩选</b>你想要的任务模板（或点「➕ 自定义模板」写自己的）</li>
-                    <li><b>编辑执行时间</b>和<b>Cron 表达式</b>（用上面速查表参考）</li>
-                    <li>点「✏️ 编辑 Prompt」检查或修改任务指令</li>
-                    <li>点<b>「⚡ 批量生成选中任务」</b>，Agent 自动创建定时任务</li>
-                    <li>下方「📡 已激活的定时任务」会显示当前所有运行中的任务</li>
-                    <li>如果需要马上执行，点任务旁的「▶ 执行一次」按钮</li>
+                    <li><b>${langText('钩选','Check')}</b>${langText('你想要的任务模板（或点「','the task template you want (or click "')}➕${langText('自定义模板」写自己的）','Custom template” to write your own)')}</li>
+                    <li><b>${langText('编辑执行时间','Edit execution time')}</b>${langText('和','and')}<b>${langText('Cron 表达式','Cron Expression')}</b>${langText('（用上面速查表参考）','(refer to the quick-reference table above)')}</li>
+                    <li>${langText('点「','Click “')}✏️${langText('编辑 Prompt」检查或修改任务指令','“Edit Prompt” to check or modify the task instruction')}</li>
+                    <li>${langText('点','Click the')}<b>「⚡${langText('批量生成选中任务」','Batch generate selected tasks')}</b>${langText('，Agent 自动创建定时任务',', and the Agent creates the scheduled tasks automatically')}</li>
+                    <li>${langText('下方「','Below, “')}📡${langText('已激活的定时任务」会显示当前所有运行中的任务','Active scheduled tasks shows all currently running tasks')}</li>
+                    <li>${langText('如果需要马上执行，点任务旁的「','If you need to run it right away, click the')}▶${langText('执行一次」按钮','“Execute Once” button')}</li>
                 </ol>
 
-                <h4 style="margin:18px 0 10px 0;color:var(--text-primary);">八、常见问题</h4>
-                <p><b>Q: 任务会在我关掉浏览器后执行吗？</b></p>
-                <p>A: 会的。定时任务由后台服务独立运行，不需要你一直开着浏览器。只要电脑开着、Trade 系统在运行就行。</p>
-                <p><b>Q: 我能把电脑关了吗？</b></p>
-                <p>A: 不能。Trade 系统需要运行时电脑保持开机。可以设置 Trade 开机自启动（安装脚本会提示配置），这样每次开机自动运行。</p>
-                <p><b>Q: 任务执行结果在哪看？</b></p>
-                <p>A: 结果会发送到聊天界面中。如果你在早上 9 点前打开界面，可以看到早安简报自动推送。</p>
-                <p><b>Q: Cron 表达式写错了怎么办？</b></p>
-                <p>A: 不会造成损害，只是任务不会按时执行或不执行。删掉重建就行。</p>
+                <h4 style="margin:18px 0 10px 0;color:var(--text-primary);">${langText('八、常见问题','8. FAQ')}</h4>
+                <p><b>${langText('Q: 任务会在我关掉浏览器后执行吗？','Will the task run after I close the browser?')}</b></p>
+                <p>${langText('A: 会的。定时任务由后台服务独立运行，不需要你一直开着浏览器。只要电脑开着、Trade 系统在运行就行。','Yes. Scheduled tasks run independently in a background service, so you don\'t need to keep your browser open. As long as the computer is on and the Trade system is running, that\'s enough.')}</p>
+                <p><b>${langText('Q: 我能把电脑关了吗？','Can I turn off the computer?')}</b></p>
+                <p>${langText('A: 不能。Trade 系统需要运行时电脑保持开机。可以设置 Trade 开机自启动（安装脚本会提示配置），这样每次开机自动运行。','No. The Trade system needs the computer to stay on while it is running. You can set Trade to start automatically at boot (the installer will prompt you to configure this), so it runs every time you turn on the computer.')}</p>
+                <p><b>${langText('Q: 任务执行结果在哪看？','Where can I see the task execution results?')}</b></p>
+                <p>${langText('A: 结果会发送到聊天界面中。如果你在早上 9 点前打开界面，可以看到早安简报自动推送。','Results are sent to the chat interface. If you open the interface before 9:00 AM, you\'ll see the morning brief pushed automatically.')}</p>
+                <p><b>${langText('Q: Cron 表达式写错了怎么办？','Q: What if I write the Cron expression wrong?')}</b></p>
+                <p>${langText('A: 不会造成损害，只是任务不会按时执行或不执行。删掉重建就行。','No harm done — the task just won\'t run on time or at all. Just delete it and recreate it.')}</p>
 
                 </div>
             </details>
 
             <!-- 模板库 -->
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-                <div style="font-size:13px;font-weight:600;color:var(--text-secondary);">📋 任务模板库（钩选 → 编辑时间 → 批量生成）</div>
-                <button class="btn btn-xs" data-act="showAddCustomTemplateModal" style="color:var(--primary);">${btnIcon('plus')} 自定义模板</button>
+                <div style="font-size:13px;font-weight:600;color:var(--text-secondary);">📋${langText('任务模板库（钩选 → 编辑时间 → 批量生成）','Task template library (tick → edit time → bulk create)')}</div>
+                <button class="btn btn-xs" data-act="showAddCustomTemplateModal" style="color:var(--primary);">${btnIcon('plus')}${langText('自定义模板','Custom template')}</button>
             </div>
             <div class="task-grid" id="task-templates-grid">
                 ${allTemplates.map(renderCard).join('')}
@@ -219,24 +231,24 @@ function renderTasksViewInto(container) {
 
             <!-- 已激活任务 -->
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-                <div style="font-size:13px;font-weight:600;color:var(--text-secondary);">📡 已激活的定时任务</div>
-                <button class="btn btn-xs" data-act="loadActiveCronJobs">${btnIcon('refresh-cw')} 刷新</button>
+                <div style="font-size:13px;font-weight:600;color:var(--text-secondary);">📡${langText('已激活的定时任务','Active scheduled tasks')}</div>
+                <button class="btn btn-xs" data-act="loadActiveCronJobs">${btnIcon('refresh-cw')}${langText('刷新','Refresh')}</button>
             </div>
             <div class="task-grid" id="active-tasks-grid">
-                <div style="color:var(--text-muted);font-size:12px;padding:12px;">加载中...</div>
+                <div style="color:var(--text-muted);font-size:12px;padding:12px;">${langText('加载中...','Loading...')}</div>
             </div>
         </div>
     </div>`;
     loadActiveCronJobs();
 }
 
-// ── 模板操作 ──
+             
 
-// 全局编辑存储 { templateId: { time, prompt } }
+                                          
 let templateEdits = {};
 
 function onTemplateCheckChange() {
-    // 仅用于视觉反馈，实际选中状态从 checkbox 读取
+                                  
 }
 
 function onTemplateTimeChange(id, value) {
@@ -245,13 +257,13 @@ function onTemplateTimeChange(id, value) {
 }
 
 function editTemplatePrompt(id) {
-    const t = TASK_TEMPLATES.find(x => x.id === id);
+    const t = getAllTemplates().find(x => x.id === id);
     if (!t) return;
     const currentPrompt = (templateEdits[id] && templateEdits[id].prompt) || t.prompt;
     showPromptEditorModal(t.name, currentPrompt, (newPrompt) => {
         if (!templateEdits[id]) templateEdits[id] = {};
         templateEdits[id].prompt = newPrompt;
-        toast(`"${t.name}" Prompt 已更新`);
+        toast(`"${t.name}"${langText('Prompt 已更新','Prompt Updated')}`);
     });
 }
 
@@ -263,22 +275,22 @@ function showPromptEditorModal(title, currentText, onSave) {
     backdrop.innerHTML = `
     <div class="modal" style="max-width:640px;width:95%;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-            <h3>✏️ 编辑：${esc(title)}</h3>
+            <h3>✏️${langText('编辑：','Edit:')}${esc(title)}</h3>
             <button class="slide-panel-close" data-act="removeById" data-arg="prompt-editor-modal">×</button>
         </div>
         <div class="form-group">
-            <label for="prompt-editor-text">任务 Prompt（Agent 将按此指令执行）</label>
+            <label for="prompt-editor-text">${langText('任务 Prompt（Agent 将按此指令执行）','Task Prompt (the Agent will follow this instruction)')}</label>
             <textarea id="prompt-editor-text" style="width:100%;min-height:200px;font-family:monospace;font-size:13px;padding:10px;">${esc(currentText)}</textarea>
         </div>
         <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;">
-            <button class="btn" data-act="removeById" data-arg="prompt-editor-modal">取消</button>
-            <button class="btn btn-primary">${btnIcon('check')} 保存</button>
+            <button class="btn" data-act="removeById" data-arg="prompt-editor-modal">${langText('取消','Cancel')}</button>
+            <button class="btn btn-primary">${btnIcon('check')}${langText('保存','Save')}</button>
         </div>
     </div>`;
-    // 保存回调绑定
+             
     const saveBtn = backdrop.querySelector('.btn-primary');
     saveBtn.setAttribute('data-onsave', 'true');
-    // 重新绑定 onclick
+                   
     const textarea = backdrop.querySelector('#prompt-editor-text');
     saveBtn.onclick = function() {
         const newText = textarea.value;
@@ -290,7 +302,7 @@ function showPromptEditorModal(title, currentText, onSave) {
 
 function showAddCustomTemplateModal() {
     const old = document.getElementById('custom-template-modal');
-    if (old) old.remove();  // 先清理旧的，防止重复 id
+    if (old) old.remove();                  
     const backdrop = document.createElement('div');
     backdrop.className = 'modal-backdrop';
     backdrop.id = 'custom-template-modal';
@@ -298,19 +310,19 @@ function showAddCustomTemplateModal() {
     backdrop.innerHTML = `
     <div class="modal" style="max-width:600px;width:95%;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-            <h3>➕ 自定义任务模板</h3>
+            <h3>➕${langText('自定义任务模板','Custom task template')}</h3>
             <button class="slide-panel-close" data-act="removeById" data-arg="custom-template-modal">×</button>
         </div>
-        <div class="form-group"><label for="custom-tmpl-name">任务名称 *</label><input type="text" id="custom-tmpl-name" placeholder="例如：海关数据每日监控"></div>
+        <div class="form-group"><label for="custom-tmpl-name">${langText('任务名称','Task name')}*</label><input type="text" id="custom-tmpl-name" placeholder="${langText('例如：海关数据每日监控','e.g., Daily customs data monitoring')}"></div>
         <div class="form-row">
-            <div class="form-group"><label for="custom-tmpl-time">执行时间 *</label><input type="text" id="custom-tmpl-time" placeholder="09:00 或 09:00-10:30" value="09:00"></div>
-            <div class="form-group"><label for="custom-tmpl-cron">Cron 表达式</label><input type="text" id="custom-tmpl-cron" placeholder="0 9 * * 1-5" value="0 9 * * 1-5"></div>
+            <div class="form-group"><label for="custom-tmpl-time">${langText('执行时间','Execution time')}*</label><input type="text" id="custom-tmpl-time" placeholder="${langText('09:00 或 09:00-10:30','09:00 or 09:00-10:30')}" value="09:00"></div>
+            <div class="form-group"><label for="custom-tmpl-cron">${langText('Cron 表达式','Cron Expression')}</label><input type="text" id="custom-tmpl-cron" placeholder="0 9 * * 1-5" value="0 9 * * 1-5"></div>
         </div>
-        <div class="form-group"><label for="custom-tmpl-desc">任务描述</label><input type="text" id="custom-tmpl-desc" placeholder="简要描述任务内容"></div>
-        <div class="form-group"><label for="custom-tmpl-prompt">执行 Prompt *</label><textarea id="custom-tmpl-prompt" style="width:100%;min-height:150px;font-family:monospace;font-size:13px;padding:10px;" placeholder="Agent 将按此指令执行..."></textarea></div>
+        <div class="form-group"><label for="custom-tmpl-desc">${langText('任务描述','Task description')}</label><input type="text" id="custom-tmpl-desc" placeholder="${langText('简要描述任务内容','Briefly describe the task')}"></div>
+        <div class="form-group"><label for="custom-tmpl-prompt">${langText('执行 Prompt','Execute Prompt')}*</label><textarea id="custom-tmpl-prompt" style="width:100%;min-height:150px;font-family:monospace;font-size:13px;padding:10px;" placeholder="${langText('Agent 将按此指令执行...','The Agent will execute this instruction...')}"></textarea></div>
         <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;">
-            <button class="btn" data-act="removeById" data-arg="custom-template-modal">取消</button>
-            <button class="btn btn-primary" data-act="saveCustomTemplate">${btnIcon('check')} 保存模板</button>
+            <button class="btn" data-act="removeById" data-arg="custom-template-modal">${langText('取消','Cancel')}</button>
+            <button class="btn btn-primary" data-act="saveCustomTemplate">${btnIcon('check')}${langText('保存模板','Save template')}</button>
         </div>
     </div>`;
     document.body.appendChild(backdrop);
@@ -322,7 +334,7 @@ function saveCustomTemplate() {
     const cron = document.getElementById('custom-tmpl-cron').value.trim();
     const desc = document.getElementById('custom-tmpl-desc').value.trim();
     const prompt = document.getElementById('custom-tmpl-prompt').value.trim();
-    if (!name || !time || !prompt) { toast('请填写任务名称、时间和 Prompt'); return; }
+    if (!name || !time || !prompt) { toast(langText('请填写任务名称、时间和 Prompt','Enter task name, time, and Prompt')); return; }
 
     const id = 'custom-' + Date.now();
     const tpl = {id, name, time, cron, desc, prompt, custom: true};
@@ -331,8 +343,8 @@ function saveCustomTemplate() {
     customs.push(tpl);
     localStorage.setItem('trade_custom_templates', JSON.stringify(customs));
     document.getElementById('custom-template-modal').remove();
-    toast(`自定义模板「${name}」已添加`);
-    // 刷新视图
+    toast(`${langText('自定义模板「','Custom template “')}${name}${langText('」已添加','" added')}`);
+           
     const ct = currentChatContainer;
     if (ct && currentView === 'tasks') renderTasksViewInto(ct);
 }
@@ -345,7 +357,7 @@ function runSingleTemplate(id) {
 }
 
 function runSingleTask(taskName, prompt) {
-    if (!currentCompanyId) { toast('请先选择公司'); return; }
+    if (!currentCompanyId) { toast(langText('请先选择公司','Please select a company first')); return; }
     navToView('chat', 'daily', taskName);
     setTimeout(() => {
         const ct = currentChatContainer;
@@ -358,9 +370,9 @@ function runSingleTask(taskName, prompt) {
 }
 
 function batchCreateCronTasks() {
-    if (!currentCompanyId) { toast('请先选择公司'); return; }
+    if (!currentCompanyId) { toast(langText('请先选择公司','Please select a company first')); return; }
     const checks = document.querySelectorAll('.task-template-check:checked');
-    if (!checks.length) { toast('请至少选择一个任务模板'); return; }
+    if (!checks.length) { toast(langText('请至少选择一个任务模板','Please select at least one task template')); return; }
 
     const allTemplates = getAllTemplates();
     const selected = [];
@@ -371,30 +383,30 @@ function batchCreateCronTasks() {
         const time = (templateEdits[id] && templateEdits[id].time) || t.time;
         const cronExpr = t.cron || cronFromTime(time);
         const prompt = (templateEdits[id] && templateEdits[id].prompt) || t.prompt;
-        selected.push(`任务名: ${t.name} | schedule: ${cronExpr} | Prompt: ${prompt}`);
+        selected.push(`${langText('任务名:','Task name:')}${t.name} | schedule: ${cronExpr} | Prompt: ${prompt}`);
     });
 
-    navToView('chat', 'daily', '定时任务批量创建');
+    navToView('chat', 'daily', langText('定时任务批量创建','Batch create scheduled tasks'));
     setTimeout(() => {
         const ct = currentChatContainer;
         const input = ct ? ct.querySelector('#msg-input') : null;
         if (input) {
-            input.value = `请使用 cronjob 工具为我批量创建以下定时任务，所有任务使用 --deliver local：\n${selected.join('\n')}\n\n请为每个任务创建 cron job 并返回创建结果。`;
+            input.value = `${langText('请使用 cronjob 工具为我批量创建以下定时任务，所有任务使用 --deliver local：','Please use the cronjob tool to batch-create the following scheduled tasks for me; use --deliver local for all of them:')}\n${selected.join('\n')}\n\n${langText('请为每个任务创建 cron job 并返回创建结果。','Please create a cron job for each task and return the creation results.')}`;
             sendMsg();
         }
     }, 300);
 }
 
 async function clearAllCronTasks() {
-    if (!confirm('确定删除所有已激活的定时任务？此操作不可恢复。')) return;
-    navToView('chat', 'daily', '清空定时任务');
+    if (!confirm(langText('确定删除所有已激活的定时任务？此操作不可恢复。','Are you sure you want to delete all active scheduled tasks? This action cannot be undone.'))) return;
+    navToView('chat', 'daily', langText('清空定时任务','Clear scheduled tasks'));
     setTimeout(() => {
         const ct = currentChatContainer;
         const input = ct ? ct.querySelector('#msg-input') : null;
         if (input) {
-            input.value = '请使用 cronjob 工具列出并删除所有现有的 cron 定时任务。逐一删除，完成后告知结果。';
+            input.value = langText('请使用 cronjob 工具列出并删除所有现有的 cron 定时任务。逐一删除，完成后告知结果。','Please use the cronjob tool to list and delete all existing cron scheduled tasks. Delete them one by one and report the result when done.');
             sendMsg();
-            // 刷新列表
+                   
             setTimeout(loadActiveCronJobs, 5000);
         }
     }, 300);
@@ -406,19 +418,19 @@ async function loadActiveCronJobs() {
     const grid = document.getElementById('active-tasks-grid');
     if (!grid) return;
     if (!data || !data.length) {
-        grid.innerHTML = '<div style="color:var(--text-muted);font-size:12px;padding:12px;">暂无已激活的定时任务。请从上方模板库钩选后点击「批量生成」。</div>';
+        grid.innerHTML = langText('暂无已激活的定时任务。请从上方模板库钩选后点击「批量生成」。','No active scheduled tasks yet. Select from the template library above and click “Batch generate”.');
         return;
     }
     grid.innerHTML = data.map(j => `
         <div class="task-card">
             <div class="task-card-header">
                 <span class="task-card-name">${esc(j.name)}</span>
-                <span style="font-size:10px;color:${j.enabled ? 'var(--accent-green)' : 'var(--text-muted)'};">${j.enabled ? '● 运行中' : '○ 已暂停'}</span>
+                <span style="font-size:10px;color:${j.enabled ? 'var(--accent-green)' : 'var(--text-muted)'};">${j.enabled ? '●' + langText('运行中','Running') : '○' + langText('已暂停','Paused')}</span>
             </div>
             <div class="task-card-schedule">🕐 ${esc(j.schedule)}</div>
-            ${j.next_run ? `<div style="font-size:11px;color:var(--accent-green);margin-bottom:6px;">▶ 下次执行：${esc(j.next_run)}</div>` : ''}
+            ${j.next_run ? `<div style="font-size:11px;color:var(--accent-green);margin-bottom:6px;">${esc(langText('▶ 下次执行：','▶ Next run:'))}${esc(j.next_run)}</div>` : ''}
             <div class="task-card-actions">
-                <button data-act="runActiveJob" data-arg="${esc(j.id)}">▶ 立即执行</button>
+                <button data-act="runActiveJob" data-arg="${esc(j.id)}">▶${langText('立即执行','Run now')}</button>
             </div>
         </div>
     `).join('');
@@ -426,20 +438,20 @@ async function loadActiveCronJobs() {
 
 function runActiveJob(jobId) {
     if (!currentCompanyId) return;
-    navToView('chat', 'daily', '立即执行任务');
+    navToView('chat', 'daily', langText('立即执行任务','Run Task Now'));
     setTimeout(() => {
         const ct = currentChatContainer;
         const input = ct ? ct.querySelector('#msg-input') : null;
         if (input) {
-            input.value = `请使用 cronjob 工具手动触发一次任务 ID ${jobId}，将结果输出到当前对话。`;
+            input.value = `${langText('请使用 cronjob 工具手动触发一次任务 ID','Please use the cronjob tool to manually trigger once, task ID')}${jobId}${langText('，将结果输出到当前对话。',', and output the result to the current conversation.')}`;
             sendMsg();
         }
     }, 300);
 }
 
 function cronFromTime(timeStr) {
-    // 将 "09:00" 或 "09:00-10:30" 转换为 cron 表达式
-    const first = timeStr.split('-')[0].trim(); // "09:00"
+                                             
+    const first = timeStr.split('-')[0].trim();           
     const parts = first.split(':');
     if (parts.length !== 2) return '0 9 * * 1-5';
     const h = parseInt(parts[0]), m = parseInt(parts[1]);
