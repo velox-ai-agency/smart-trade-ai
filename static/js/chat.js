@@ -517,7 +517,8 @@ function _renderRailTodos() {
         esc(t('todo.placeholder')) + '">' +
         '<div class="todo-add-row">' +
         '<input type="date" id="todo-add-due" aria-label="' + esc(t('todo.due')) + '">' +
-        '<input type="text" id="todo-add-reason" maxlength="300" placeholder="原因（可选）">' +
+        '<input type="text" id="todo-add-reason" maxlength="300" placeholder="' +
+        esc(langText('原因（可选）', 'Reason (optional)')) + '">' +
         '<select id="todo-add-customer" aria-label="' + esc(t('todo.customer')) + '">' +
         '<option value="">' + esc(t('todo.no_customer')) + '</option></select>' +
         '<button type="button" class="btn btn-xs primary" id="todo-add-save">' +
@@ -1103,7 +1104,7 @@ function addMsg(role, content, files, save, convId, blocks, timeStr) {
             const ratingDiv = document.createElement('div');
             ratingDiv.className = 'msg-rating';
             ratingDiv.style.cssText = 'display:flex;align-items:center;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border-light);';
-            ratingDiv.innerHTML = '<span style="font-size:11px;color:var(--text-muted);">'+(currentLang==='en'?'Rate this reply: ':'评价此回复：')+'</span>'
+            ratingDiv.innerHTML = '<span style="font-size:11px;color:var(--text-muted);">'+langText('评价此回复：', 'Rate this reply: ')+'</span>'
                 + '<button class="rating-btn" data-r="👍" style="border:1px solid #D1D5DB;border-radius:4px;padding:2px 8px;font-size:13px;cursor:pointer;background:#fff;">👍</button>'
                 + '<button class="rating-btn" data-r="👎" style="border:1px solid #D1D5DB;border-radius:4px;padding:2px 8px;font-size:13px;cursor:pointer;background:#fff;">👎</button>';
             body.appendChild(ratingDiv);
@@ -1115,7 +1116,7 @@ function addMsg(role, content, files, save, convId, blocks, timeStr) {
                         var rated = await api('POST', '/api/trade/conversations/' + convIdForRating + '/rate', { rating: rVal, feedback: '' });
                         // 失败时 api() 已 toast 原因；评分没存上，不能显示"感谢反馈"
                         if (!rated) return;
-                        ratingDiv.innerHTML = '<span style="font-size:11px;color:var(--accent-green);">✅ '+(currentLang==='en'?'Thanks for feedback':'感谢反馈')+'</span>';
+                        ratingDiv.innerHTML = '<span style="font-size:11px;color:var(--accent-green);">✅ '+langText('感谢反馈', 'Thanks for feedback')+'</span>';
                     });
                 });
         }
@@ -1425,7 +1426,7 @@ function _chatLinkCustomer(c) {
     currentCustomerId = c.id;
     _chatLinkedName = c.name || ('#' + c.id);
     _renderChatLinkedChip();
-    toast((currentLang === 'en' ? 'Linked customer: ' : '已关联客户：') + _chatLinkedName);
+    toast(langText('已关联客户：', 'Linked customer: ') + _chatLinkedName);
 }
 
 function _renderChatLinkedChip(root) {
@@ -1536,7 +1537,20 @@ const TOOL_NAMES = {
     memory_retain:'💾 保存',execute_code:'💻 代码',terminal:'🖥️ 终端',
     delegate_task:'🤖 委派',vision:'👁️ 图像',skill_load:'📦 技能',
 };
-function fmtTool(name) { return TOOL_NAMES[name] || `🔧 ${name.replace(/_/g,' ')}`; }
+// 界面只显示英文或阿拉伯语：TOOL_NAMES 里的中文只是 JS_TERMS 的查表 key。
+// （原先直接把中文 label 塞进等待界面，英文/阿拉伯语界面都显示「搜索文件」。）
+function uiTerm(zh) {
+    let dict = null;
+    try { if (typeof JS_TERMS !== 'undefined') dict = JS_TERMS[zh]; } catch (_) {}
+    if (!dict) return zh;
+    const lang = (typeof currentLang !== 'undefined') ? currentLang : 'en';
+    return dict[lang] || dict.en || dict.ar || zh;
+}
+function fmtTool(name) {
+    const zh = TOOL_NAMES[name];
+    if (zh) return uiTerm(zh);
+    return `🔧 ${name.replace(/_/g, ' ')}`;
+}
 
 async function sendMsg() {
     if (!currentCompanyId) { toast('请先选择公司'); return; }
@@ -1588,7 +1602,7 @@ async function sendMsg() {
         if (typeof TradeWait !== 'undefined') {
             wait = TradeWait.mount(progBody, {
                 mode: 'chat',
-                title: 'TRADE · ASSISTANT  ///  等待回复',
+                title: uiTerm('TRADE · ASSISTANT  ///  等待回复'),
                 onCancel: function () { streamCtl.abort(); },
             });
         }
@@ -1736,8 +1750,13 @@ async function sendMsg() {
                             const note = document.createElement('div'); note.className='thinking-msg';
                             const ok = data.status === 'complete';
                             note.style.cssText = 'font-size:12px;color:'+(ok?'var(--text-muted)':'var(--accent-red)')+';padding:4px 0;';
-                            note.textContent = (ok ? '✓ 已完整读取 ' : '⚠ 完整读取未通过，已完整读取 ') + files + ' 个文件'
-                                + (skipped.length ? '；未纳入：' + skipped.map(function(s){return s.file;}).join(', ') : '');
+                            note.textContent = (ok
+                                ? langText('✓ 已完整读取 ', '✓ Read in full: ')
+                                : langText('⚠ 完整读取未通过，已完整读取 ', '⚠ Full read check failed; read: ')) + files
+                                + langText(' 个文件', ' file(s)')
+                                + (skipped.length
+                                    ? langText('；未纳入：', '; excluded: ') + skipped.map(function(s){return s.file;}).join(', ')
+                                    : '');
                             if (data.coverage_note) {
                                 const cap = document.createElement('div');
                                 cap.className = 'thinking-msg';
@@ -2054,7 +2073,8 @@ function _ensureDock() {
         parts.root.dataset.bound = '1';
         parts.toggle.addEventListener('click', function () {
             parts.root.classList.toggle('is-collapsed');
-            parts.toggle.textContent = parts.root.classList.contains('is-collapsed') ? '展开' : '收起';
+            parts.toggle.textContent = parts.root.classList.contains('is-collapsed')
+                ? langText('展开', 'Expand') : langText('收起', 'Collapse');
         });
         window.addEventListener('resize', function () {
             if (!parts.root.classList.contains('hidden')) _positionOsintDock(parts.root);
@@ -2068,9 +2088,18 @@ function _jobShortName(target) {
     return String(target || '').replace(/^(?:domain:|company:|公司:|person:|username:)/, '');
 }
 
-function _osintStatusZh(status) {
-    const map = {queued: '排队中', running: '进行中', done: '已完成', failed: '失败', cancelled: '已取消', partial: '未完成'};
-    return map[status] || '进行中';
+// 中文只作 langText 的查表 key；界面输出的永远是英文/阿拉伯语。
+const _OSINT_STATUS_TEXT = {
+    queued: ['排队中', 'Queued'],
+    running: ['进行中', 'Running'],
+    done: ['已完成', 'Done'],
+    failed: ['失败', 'Failed'],
+    cancelled: ['已取消', 'Cancelled'],
+    partial: ['未完成', 'Partial'],
+};
+function _osintStatusText(status) {
+    const row = _OSINT_STATUS_TEXT[status] || _OSINT_STATUS_TEXT.running;
+    return langText(row[0], row[1]);
 }
 
 function _updateDock() {
@@ -2088,15 +2117,17 @@ function _updateDock() {
         total += srcs.length;
         done += srcs.filter(function (s) { return s.status !== 'running'; }).length;
     });
-    parts.title.textContent = '后台任务 · ' + items.length + ' 项';
+    parts.title.textContent = langText('后台任务 · ', 'Background tasks · ') + items.length
+        + langText(' 项', ' item(s)');
     if (running.length) {
         // 只用真实 source_start / source_done 计数
-        parts.sub.textContent = '采集中 ' + done + ' / ' + total + ' · ' + running.length + ' 项进行中';
+        parts.sub.textContent = langText('采集中 ', 'Collecting ') + done + ' / ' + total + ' · '
+            + running.length + langText(' 项进行中', ' running');
     } else if (_chatStreamActive > 0) {
         // 采集完了但答复还在生成：明确说出来，避免“动画结束=背调结束”的误判
-        parts.sub.textContent = '采集完成，正在生成回复…';
+        parts.sub.textContent = langText('采集完成，正在生成回复…', 'Collection done, writing the reply…');
     } else {
-        parts.sub.textContent = '全部完成';
+        parts.sub.textContent = langText('全部完成', 'All done');
     }
 
     items.forEach(function (p) {
@@ -2104,7 +2135,7 @@ function _updateDock() {
         p.tab.classList.toggle('is-bad', p.status === 'failed' || p.status === 'cancelled');
         p.tab.classList.toggle('is-active', String(_osintActiveJobId) === String(p.jobId));
         const st = p.tab.querySelector('.st');
-        if (st) st.textContent = _osintStatusZh(p.status);
+        if (st) st.textContent = _osintStatusText(p.status);
     });
 
     // 全部结束后：没有聊天在生成就自动收起（先保留 3 秒让用户看到结论）
@@ -2160,10 +2191,10 @@ function _attachOsintTaskPanel(_container, job) {
     const tab = document.createElement('button');
     tab.type = 'button';
     tab.className = 'wd-tab';
-    tab.textContent = target || ('任务 ' + jobId);
+    tab.textContent = target || (langText('任务 ', 'Task ') + jobId);
     const st = document.createElement('span');
     st.className = 'st';
-    st.textContent = '进行中';
+    st.textContent = langText('进行中', 'Running');
     tab.appendChild(st);
     tab.addEventListener('click', function () { _selectOsintJob(jobId); });
     parts.tabs.appendChild(tab);
@@ -2177,8 +2208,8 @@ function _attachOsintTaskPanel(_container, job) {
     try {
         wait = TradeWait.mount(wrap, {
             mode: 'task',
-            title: '背调 · BACKGROUND CHECK',
-            statusLabel: '背调进行中',
+            title: langText('背调 · BACKGROUND CHECK', 'BACKGROUND CHECK'),
+            statusLabel: langText('背调进行中', 'Background check running'),
             onCancel: function () { _cancelOsintJob(jobId); },
         });
     } catch (e) {

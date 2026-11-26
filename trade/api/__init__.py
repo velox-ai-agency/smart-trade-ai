@@ -29,7 +29,6 @@ from trade.api.onboarding import router as onboarding_router
 from trade.api.orders import router as orders_router
 from trade.api.osint_jobs import router as osint_jobs_router
 from trade.api.profile import router as profile_router
-from trade.api.start import router as start_router
 from trade.api.templates import router as templates_router
 from trade.api.todos import router as todos_router
 from trade.api.transfer import router as transfer_router
@@ -99,7 +98,6 @@ router = APIRouter(
 # 按业务域挂载子路由
 router.include_router(companies_router)
 router.include_router(onboarding_router)
-router.include_router(start_router)
 router.include_router(orders_router)
 router.include_router(libraries_router)
 router.include_router(customers_router)

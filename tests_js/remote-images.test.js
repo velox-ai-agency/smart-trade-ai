@@ -13,7 +13,7 @@ function load() {
   return loadRegion(
     'remote-images',
     '{ _isRemoteImageSrc: _isRemoteImageSrc, neutralizeRemoteImages: neutralizeRemoteImages }',
-    { location: { origin: ORIGIN, href: ORIGIN + '/trade' } },
+    { location: { origin: ORIGIN, href: ORIGIN + '/trade' }, langText: (zh, en) => en, currentLang: 'en' },
   );
 }
 

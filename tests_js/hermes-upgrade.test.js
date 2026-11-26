@@ -48,7 +48,9 @@ function loadPanel(fetchStub) {
     const api = loadRegion(
         'hermes-upgrade',
         '{ HERMES_UPGRADE_TEXT: HERMES_UPGRADE_TEXT, applyHermesUpgradeState: applyHermesUpgradeState, renderHermesUpgradeSteps: renderHermesUpgradeSteps, showHermesUpgradePanel: showHermesUpgradePanel, _redactHermesLine: _redactHermesLine, appendHermesUpgradeLog: appendHermesUpgradeLog }',
-        { document: dom.document, $: dom.$, TOKEN: 'tok', toast: () => {}, fetch: fetch_, _waitForRestartAndReload: () => {} },
+        { document: dom.document, $: dom.$, TOKEN: 'tok', toast: () => {}, fetch: fetch_, _waitForRestartAndReload: () => {},
+          // 面板文案走 langText(zh, en)；测试里锁定英文，等价于默认语言
+          langText: (zh, en) => en, currentLang: 'en' },
     );
     return { api, nodes: dom.nodes, calls };
 }
@@ -94,8 +96,8 @@ test('没有具体说明时回落到该状态的通用文案', () => {
 
     api.applyHermesUpgradeState({ status: 'offline', message: '' });
 
-    assert.strictEqual(nodes['hermes-upgrade-title'].textContent, '需要先开启代理');
-    assert.ok(nodes['hermes-upgrade-message'].textContent.includes('代理'));
+    assert.strictEqual(nodes['hermes-upgrade-title'].textContent, 'Turn on your VPN first');
+    assert.ok(nodes['hermes-upgrade-message'].textContent.includes('VPN'));
 });
 
 test('升级中不给按钮；失败给重试；成功给手动重启', () => {
@@ -110,14 +112,14 @@ test('升级中不给按钮；失败给重试；成功给手动重启', () => {
         api.applyHermesUpgradeState({ status });
         const buttons = nodes['hermes-upgrade-actions'].children;
         assert.strictEqual(buttons.length, 1, `${status} 应该有重试按钮`);
-        assert.strictEqual(buttons[0].textContent, '重试升级');
+        assert.strictEqual(buttons[0].textContent, 'Retry upgrade');
     }
     // done：Hermes 升级成功不再自动重启，给一个手动重启按钮
     const { api, nodes } = loadPanel();
     api.applyHermesUpgradeState({ status: 'done' });
     const buttons = nodes['hermes-upgrade-actions'].children;
     assert.strictEqual(buttons.length, 1, 'done 应给手动重启按钮');
-    assert.strictEqual(buttons[0].textContent, '重启 Trade');
+    assert.strictEqual(buttons[0].textContent, 'Restart Trade');
 });
 
 test('升级步骤渲染出可复制的完整命令', () => {
@@ -188,7 +190,7 @@ test('rebuild 场景不启动进度流，标题保持"重建运行环境"', () =
         upgrade: { status: 'idle', running: false },
     });
 
-    assert.strictEqual(nodes['hermes-upgrade-title'].textContent, 'Trade 需要重建运行环境');
+    assert.strictEqual(nodes['hermes-upgrade-title'].textContent, 'Trade needs a runtime rebuild');
     // 关键：一条流请求都不该发出 —— 发出去了就会被 idle 盖掉
     assert.deepStrictEqual(calls, [], `重建场景不该开进度流，却请求了 ${calls}`);
 });
@@ -217,7 +219,7 @@ test('rebuild_needed 给「开始重建」按钮，其它状态不给', () => {
     api.applyHermesUpgradeState({ status: 'rebuild_needed' });
     const buttons = nodes['hermes-upgrade-actions'].children;
     assert.strictEqual(buttons.length, 1, 'rebuild_needed 应该有一个按钮');
-    assert.strictEqual(buttons[0].textContent, '开始重建');
+    assert.strictEqual(buttons[0].textContent, 'Start rebuild');
 
     // 其它状态不该冒出这个按钮 —— 尤其 rebuilding：那时服务已经停了，
     // 再给一个可点的按钮只会让用户反复点（而每次都什么也不会发生）
@@ -225,7 +227,7 @@ test('rebuild_needed 给「开始重建」按钮，其它状态不给', () => {
         const s = loadPanel();
         s.api.applyHermesUpgradeState({ status });
         const texts = s.nodes['hermes-upgrade-actions'].children.map((b) => b.textContent);
-        assert.ok(!texts.includes('开始重建'), `${status} 不该有「开始重建」按钮`);
+        assert.ok(!texts.includes('Start rebuild'), `${status} 不该有「开始重建」按钮`);
     }
 });
 
@@ -251,6 +253,7 @@ function loadRebuild({ confirmResult, fetchImpl }) {
             fetch: (url) => { calls.push(String(url)); return fetchImpl(); },
             _waitForRestartAndReload: (onTimeout, maxSeconds) => { api._waitedSeconds = maxSeconds; },
             toast: () => {},
+            langText: (zh, en) => en, currentLang: 'en',
         },
     );
     return { api, nodes: dom.nodes, calls };
@@ -374,7 +377,7 @@ test('install_hermes 场景显示安装引导，不启动进度流', () => {
         upgrade: { status: 'idle', running: false },
     });
 
-    assert.strictEqual(nodes['hermes-upgrade-title'].textContent, '未安装 Hermes（AI 引擎）');
+    assert.strictEqual(nodes['hermes-upgrade-title'].textContent, 'Hermes (the AI engine) is not installed');
     // 安装场景后端没有升级任务：开流会被首个 idle 事件盖掉文案
     assert.deepStrictEqual(calls, [], `安装场景不该开进度流，却请求了 ${calls}`);
     // 安装步骤必须渲染出来（照着做就能恢复）

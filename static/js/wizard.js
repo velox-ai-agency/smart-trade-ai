@@ -34,93 +34,102 @@ function showWizardInLeadView() {
 }
 
 function wizardRenderStep1() {
+    var step = langText('卖什么', 'WHAT YOU SELL');
+    var next1 = langText('卖到哪', 'WHERE TO');
+    var next2 = langText('找谁', 'WHO TO');
     return `<div class="onboarding-card" style="margin:0 auto;max-width:580px;">
         <div class="onboarding-step-indicator">
-            <span class="onb-step active">● 卖什么</span><span class="onb-step-arrow">→</span>
-            <span class="onb-step">○ 卖到哪</span><span class="onb-step-arrow">→</span>
-            <span class="onb-step">○ 找谁</span>
+            <span class="onb-step active">● ${esc(step)}</span><span class="onb-step-arrow">→</span>
+            <span class="onb-step">○ ${esc(next1)}</span><span class="onb-step-arrow">→</span>
+            <span class="onb-step">○ ${esc(next2)}</span>
         </div>
-        <h2 class="onboarding-title" style="font-size:20px;">先告诉我：你卖什么产品？</h2>
+        <h2 class="onboarding-title" style="font-size:20px;">${esc(langText('先告诉我：你卖什么产品？', 'First: what do you sell?'))}</h2>
         <p style="text-align:center;color:var(--text-secondary);font-size:14px;margin-bottom:16px;">
-            随便说就行，"LED灯""五金""纺织品"都可以</p>
+            ${esc(langText('随便说就行，“LED灯”“五金”“纺织品”都可以', 'Plain words are fine — "LED lights", "hardware", "textiles".'))}</p>
         <div class="onboarding-input-row">
-            <input type="text" id="wizard-product-input" placeholder="例如：LED工矿灯、不锈钢螺丝、全棉T恤..."
+            <input type="text" id="wizard-product-input" placeholder="${esc(langText('例如：LED工矿灯、不锈钢螺丝、全棉T恤...', 'e.g. LED high-bay light, stainless screws, cotton T-shirts…'))}"
                 class="onboarding-text-input"
                 data-enter="wizardNext" autofocus />
         </div>
-        <button class="btn btn-primary btn-lg" data-act="wizardNext">下一步：卖到哪里去？ →</button>
+        <button class="btn btn-primary btn-lg" data-act="wizardNext">${esc(langText('下一步：卖到哪里去？ →', 'Next: where do you sell? →'))}</button>
         <div class="onboarding-skip" style="display:flex;justify-content:flex-end;">
-            <a data-act="wizardClose" title="跳过向导">跳过向导</a>
+            <a data-act="wizardClose" title="${esc(langText('跳过向导', 'Skip the wizard'))}">${esc(langText('跳过向导', 'Skip'))}</a>
         </div>
     </div>`;
 }
 
 function wizardRenderStep2() {
+    var step = langText('卖什么', 'WHAT YOU SELL');
+    var step2 = langText('卖到哪', 'WHERE TO');
+    var step3 = langText('找谁', 'WHO TO');
     return `<div class="onboarding-card" style="margin:0 auto;max-width:580px;">
         <div class="onboarding-step-indicator">
-            <span class="onb-step done">✓ 卖什么</span><span class="onb-step-arrow">→</span>
-            <span class="onb-step active">● 卖到哪</span><span class="onb-step-arrow">→</span>
-            <span class="onb-step">○ 找谁</span>
+            <span class="onb-step done">✓ ${esc(step)}</span><span class="onb-step-arrow">→</span>
+            <span class="onb-step active">● ${esc(step2)}</span><span class="onb-step-arrow">→</span>
+            <span class="onb-step">○ ${esc(step3)}</span>
         </div>
-        <h2 class="onboarding-title" style="font-size:20px;">想卖到哪个国家或地区？</h2>
+        <h2 class="onboarding-title" style="font-size:20px;">${esc(langText('想卖到哪个国家或地区？', 'Which country or region do you want to sell to?'))}</h2>
         <p style="text-align:center;color:var(--text-secondary);font-size:14px;margin-bottom:16px;">
-            比如"德国""美国""中东""东南亚"，可以写多个</p>
+            ${esc(langText('比如“德国”“美国”“中东”“东南亚”，可以写多个', 'e.g. Germany, USA, the Middle East, Southeast Asia — several are fine.'))}</p>
         <div class="onboarding-input-row">
-            <input type="text" id="wizard-market-input" placeholder="例如：德国、美国、中东..."
+            <input type="text" id="wizard-market-input" placeholder="${esc(langText('例如：德国、美国、中东...', 'e.g. Germany, USA, Middle East…'))}"
                 class="onboarding-text-input"
                 data-enter="wizardNext" autofocus />
         </div>
-        <button class="btn btn-primary btn-lg" data-act="wizardNext">下一步：找什么类型？ →</button>
+        <button class="btn btn-primary btn-lg" data-act="wizardNext">${esc(langText('下一步：找什么类型？ →', 'Next: which buyer type? →'))}</button>
         <div class="onboarding-skip" style="display:flex;justify-content:space-between;">
-            <a data-act="wizardBack">← 返回修改</a>
-            <a data-act="wizardClose">跳过向导</a>
+            <a data-act="wizardBack">${esc(langText('← 返回修改', '← Back'))}</a>
+            <a data-act="wizardClose">${esc(langText('跳过向导', 'Skip'))}</a>
         </div>
     </div>`;
 }
 
 function wizardRenderStep3() {
+    var step = langText('卖什么', 'WHAT YOU SELL');
+    var step2 = langText('卖到哪', 'WHERE TO');
+    var step3 = langText('找谁', 'WHO TO');
     return `<div class="onboarding-card" style="margin:0 auto;max-width:580px;">
         <div class="onboarding-step-indicator">
-            <span class="onb-step done">✓ 卖什么</span><span class="onb-step-arrow">→</span>
-            <span class="onb-step done">✓ 卖到哪</span><span class="onb-step-arrow">→</span>
-            <span class="onb-step active">● 找谁</span>
+            <span class="onb-step done">✓ ${esc(step)}</span><span class="onb-step-arrow">→</span>
+            <span class="onb-step done">✓ ${esc(step2)}</span><span class="onb-step-arrow">→</span>
+            <span class="onb-step active">● ${esc(step3)}</span>
         </div>
-        <h2 class="onboarding-title" style="font-size:20px;">想找什么类型的客户？</h2>
+        <h2 class="onboarding-title" style="font-size:20px;">${esc(langText('想找什么类型的客户？', 'Which buyer type are you after?'))}</h2>
         <div class="wizard-choice-row">
             <button class="wizard-choice-btn" data-act="wizardSelectType" data-arg="distributor" data-from="this">
                 <span class="wc-icon">📦</span>
                 <div class="wc-text">
-                    <div class="wc-title">批发商 / 分销商</div>
-                    <div class="wc-desc">大量采购再分销到本地市场</div>
+                    <div class="wc-title">${esc(langText('批发商 / 分销商', 'Wholesaler / Distributor'))}</div>
+                    <div class="wc-desc">${esc(langText('大量采购再分销到本地市场', 'Buys in volume and resells locally'))}</div>
                 </div>
             </button>
             <button class="wizard-choice-btn" data-act="wizardSelectType" data-arg="oem" data-from="this">
                 <span class="wc-icon">🏭</span>
                 <div class="wc-text">
-                    <div class="wc-title">品牌商 / OEM 工厂</div>
-                    <div class="wc-desc">贴牌生产，长期大单</div>
+                    <div class="wc-title">${esc(langText('品牌商 / OEM 工厂', 'Brand / OEM factory'))}</div>
+                    <div class="wc-desc">${esc(langText('贴牌生产，长期大单', 'Private label, large long-term orders'))}</div>
                 </div>
             </button>
             <button class="wizard-choice-btn" data-act="wizardSelectType" data-arg="retailer" data-from="this">
                 <span class="wc-icon">🏪</span>
                 <div class="wc-text">
-                    <div class="wc-title">零售商 / 连锁店</div>
-                    <div class="wc-desc">小批量多频次采购</div>
+                    <div class="wc-title">${esc(langText('零售商 / 连锁店', 'Retailer / Chain store'))}</div>
+                    <div class="wc-desc">${esc(langText('小批量多频次采购', 'Small orders, frequent reorders'))}</div>
                 </div>
             </button>
             <button class="wizard-choice-btn" data-act="wizardSelectType" data-arg="any" data-from="this">
                 <span class="wc-icon">🌍</span>
                 <div class="wc-text">
-                    <div class="wc-title">都行，帮我一起找</div>
-                    <div class="wc-desc">让 AI 自动判断最合适的类型</div>
+                    <div class="wc-title">${esc(langText('都行，帮我一起找', 'Any — find them all'))}</div>
+                    <div class="wc-desc">${esc(langText('让 AI 自动判断最合适的类型', 'Let the AI pick the best fit'))}</div>
                 </div>
             </button>
         </div>
         <button class="btn btn-primary btn-lg wizard-launch-btn" id="wizard-launch-btn" disabled
-            data-act="wizardLaunch">${btnIcon('target')} 开始找客户！</button>
+            data-act="wizardLaunch">${btnIcon('target')} ${esc(langText('开始找客户！', 'Find customers'))}</button>
         <div class="onboarding-skip" style="display:flex;justify-content:space-between;">
-            <a data-act="wizardBack">← 返回修改</a>
-            <a data-act="wizardClose">跳过向导</a>
+            <a data-act="wizardBack">${esc(langText('← 返回修改', '← Back'))}</a>
+            <a data-act="wizardClose">${esc(langText('跳过向导', 'Skip'))}</a>
         </div>
     </div>`;
 }
@@ -178,16 +187,24 @@ function wizardClose() {
 
 async function wizardLaunch() {
     var a = _wizardAnswers;
-    var typeNames = { distributor: '批发商/分销商', oem: '品牌商/OEM工厂', retailer: '零售商/连锁店', any: '所有类型' };
+    var typeNames = {
+        distributor: langText('批发商/分销商', 'wholesaler/distributor'),
+        oem: langText('品牌商/OEM工厂', 'brand/OEM factory'),
+        retailer: langText('零售商/连锁店', 'retailer/chain store'),
+        any: langText('所有类型', 'any buyer type'),
+    };
     var typeName = typeNames[a.customerType] || a.customerType;
-    var promptText = '帮我找客户。产品=' + a.product + '，市场=' + a.market + '，客户类型=' + typeName;
+    var promptText = langText('帮我找客户。产品=', 'Find customers for me. Product=')
+        + a.product
+        + langText('，市场=', ', market=') + a.market
+        + langText('，客户类型=', ', buyer type=') + typeName;
 
     _wizardStep = 4;
     updateWizardCard(`<div class="onboarding-card" style="margin:0 auto;max-width:580px;text-align:center;">
         <div class="onboarding-icon">🔍</div>
-        <h2 class="onboarding-title">正在帮你找客户...</h2>
+        <h2 class="onboarding-title">${esc(langText('正在帮你找客户...', 'Finding customers…'))}</h2>
         <p style="text-align:center;color:var(--text-secondary);font-size:14px;margin-bottom:8px;">
-            自动多通道搜索中，请稍候</p>
+            ${esc(langText('自动多通道搜索中，请稍候', 'Searching several channels — one moment.'))}</p>
         <div style="width:60px;height:4px;background:var(--border-light);border-radius:2px;margin:0 auto;overflow:hidden;">
             <div style="width:30%;height:100%;background:var(--primary);border-radius:2px;animation:wizardProgress 1.5s ease-in-out infinite;"></div>
         </div>

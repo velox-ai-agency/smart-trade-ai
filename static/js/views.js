@@ -463,20 +463,20 @@ function renderDirectoryViewInto(container) {
     const coName = currentCompanyId ? (companies.find(c => c.id === currentCompanyId)?.name || '') : '';
     container.innerHTML = `
         <div class="panel-topbar">
-            <h2>📂 数据目录${coName ? `<span style="margin-left:10px;padding:3px 10px;background:rgba(59,130,246,0.08);color:var(--primary);border-radius:999px;font-size:12px;font-weight:500;">🏢 ${esc(coName)}</span>` : ''}</h2>
+            <h2>📂 ${esc(langText('数据目录', 'Data directory'))}${coName ? `<span style="margin-left:10px;padding:3px 10px;background:rgba(59,130,246,0.08);color:var(--primary);border-radius:999px;font-size:12px;font-weight:500;">🏢 ${esc(coName)}</span>` : ''}</h2>
             <div class="panel-topbar-actions">
-                <button class="btn" data-act="toastArg" data-arg="功能开发中：将在文件管理器中打开">${btnIcon('folder-open')} 打开目录</button>
+                <button class="btn" data-act="toastArg" data-arg="${esc(langText('功能开发中：将在文件管理器中打开', 'Coming soon: open in your file manager'))}">${btnIcon('folder-open')} ${esc(langText('打开目录', 'Open folder'))}</button>
             </div>
         </div>
         <div class="panel-body" style="display:flex;gap:16px;">
             <div style="width:320px;flex-shrink:0;">
                 <div class="dir-tree" id="dir-tree">
-                    <div class="loading-row"><div class="spinner"></div>加载目录结构...</div>
+                    <div class="loading-row"><div class="spinner"></div>${esc(langText('加载目录结构...', 'Loading the folder tree…'))}</div>
                 </div>
             </div>
             <div style="flex:1;">
                 <div class="file-preview" id="file-preview">
-                    <div style="color:var(--text-muted);text-align:center;padding:40px;">👈 点击左侧文件查看内容</div>
+                    <div style="color:var(--text-muted);text-align:center;padding:40px;">👈 ${esc(langText('点击左侧文件查看内容', 'Pick a file on the left to preview it'))}</div>
                 </div>
             </div>
         </div>`;
@@ -551,7 +551,7 @@ function renderTreeItems(items, depth) {
 
 function previewFile(name) {
     $('file-preview').innerHTML = `<div class="file-preview-header"><h3>📄 ${esc(name)}</h3></div>
-        <p style="color:var(--text-muted);">文件内容通过 Agent 对话中的 read_file 工具访问。在侧边栏中选择对应功能入口后，Agent 会自动读取相关文件。</p>`;
+        <p style="color:var(--text-muted);">${esc(langText('文件内容通过 Agent 对话中的 read_file 工具访问。在侧边栏中选择对应功能入口后，Agent 会自动读取相关文件。', 'File contents are read through the read_file tool in the Agent chat. Pick the matching entry in the sidebar and the Agent loads the files for you.'))}</p>`;
 }
 
 // ═════════════════════ HISTORY VIEW ═════════════════════
@@ -653,7 +653,7 @@ function showConversationDetail(cid) {
         currentChatContext = 'daily';
     }
     currentLibraryId = c.library_id || null;
-    currentChatName = '对话详情';
+    currentChatName = langText('对话详情', 'Conversation');
     currentCustomerId = null;
 
     // 强制重建目标视图
@@ -1455,22 +1455,31 @@ async function saveCompanyIdentity() {
 // #region hermes-upgrade
 
 const HERMES_UPGRADE_TEXT = {
-    idle:             {icon:'⬆️', title:'准备升级 Hermes', message:'Trade 需要更新版本的 Hermes，正在准备升级…'},
-    checking_network: {icon:'🔍', title:'正在检查网络',    message:'正在确认能否访问 GitHub…'},
-    upgrading:        {icon:'⬆️', title:'正在升级 Hermes', message:'升级进行中，请勿关闭 Trade。这一步可能需要几分钟。'},
-    done:             {icon:'✅', title:'升级完成',        message:'Hermes 已升级完成。请点击「重启 Trade」使新版本生效。'},
-    offline:          {icon:'🌐', title:'需要先开启代理',  message:'无法访问 GitHub，升级没有开始。请开启代理（VPN）后点「重试」。'},
-    failed:           {icon:'⚠️', title:'升级失败',        message:'Hermes 没有升级成功。请确认网络通畅后点「重试」。'},
+    idle:             {icon:'⬆️', title: langText('准备升级 Hermes', 'Preparing the Hermes upgrade'),
+                       message: langText('Trade 需要更新版本的 Hermes，正在准备升级…', 'Trade needs a newer Hermes and is preparing the upgrade…')},
+    checking_network: {icon:'🔍', title: langText('正在检查网络', 'Checking the network'),
+                       message: langText('正在确认能否访问 GitHub…', 'Checking whether GitHub is reachable…')},
+    upgrading:        {icon:'⬆️', title: langText('正在升级 Hermes', 'Upgrading Hermes'),
+                       message: langText('升级进行中，请勿关闭 Trade。这一步可能需要几分钟。', 'Upgrade in progress — keep Trade open. This can take a few minutes.')},
+    done:             {icon:'✅', title: langText('升级完成', 'Upgrade complete'),
+                       message: langText('Hermes 已升级完成。请点击「重启 Trade」使新版本生效。', 'Hermes is upgraded. Click "Restart Trade" to load the new version.')},
+    offline:          {icon:'🌐', title: langText('需要先开启代理', 'Turn on your VPN first'),
+                       message: langText('无法访问 GitHub，升级没有开始。请开启代理（VPN）后点「重试」。', 'GitHub is unreachable, so the upgrade did not start. Turn on your VPN and click Retry.')},
+    failed:           {icon:'⚠️', title: langText('升级失败', 'Upgrade failed'),
+                       message: langText('Hermes 没有升级成功。请确认网络通畅后点「重试」。', 'The Hermes upgrade did not succeed. Check your connection and click Retry.')},
     // 不是「升级 Hermes」能解决的问题：Hermes 已经是新版，旧的是 Trade 自己的运行环境。
     // 用独立文案，否则会显示「正在准备升级 Hermes」把用户引到一条没结果的路上去
     // （2026-10-15 客户机实测：那一版就是这么卡住的）。
-    rebuild_needed:   {icon:'🧰', title:'Trade 需要重建运行环境', message:'你的 Hermes 已经是新版，但 Trade 的运行环境还是旧的。点下面的按钮重建一次即可，数据不会丢。'},
+    rebuild_needed:   {icon:'🧰', title: langText('Trade 需要重建运行环境', 'Trade needs a runtime rebuild'),
+                       message: langText('你的 Hermes 已经是新版，但 Trade 的运行环境还是旧的。点下面的按钮重建一次即可，数据不会丢。', 'Hermes is already current, but the Trade runtime is not. Click the button below to rebuild once — your data is kept.')},
     // S11/R12：本机根本没装 Hermes。独立文案 + 安装步骤（后端 fix=install_hermes），
     // 不能落回「准备升级 Hermes」——那是升级，不是安装。
-    install_needed:   {icon:'⬇️', title:'未安装 Hermes（AI 引擎）', message:'Trade 需要 Hermes 才能聊天。按下面的步骤安装并配置模型，然后重新打开 Trade。'},
+    install_needed:   {icon:'⬇️', title: langText('未安装 Hermes（AI 引擎）', 'Hermes (the AI engine) is not installed'),
+                       message: langText('Trade 需要 Hermes 才能聊天。按下面的步骤安装并配置模型，然后重新打开 Trade。', 'Trade needs Hermes to chat. Follow the steps below to install it, configure a model, then reopen Trade.')},
     // 重建进行中：服务已经被停掉（否则换不了 venv），所以这一段界面是「最后一屏」——
     // 用户接下来看到的是轮询等待，不是进度条。文案必须说清「会自己回来」，否则他会以为卡死。
-    rebuilding:       {icon:'🧰', title:'正在重建运行环境', message:'正在重装 Trade 的运行环境（约 5~10 分钟），期间 Trade 会暂时打不开。完成后页面会自动刷新，请不要关闭。'},
+    rebuilding:       {icon:'🧰', title: langText('正在重建运行环境', 'Rebuilding the runtime'),
+                       message: langText('正在重装 Trade 的运行环境（约 5~10 分钟），期间 Trade 会暂时打不开。完成后页面会自动刷新，请不要关闭。', 'Reinstalling the Trade runtime (about 5–10 minutes); Trade is unavailable meanwhile. The page reloads when it is done — do not close it.')},
 };
 
 let _hermesUpgradeAbort = null;
@@ -1491,13 +1500,13 @@ function _mountHermesWait() {
     try {
         _hermesWait = TradeWait.mount(host, {
             mode: 'task',
-            title: 'Hermes 升级 · UPGRADE',
-            statusLabel: 'Hermes 升级中',
-            cancelText: '收起',
+            title: langText('Hermes 升级 · UPGRADE', 'HERMES UPGRADE'),
+            statusLabel: langText('Hermes 升级中', 'Upgrading Hermes'),
+            cancelText: langText('收起', 'Hide'),
             // “收起”只隐藏面板，升级继续；完成/失败时自动重新显示
             onDismiss: function () { host.style.display = 'none'; }
         });
-        _hermesWait.phase('working', '升级中');
+        _hermesWait.phase('working', langText('升级中', 'Upgrading'));
     } catch (e) {
         console.warn('升级等待面板挂载失败', e);
         _hermesWait = null;
@@ -1622,7 +1631,7 @@ function applyHermesUpgradeState(upgrade) {
     if (canRetry) {
         const btn = document.createElement('button');
         btn.className = 'btn btn-primary';
-        btn.textContent = '重试升级';
+        btn.textContent = langText('重试升级', 'Retry upgrade');
         btn.onclick = function() { retryHermesUpgrade(); };
         actions.appendChild(btn);
     }
@@ -1632,7 +1641,7 @@ function applyHermesUpgradeState(upgrade) {
     if (status === 'rebuild_needed') {
         const btn = document.createElement('button');
         btn.className = 'btn btn-primary';
-        btn.textContent = '开始重建';
+        btn.textContent = langText('开始重建', 'Start rebuild');
         btn.onclick = function() { startVenvRebuild(btn); };
         actions.appendChild(btn);
     }
@@ -1640,7 +1649,7 @@ function applyHermesUpgradeState(upgrade) {
     if (status === 'done') {
         const btn = document.createElement('button');
         btn.className = 'btn btn-primary';
-        btn.textContent = '重启 Trade';
+        btn.textContent = langText('重启 Trade', 'Restart Trade');
         btn.onclick = function() { doRestartTrade({currentTarget: btn}); };
         actions.appendChild(btn);
     }
@@ -1653,17 +1662,18 @@ function applyHermesUpgradeState(upgrade) {
         if (status === 'done' || status === 'failed' || status === 'offline') {
             if (_hermesWaitHost) _hermesWaitHost.style.display = '';
         }
-        if (status === 'done') _hermesWait.finish({phase: 'acquired', zh: '升级完成'});
+        if (status === 'done') _hermesWait.finish({phase: 'acquired', zh: langText('升级完成', 'Upgrade complete')});
         else if (status === 'failed' || status === 'offline') _hermesWait.finish({phase: 'failed'});
-        else if (status === 'upgrading') _hermesWait.phase('working', '升级中');
-        else if (status === 'checking_network') _hermesWait.phase('working', '检查网络');
+        else if (status === 'upgrading') _hermesWait.phase('working', langText('升级中', 'Upgrading'));
+        else if (status === 'checking_network') _hermesWait.phase('working', langText('检查网络', 'Checking the network'));
     }
 }
 
 /** 手动重试：让后端重新走一遍「探网络 → hermes update」。 */
 async function retryHermesUpgrade() {
     const actions = $('hermes-upgrade-actions');
-    if (actions) actions.innerHTML = '<span style="font-size:12px;color:var(--text-muted);">正在重试…</span>';
+    if (actions) actions.innerHTML = '<span style="font-size:12px;color:var(--text-muted);">'
+        + esc(langText('正在重试…', 'Retrying…')) + '</span>';
     try {
         await fetch('/api/trade/system/hermes-upgrade', {
             method: 'POST', headers: {'X-Hermes-Session-Token': TOKEN},
@@ -1684,13 +1694,13 @@ async function retryHermesUpgrade() {
  */
 async function startVenvRebuild(btn) {
     const okToGo = confirm(
-        '重建运行环境大约需要 5~10 分钟。\n\n' +
-        '期间 Trade 会暂时打不开，完成后页面会自动刷新。\n\n' +
-        '现在开始吗？'
+        langText('重建运行环境大约需要 5~10 分钟。', 'The runtime rebuild takes about 5–10 minutes.') + '\n\n' +
+        langText('期间 Trade 会暂时打不开，完成后页面会自动刷新。', 'Trade is unavailable meanwhile and the page reloads when it is done.') + '\n\n' +
+        langText('现在开始吗？', 'Start now?')
     );
     if (!okToGo) return;
 
-    if (btn) { btn.disabled = true; btn.textContent = '正在启动…'; }
+    if (btn) { btn.disabled = true; btn.textContent = langText('正在启动…', 'Starting…'); }
     let rejected = null;
     try {
         const r = await fetch('/api/trade/system/rebuild-venv', {
@@ -1699,18 +1709,18 @@ async function startVenvRebuild(btn) {
         const data = await r.json().catch(function(){ return null; });
         // 只有后端**明确拒绝**（例如当前其实不需要重建）才停手；
         // 拿不到响应时按「已开始」处理 —— 见上面的说明
-        if (data && data.ok === false) rejected = data.error || '重建没有启动。';
+        if (data && data.ok === false) rejected = data.error || langText('重建没有启动。', 'The rebuild did not start.');
     } catch(_) { /* 服务在响应回来之前就被子进程停掉了 —— 预期之内 */ }
 
     if (rejected) {
-        applyHermesUpgradeState({status:'failed', message: rejected + ' 可以按下面的步骤手动重装。'});
+        applyHermesUpgradeState({status:'failed', message: rejected + langText(' 可以按下面的步骤手动重装。', ' You can reinstall manually with the steps below.')});
         return;
     }
     applyHermesUpgradeState({status:'rebuilding'});
     // 重建比普通重启慢得多，兜底窗口给到 15 分钟
     // （默认的 2 分钟会在它真正成功之前就报「超时」，把用户吓去手动折腾）
     _waitForRestartAndReload(function() {
-        toast('重建耗时较长。如果页面没有自动刷新，请手动刷新一次；若一直打不开，请联系技术支持。');
+        toast(langText('重建耗时较长。如果页面没有自动刷新，请手动刷新一次；若一直打不开，请联系技术支持。', 'The rebuild takes a while. If the page does not reload by itself, refresh it once; if Trade still will not open, contact support.'));
     }, 900);
 }
 

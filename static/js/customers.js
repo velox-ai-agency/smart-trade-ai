@@ -1411,13 +1411,13 @@ async function linkCustomerLib(cid) {
     const lid = $('detail-link-lib')?.value;
     if (!lid) { toast(t('toast.select_library')); return; }
     const r = await api('POST', `/api/trade/customers/${cid}/libraries/${lid}`);
-    if (r && r.ok) { toast('已关联'); closeCustomerDetail(); await loadCustomersData(); showCustomerDetail(cid); }
-    else toast(r?.detail||'关联失败');
+    if (r && r.ok) { toast(langText('已关联', 'Linked')); closeCustomerDetail(); await loadCustomersData(); showCustomerDetail(cid); }
+    else toast(r?.detail||langText('关联失败', 'Link failed'));
 }
 
 async function unlinkCustomerLib(cid, lid) {
     const r = await api('DELETE', `/api/trade/customers/${cid}/libraries/${lid}`);
-    if (r && r.ok) { toast('已取消关联'); closeCustomerDetail(); await loadCustomersData(); showCustomerDetail(cid); }
+    if (r && r.ok) { toast(langText('已取消关联', 'Unlinked')); closeCustomerDetail(); await loadCustomersData(); showCustomerDetail(cid); }
 }
 
 function startChatWithCustomer(cid, name) {
@@ -1902,7 +1902,7 @@ async function downloadCsvTemplate() {
         const resp = await fetch('/api/trade/customers/template', { headers });
         if (!resp.ok) {
             const err = await resp.json().catch(() => ({}));
-            toast(err.detail || '下载模板失败');
+            toast(err.detail || langText('下载模板失败', 'Template download failed'));
             return;
         }
         const blob = await resp.blob();

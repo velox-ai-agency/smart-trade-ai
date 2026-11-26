@@ -23,6 +23,8 @@ from __future__ import annotations
 import csv
 import io
 import json
+import re
+import unicodedata
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, UploadFile
@@ -114,6 +116,148 @@ _CSV_FIELD_MAP = {
     "match_score": "match_score",
     "note": "note",
 }
+
+# 表头别名：真实 Excel 导出的列名千奇百怪（大小写、空格、括号、阿拉伯语），
+# 只认 `name` 一个写法会直接报「没有有效数据」。这里把常见写法都收进来，
+# 比较前统一过 _norm_header()。
+_CSV_HEADER_ALIASES: dict[str, tuple[str, ...]] = {
+    "name": (
+        "name", "customer_name", "company_name", "company", "customer", "client",
+        "full_name", "account", "اسم", "الاسم", "اسم_الشركة", "الشركة",
+        "اسم_العميل", "العميل",
+    ),
+    "contact": (
+        "contact", "contact_person", "contact_name", "person", "attention",
+        "جهة_الاتصال", "الشخص_المسؤول", "مسؤول_التواصل", "اسم_جهة_الاتصال",
+    ),
+    "title": ("title", "job_title", "position", "role", "المسمى_الوظيفي", "الوظيفة", "المنصب"),
+    "country": ("country", "nation", "الدولة", "البلد"),
+    "city": ("city", "town", "المدينة", "المحافظة"),
+    "email": ("email", "e_mail", "mail", "email_address", "البريد_الإلكتروني", "الايميل", "البريد"),
+    "phone": ("phone", "tel", "telephone", "mobile", "phone_number", "الهاتف", "الجوال", "الموبايل", "رقم_الهاتف"),
+    "whatsapp": ("whatsapp", "wa", "واتساب", "واتس_اب"),
+    "wechat": ("wechat", "weixin", "ويتشات", "وي_تشات"),
+    "linkedin_url": ("linkedin_url", "linkedin", "linked_in", "لينكدإن", "لينكدان"),
+    "company_website": ("company_website", "website", "url", "site", "web", "الموقع", "الموقع_الإلكتروني"),
+    "tier": ("tier", "grade", "rating", "التصنيف", "الفئة"),
+    "buyer_type": ("buyer_type", "type", "customer_type", "نوع_المشتري", "النوع"),
+    "main_category": ("main_category", "category", "industry", "sector", "الفئة_الرئيسية", "القطاع"),
+    "match_score": ("match_score", "score", "match", "التقييم", "الدرجة"),
+    "note": ("note", "notes", "remark", "remarks", "comment", "ملاحظات", "ملاحظة"),
+}
+
+
+def _norm_header(raw: object) -> str:
+    """归一化表头：去 BOM/引号、去括号注释、去阿拉伯语附加符号、统一分隔。"""
+    s = unicodedata.normalize("NFKC", str(raw or ""))
+    s = s.replace("\ufeff", "").strip().strip('"').strip("'")
+    s = re.sub(r"[\u064b-\u065f\u0670\u0640]", "", s)  # 变音符号 + tatweel
+    s = re.sub(r"[\(（\[【].*?[\)）\]】]", "", s)       # 去掉 "(optional)" 之类
+    s = s.lower()
+    s = re.sub(r"[\s\-\./\\]+", "_", s)
+    s = re.sub(r"_+", "_", s).strip("_")
+    return s
+
+
+_ALIAS_TO_FIELD: dict[str, str] = {}
+for _field, _aliases in _CSV_HEADER_ALIASES.items():
+    _ALIAS_TO_FIELD[_field] = _field
+    for _alias in _aliases:
+        _ALIAS_TO_FIELD[_norm_header(_alias)] = _field
+
+
+def _decode_csv_bytes(content: bytes) -> str:
+    """按 BOM / 编码顺序解码。Excel 在阿拉伯语 Windows 下常存成 cp1256。"""
+    if content[:4] == b"PK\x03\x04":
+        raise HTTPException(
+            status_code=400,
+            detail="这是 Excel 工作簿（.xlsx）不是 CSV；请在 Excel 里「另存为 → CSV UTF-8（逗号分隔）」后再导入",
+        )
+    if content.lstrip()[:1] == b"<":
+        raise HTTPException(
+            status_code=400,
+            detail="这是网页/HTML 表格不是 CSV；请在 Excel 里「另存为 → CSV UTF-8（逗号分隔）」后再导入",
+        )
+    if content[:2] in (b"\xff\xfe", b"\xfe\xff"):
+        return content.decode("utf-16")
+    for encoding in ("utf-8-sig", "cp1256"):
+        try:
+            return content.decode(encoding)
+        except UnicodeDecodeError:
+            continue
+    raise HTTPException(status_code=400, detail="文件编码不是 UTF-8，请用 Excel 另存为 CSV UTF-8")
+
+
+def _sniff_delimiter(text: str) -> str:
+    """Excel 会按系统区域写出 , 或 ;（阿拉伯语/欧洲区域多用 ;）。"""
+    if text.lstrip().lower().startswith("sep="):
+        return text.lstrip()[4:5] or ","
+    sample = "\n".join(text.splitlines()[:5])
+    try:
+        return csv.Sniffer().sniff(sample, delimiters=",;\t|").delimiter
+    except csv.Error:
+        pass
+    counts = {d: sample.count(d) for d in ",;\t|"}
+    best = max(counts, key=lambda d: counts[d])
+    return best if counts[best] else ","
+
+
+def _strip_sep_line(text: str) -> str:
+    return re.sub(r"^\ufeff?\s*sep=.*?\r?\n", "", text, count=1, flags=re.IGNORECASE)
+
+
+def parse_customer_csv(content: bytes) -> tuple[list[dict], list[str]]:
+    """把 CSV 字节解析成客户字典列表（纯函数，便于测试）。
+
+    返回 (customers, raw_headers)。没有有效行时抛 400，并在 detail 里带上
+    实际识别到的表头 —— 用户才知道该改哪一列。
+    """
+    text = _strip_sep_line(_decode_csv_bytes(content))
+    if not text.strip():
+        raise HTTPException(status_code=400, detail="CSV 文件为空或缺少表头")
+
+    delimiter = _sniff_delimiter(text)
+    try:
+        reader = csv.DictReader(io.StringIO(text), delimiter=delimiter)
+        raw_headers = [str(h) for h in (reader.fieldnames or [])]
+        if not raw_headers:
+            raise HTTPException(status_code=400, detail="CSV 文件为空或缺少表头")
+    except csv.Error:
+        raise HTTPException(status_code=400, detail="CSV 格式解析失败")
+
+    col_map = {}
+    for raw_header in raw_headers:
+        field = _ALIAS_TO_FIELD.get(_norm_header(raw_header))
+        if field and field not in col_map.values():
+            col_map[raw_header] = field
+
+    customers = []
+    for row in reader:
+        cust = {}
+        for csv_col, internal_key in col_map.items():
+            value = row.get(csv_col)
+            if isinstance(value, str) and value.strip():
+                cust[internal_key] = value.strip()
+        if not cust.get("name"):
+            continue
+        if "match_score" in cust:
+            try:
+                cust["match_score"] = int(cust["match_score"])
+            except (ValueError, TypeError):
+                cust["match_score"] = 0
+        customers.append(cust)
+
+    if not customers:
+        seen = "、".join(h.strip() for h in raw_headers[:12] if h.strip())
+        if "name" in col_map.values():
+            hint = "name 列存在但整列为空"
+        else:
+            hint = f"识别到的表头：{seen or '（空）'}"
+        raise HTTPException(
+            status_code=400,
+            detail=f"CSV 中没有有效数据（至少需要 name 列）；{hint}",
+        )
+    return customers, raw_headers
 
 
 def _find_static_dir() -> Path:
@@ -212,36 +356,7 @@ async def bulk_import_customers(
     # 实际字节数（审计 P2-26）。
     if len(content) > _MAX_CSV_BYTES:
         raise HTTPException(status_code=413, detail="CSV 文件过大（上限 10MB）")
-    try:
-        text = content.decode("utf-8-sig")  # utf-8-sig 兼容 BOM 头
-    except UnicodeDecodeError:
-        raise HTTPException(status_code=400, detail="文件编码不是 UTF-8，请用 Excel 另存为 CSV UTF-8")
-
-    try:
-        reader = csv.DictReader(io.StringIO(text))
-        if reader.fieldnames is None:
-            raise HTTPException(status_code=400, detail="CSV 文件为空或缺少表头")
-    except csv.Error:
-        raise HTTPException(status_code=400, detail="CSV 格式解析失败")
-
-    # 映射 CSV 列到内部字段
-    customers = []
-    for row in reader:
-        cust = {}
-        for csv_col, internal_key in _CSV_FIELD_MAP.items():
-            if csv_col in row and row[csv_col]:
-                cust[internal_key] = row[csv_col].strip()
-        if cust.get("name"):
-            # match_score 从 CSV 字符串转为整数
-            if "match_score" in cust:
-                try:
-                    cust["match_score"] = int(cust["match_score"])
-                except (ValueError, TypeError):
-                    cust["match_score"] = 0
-            customers.append(cust)
-
-    if not customers:
-        raise HTTPException(status_code=400, detail="CSV 中没有有效数据（至少需要 name 列）")
+    customers, _headers = parse_customer_csv(content)
 
     result = customer_module.bulk_save(company_id=cid, customers=customers)
     return result

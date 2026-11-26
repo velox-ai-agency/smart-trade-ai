@@ -116,7 +116,8 @@ function neutralizeRemoteImages(root) {
         var ph = document.createElement('button');
         ph.type = 'button';
         ph.className = 'remote-img-hold';
-        ph.textContent = '在新标签页打开图片（' + abs.hostname + '）';
+        ph.textContent = langText('在新标签页打开图片（', 'Open image in a new tab (') + abs.hostname
+            + langText('）', ')');
         (function (url, node) {
             node.addEventListener('click', function () {
                 // W7：CSP 只允许同源图片，在当前页插 <img> 只会裂图。

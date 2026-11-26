@@ -1171,6 +1171,18 @@ def create_app() -> FastAPI:
     from trade.api import router as trade_router
     app.include_router(trade_router, prefix="/api/trade")
 
+    # Start / 公司画像引导走顶层 /api/start/*（前端 static/js/start.js 与
+    # tests_js/start-onboarding.test.js 都固定这个路径）。它曾经挂在
+    # trade_router 里，实际路径变成 /api/trade/api/start/*，页面上每个按钮
+    # 都是 404「Not Found」。这里用同一套依赖单独挂载，路径回到 /api/start。
+    from trade.api import _enforce_company_binding
+    from trade.api.deps import require_session
+    from trade.api.start import router as start_router
+    app.include_router(
+        start_router,
+        dependencies=[Depends(require_session), Depends(_enforce_company_binding)],
+    )
+
     # 本地构建已移除到期只读门禁：所有写入请求正常放行。
 
     # Health check
