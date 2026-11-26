@@ -1419,9 +1419,9 @@ async function unlinkCustomerLib(cid, lid) {
 function startChatWithCustomer(cid, name) {
     currentCustomerId = cid;
     currentChatContext = 'lead';
-    currentChatName = '客户: ' + name;
+    currentChatName = langText('客户: ','Customer: ') + name;
     saveState();
-    navToView('chat', 'lead', '客户: ' + name);
+    navToView('chat', 'lead', langText('客户: ','Customer: ') + name);
 }
 
 // ── Order List / Modal ─────────────────────────────────────
@@ -1815,10 +1815,10 @@ async function bulkImportCustomers() {
             if (currentView === 'customers') renderCustomersTable(allCustomers);
         }
     } catch (e) {
-        toast('导入失败: ' + e.message);
+        toast(langText('导入失败: ','Import failed: ') + e.message);
     }
     if (restoreBtn) restoreBtn();
-    btn.disabled = false; btn.innerHTML = btnIcon('upload') + ' 上传导入';
+    btn.disabled = false; btn.innerHTML = btnIcon('upload') + ' ' + langText('上传导入','Import upload');
     fileInput.value = '';
 }
 
@@ -1838,7 +1838,7 @@ async function downloadManagementTables() {
         a.click();
         URL.revokeObjectURL(url);
         toast('✅ 管理表格下载完成');
-    } catch(e) { toast('下载管理表格失败: ' + e.message); }
+    } catch(e) { toast(langText('下载管理表格失败: ','Download management sheet failed: ') + e.message); }
 }
 
 // ── 下载 CSV 模板（需携带 auth header） ─────────────
@@ -1861,7 +1861,7 @@ async function downloadCsvTemplate() {
         a.click();
         URL.revokeObjectURL(url);
     } catch(e) {
-        toast('下载模板失败: ' + e.message);
+        toast(langText('下载模板失败: ','Download template failed: ') + e.message);
     }
 }
 

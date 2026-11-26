@@ -10,5 +10,5 @@ let _currentConvId = null;       // 当前 AI 回复的 conversation_id，用于
 let editingCustomerData = null; // for customer detail panel
 let _onboardingStep = 1;          // 1 = welcome card, 2 = OSINT input + results
 let _onboardingInputText = '';    // user-entered company name/website
-let currentLang = 'zh';           // zh | en | ar
+let currentLang = 'en';           // zh | en | ar (default: English)
 

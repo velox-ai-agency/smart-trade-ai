@@ -74,14 +74,14 @@ function showSkillsHelp() {
     var html = '';
     for (var gi = 0; gi < _ALL_SKILLS.length; gi++) {
         var group = _ALL_SKILLS[gi];
-        html += '<div style="margin-bottom:16px;"><h4 style="font-size:14px;font-weight:600;margin:0 0 6px;padding-bottom:4px;border-bottom:2px solid var(--primary);color:var(--primary);">' + esc(group.g) + '</h4>';
+        html += '<div style="margin-bottom:16px;"><h4 style="font-size:14px;font-weight:600;margin:0 0 6px;padding-bottom:4px;border-bottom:2px solid var(--primary);color:var(--primary);">' + esc(t('skills.group.' + group.g)) + '</h4>';
         for (var si = 0; si < group.items.length; si++) {
             var sk = group.items[si];
         var firstTrigger = sk.t.split('、')[0];
         html += '<div class="skill-copy-row" data-act="copySkillTrigger" data-arg="' + esc(sk.n) + '" data-arg2="' + esc(firstTrigger) + '" style="display:flex;align-items:flex-start;gap:8px;padding:6px 8px;border-radius:4px;cursor:pointer;" title="' + (langText('点击复制提示词','Click to copy prompt')) + '">';
             html += '<code style="font-size:12px;white-space:nowrap;background:var(--bg-muted);padding:1px 6px;border-radius:3px;min-width:130px;">' + esc(sk.n) + '</code>';
-            html += '<span style="flex:1;font-size:12px;color:var(--text-secondary);">' + esc(sk.d) + '</span>';
-            html += '<span style="font-size:11px;color:var(--text-muted);white-space:nowrap;">💬 ' + esc(sk.t.split('、').slice(0,2).join(' | ')) + '</span>';
+            html += '<span style="flex:1;font-size:12px;color:var(--text-secondary);">' + esc(t('skills.' + sk.n + '.d')) + '</span>';
+            html += '<span style="font-size:11px;color:var(--text-muted);white-space:nowrap;">💬 ' + esc(t('skills.' + sk.n + '.t').split('、').slice(0,2).join(' | ')) + '</span>';
             html += '</div>';
         }
         html += '</div>';

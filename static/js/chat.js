@@ -287,7 +287,7 @@ function _todoItemHtml(item, done) {
         '<span class="tx">' + esc(item.title) +
         (sub ? '<span class="sub">' + esc(sub) + '</span>' : '') +
         '</span>' +
-        '<button type="button" class="todo-del" data-role="delete" aria-label="删除">×</button>' +
+        '<button type="button" class="todo-del" data-role="delete" aria-label="' + langText('删除','Delete') + '">×</button>' +
         '</div>';
 }
 
@@ -316,7 +316,7 @@ function _renderRailTodos() {
         esc(t('todo.placeholder')) + '">' +
         '<div class="todo-add-row">' +
         '<input type="date" id="todo-add-due" aria-label="' + esc(t('todo.due')) + '">' +
-        '<input type="text" id="todo-add-reason" maxlength="300" placeholder="原因（可选）">' +
+        '<input type="text" id="todo-add-reason" maxlength="300" placeholder="' + langText('原因（可选）','Reason (optional)') + '">' +
         '<select id="todo-add-customer" aria-label="' + esc(t('todo.customer')) + '">' +
         '<option value="">' + esc(t('todo.no_customer')) + '</option></select>' +
         '<button type="button" class="btn btn-xs primary" id="todo-add-save">' +
@@ -1118,7 +1118,7 @@ function _renderChatLinkedChip(root) {
         if (c) _chatLinkedName = c.name || '';
     }
     el.innerHTML = '<span class="mono">@</span> ' + esc(_chatLinkedName || ('#' + currentCustomerId)) +
-        ' <a href="#" class="chat-unlink" title="取消关联">×</a>';
+        ' <a href="#" class="chat-unlink" title="' + langText('取消关联','Unlink') + '">×</a>';
     el.classList.remove('hidden');
     const un = el.querySelector('.chat-unlink');
     if (un) un.addEventListener('click', function (e) {
@@ -1433,7 +1433,7 @@ async function sendMsg() {
                             const note = document.createElement('div'); note.className='thinking-msg';
                             const ok = data.status === 'complete';
                             note.style.cssText = 'font-size:12px;color:'+(ok?'var(--text-muted)':'var(--accent-red)')+';padding:4px 0;';
-                            note.textContent = (ok ? '✓ 已完整读取 ' : '⚠ 完整读取未通过，已完整读取 ') + files + ' 个文件'
+                            note.textContent = (ok ? langText('✓ 已完整读取 ','Fully read ') : langText('⚠ 完整读取未通过，已完整读取 ','Full read check failed; fully read ')) + files + langText(' 个文件',' file(s)');
                                 + (skipped.length ? '；未纳入：' + skipped.map(function(s){return s.file;}).join(', ') : '');
                             if (data.coverage_note) {
                                 const cap = document.createElement('div');
@@ -1595,8 +1595,8 @@ function _renderRailOsintJobs(jobs) {
 }
 
 function _osintEventText(type, payload) {
-    if (type === 'job_start') return '已启动（预算 ' + (payload.budget || '?') + ' 秒）';
-    if (type === 'source_start') return '查询 ' + (payload.label || payload.source || '') + '…';
+    if (type === 'job_start') return langText('已启动（预算 ','Started (budget ') + (payload.budget || '?') + langText(' 秒）','s)');
+    if (type === 'source_start') return langText('查询 ','Querying ') + (payload.label || payload.source || '') + '…';
     if (type === 'source_done') {
         const st = {
             hit: '命中', candidate: '同名候选', miss: '未命中',
@@ -1609,7 +1609,7 @@ function _osintEventText(type, payload) {
             low: '低风险', medium: '中风险', high: '高风险',
             incomplete: '未完成核验', limited: '仅完成制裁筛查',
         }[payload.rating] || payload.rating || '未知';
-        return '评级 ' + zh;
+        return langText('评级 ','Rating ') + zh;
     }
     if (type === 'error') return '错误：' + (payload.message || '');
     if (type === 'cancelled') return '已取消';
@@ -1854,7 +1854,7 @@ function _attachOsintTaskPanel(_container, job) {
     const tab = document.createElement('button');
     tab.type = 'button';
     tab.className = 'wd-tab';
-    tab.textContent = target || ('任务 ' + jobId);
+    tab.textContent = target || (langText('任务 ','Task ') + jobId);
     const st = document.createElement('span');
     st.className = 'st';
     st.textContent = '进行中';
