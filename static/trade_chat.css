@@ -1988,11 +1988,11 @@ body.profile-open #main-content > .empty-state { display: none !important; }
 .mention-item.on { background: var(--ink); color: var(--on-ink); }
 .mention-group {
     font-family: var(--font-mono); font-size: 10px; letter-spacing: .12em;
-    color: var(--muted); padding: 6px 10px 2px; background: var(--fill-soft);
+    color: var(--muted); padding: 6px 10px 2px; background: var(--panel2);
     position: sticky; top: 0;
 }
 .mention-item .sub { color: var(--muted); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.mention-item.on .sub { color: var(--on-dark-soft); }
+.mention-item.on .sub { color: var(--on-ink); opacity: .75; }
 /* 已关联客户 chip */
 .chat-linked {
     display: inline-flex; align-items: center; gap: 4px; padding: 0 6px;

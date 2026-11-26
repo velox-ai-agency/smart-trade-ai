@@ -86,3 +86,19 @@ test('JS 生成的 HTML 不再新增裸浅色背景', () => {
     }
     assert.deepEqual(offenders, [], '浅色硬编码背景在暗色模式会变成白斑: ' + offenders.join(', '));
 });
+
+test('命令列表高亮行：说明文字必须配 on-ink，不许 on-dark-soft（2026-11-27 实测暗色浅底浅字）', () => {
+    // .mention-item.on 是 --ink 实底（暗色下是浅底），其 .sub 若用
+    // --on-dark-soft（暗色下是浅色）就是 1.1:1 的不可读对比。
+    const rule = css.match(/\.mention-item\.on \.sub\s*\{[^}]*\}/);
+    assert.ok(rule, '.mention-item.on .sub 规则必须存在');
+    assert.ok(rule[0].includes('var(--on-ink)'), '说明文字必须用 --on-ink: ' + rule[0].trim().slice(0, 90));
+    assert.ok(!rule[0].includes('var(--on-dark'), '不得用 --on-dark* 配 --ink 实底: ' + rule[0].trim().slice(0, 90));
+});
+
+test('命令列表分组头必须有实底 surface，不许近乎透明的 fill-soft', () => {
+    const rule = css.match(/\.mention-group\s*\{[^}]*\}/);
+    assert.ok(rule, '.mention-group 规则必须存在');
+    assert.ok(/background:\s*var\(--(panel2|chip|panel)\)/.test(rule[0]),
+        '分组头背景必须是主题 surface token: ' + rule[0].trim().slice(0, 120));
+});
