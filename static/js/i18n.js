@@ -100,7 +100,7 @@ const I18N = {
         'modal.upgrade.p2':'等待执行完毕，看到「重启完成」提示后，刷新浏览器页面（<kbd>Ctrl+Shift+R</kbd>）即可。',
         'modal.upgrade.p3':'如果 <code>hermes</code> 命令找不到，说明 Hermes Agent 未安装。请先参考安装说明安装 Hermes。',
         // modals - skills help
-        'modal.skills.title':'📖 全部 45 个技能速查',
+        'modal.skills.title':'📖 全部 47 个技能速查',
         'modal.skills.desc':'在聊天框输入关键词，Trade 自动匹配合适的技能。点击复制图标可复制快速启动提示词。',
         // common
         'btn.close':'关闭','btn.cancel':'取消','btn.save':'保存','btn.ok':'确定',
@@ -410,6 +410,7 @@ const I18N = {
         'skills.group.平台与数据': '平台与数据',
         'skills.group.客户与销售': '客户与销售',
         'skills.group.合规与支持': '合规与支持',
+        'skills.group.Egypt': '埃及市场专包',
         'skills.b2b-osint.d': '客户背景调查（6 层检测：WHOIS/邮箱/制裁/技术栈/LinkedIn/评分）',
         'skills.b2b-osint.t': '背调、查公司、查域名、查邮箱、due diligence',
         'skills.b2b-email-intel.d': '邮箱情报 — 120+ 平台检测邮箱注册状态',
@@ -500,6 +501,10 @@ const I18N = {
         'skills.chat-memory.t': '之前说过、上周聊的、历史记录、chat history',
         'skills.auto-smtp-email.d': '[已禁用] 点此了解设计理念',
         'skills.auto-smtp-email.t': '【此技能已禁用】发邮件、群发、SMTP 发送',
+        'skills.b2b-egypt-pack.d': '埃及市场专包 — 背调/开发信/客户情报的埃及本地化叠加层（双语输出、认证、制裁核查）',
+        'skills.b2b-egypt-pack.t': '埃及市场、埃及客户、埃及公司、Egypt pack、Egyptian company',
+        'skills.egypt-export-sources.d': '埃及出口资料源地图 — Nafeza/GOEIC/CargoX/埃及央行来源与核验说明',
+        'skills.egypt-export-sources.t': '埃及出口资料、埃及出口来源、GOEIC、Nafeza、CargoX',
     },
     en: {
         'nav.daily':'Daily Briefing','nav.lead':'Lead Gen','nav.platform':'Site Audit',
@@ -591,7 +596,7 @@ const I18N = {
         'modal.upgrade.cmd':'Help me update Trade and restart it. Repo: https://github.com/chefroger/smart-trade-ai',
         'modal.upgrade.p2':'Wait for completion, then refresh the page (<kbd>Ctrl+Shift+R</kbd>).',
         'modal.upgrade.p3':'If <code>hermes</code> is not found, Hermes Agent is not installed. See install guide first.',
-        'modal.skills.title':'📖 All 45 Skills Reference',
+        'modal.skills.title':'📖 All 47 Skills Reference',
         'modal.skills.desc':'Type keywords in chat — Trade auto-matches the right skill. Click copy icon for quick prompts.',
         'btn.close':'Close','btn.cancel':'Cancel','btn.save':'Save','btn.ok':'OK',
         'license.expired':'Expired',
@@ -881,6 +886,7 @@ const I18N = {
         'skills.group.平台与数据': 'Platforms & Data',
         'skills.group.客户与销售': 'Customer & Sales',
         'skills.group.合规与支持': 'Compliance & Support',
+        'skills.group.Egypt': 'Egypt Pack',
         'skills.b2b-osint.d': 'Customer background check (6 layers: WHOIS/email/sanctions/tech stack/LinkedIn/scoring)',
         'skills.b2b-osint.t': 'background check, company lookup, domain lookup, email lookup, due diligence',
         'skills.b2b-email-intel.d': 'Email intelligence — check registration status across 120+ platforms',
@@ -971,6 +977,10 @@ const I18N = {
         'skills.chat-memory.t': 'said before, talked about last week, history, chat history',
         'skills.auto-smtp-email.d': '[Disabled] Click to learn about the design concept',
         'skills.auto-smtp-email.t': '[This skill is disabled] send email, bulk send, SMTP sending',
+        'skills.b2b-egypt-pack.d': 'Egypt market pack — localized overlay for OSINT / cold outreach / customer intel (bilingual output, certifications, sanctions gate)',
+        'skills.b2b-egypt-pack.t': 'Egypt market, Egyptian company, Egypt pack, Egypt client, targeting Egypt',
+        'skills.egypt-export-sources.d': 'Egypt export source map — Nafeza / GOEIC / CargoX / Central Bank of Egypt sources with verification notes',
+        'skills.egypt-export-sources.t': 'Egypt export sources, GOEIC, Nafeza, CargoX, Central Bank of Egypt, Egypt export declaration',
     },
     ar: {
         'nav.daily': "الإحاطة اليومية",
@@ -1133,7 +1143,7 @@ const I18N = {
         'modal.upgrade.cmd': "ساعدني في تحديث Trade وإعادة تشغيله. المستودع: https://github.com/chefroger/smart-trade-ai",
         'modal.upgrade.p2': "انتظر حتى اكتمال التنفيذ، ثم حدّث الصفحة (<kbd>Ctrl+Shift+R</kbd>).",
         'modal.upgrade.p3': "إذا لم يتم العثور على <code>hermes</code>، فهذا يعني أن Hermes Agent غير مثبت. راجع دليل التثبيت أولاً.",
-        'modal.skills.title': "📖 دليل سريع بجميع المهارات الـ45",
+        'modal.skills.title': "📖 دليل سريع بجميع المهارات الـ47",
         'modal.skills.desc': "اكتب كلمات مفتاحية في المحادثة — سيطابق Trade المهارة المناسبة تلقائياً. انقر على أيقونة النسخ للحصول على مطالبات سريعة.",
         'btn.close': "إغلاق",
         'btn.cancel': "إلغاء",
@@ -1573,6 +1583,7 @@ const I18N = {
         'skills.group.平台与数据': 'المنصات والبيانات',
         'skills.group.客户与销售': 'العملاء والمبيعات',
         'skills.group.合规与支持': 'الامتثال والدعم',
+        'skills.group.Egypt': 'حزمة السوق المصرية',
         'skills.b2b-osint.d': 'فحص خلفية العميل (6 طبقات: WHOIS/البريد/العقوبات/المجموعة التقنية/LinkedIn/التقييم)',
         'skills.b2b-osint.t': 'فحص الخلفية، البحث عن الشركة، البحث عن النطاق، البحث عن البريد، due diligence',
         'skills.b2b-email-intel.d': 'استخبارات البريد الإلكتروني — التحقق من حالة التسجيل في أكثر من 120 منصة',
@@ -1663,6 +1674,10 @@ const I18N = {
         'skills.chat-memory.t': 'ما قيل سابقًا، ما نوقش الأسبوع الماضي، السجل، chat history',
         'skills.auto-smtp-email.d': '[معطل] انقر للتعرف على فكرة التصميم',
         'skills.auto-smtp-email.t': '[هذه المهارة معطلة] إرسال البريد، إرسال جماعي، إرسال عبر SMTP',
+        'skills.b2b-egypt-pack.d': 'حزمة السوق المصرية — طبقة توطين لبحوث العملاء ورسائل التواصل ومعلومات العملاء (مخرجات ثنائية اللغة، شهادات، فحص عقوبات)',
+        'skills.b2b-egypt-pack.t': 'السوق المصرية، شركة مصرية، حزمة مصر، عميل مصري، استهداف مصر',
+        'skills.egypt-export-sources.d': 'خريطة مصادر التصدير في مصر — نافذة وهيئة الرقابة على الصادرات والواردات وCargoX والبنك المركزي المصري مع ملاحظات التحقق',
+        'skills.egypt-export-sources.t': 'مصادر التصدير في مصر، هيئة الرقابة، نافذة، CargoX، البنك المركزي المصري',
     }
 };
 
@@ -2723,9 +2738,9 @@ var HTML_TERMS = {
   "en": "to install Hermes.",
   "ar": "لتثبيت Hermes."
  },
- "📖 全部 45 个技能速查": {
-  "en": "📖 Quick reference for all 45 skills",
-  "ar": "📖 مرجع سريع لجميع المهارات الـ45"
+ "📖 全部 47 个技能速查": {
+  "en": "📖 Quick reference for all 47 skills",
+  "ar": "📖 مرجع سريع لجميع المهارات الـ47"
  },
  "在聊天框输入关键词，Trade 自动匹配合适的技能。点击复制图标可复制快速启动提示词。": {
   "en": "Type a keyword in the chat box and Trade matches the right skill automatically. Click the copy icon to copy the quick-start prompt.",

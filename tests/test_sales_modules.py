@@ -4,7 +4,7 @@
 - 询盘首响 + 报价异议 → b2b-lead-generation
 - 单客户逼单决策 → b2b-sales-playbook
 - PI 必填项检查 → b2b-doc-generation
-注册表总数保持 45，路由不得抢走既有技能。
+注册表总数保持 45+2，路由不得抢走既有技能。
 """
 
 from __future__ import annotations
@@ -48,7 +48,7 @@ class TestStandaloneSkillsRemoved:
     def test_registry_count_back_to_45(self):
         from trade.skill_registry import _SKILLS
 
-        assert len(_SKILLS) == 45
+        assert len(_SKILLS) == 47
 
 
 class TestMergedContent:

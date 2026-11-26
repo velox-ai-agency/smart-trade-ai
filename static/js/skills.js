@@ -52,6 +52,9 @@ const _ALL_SKILLS = [
         {n:"b2b-six-thinking-hats",d:"六顶思考帽决策教练 — 系统化分析复杂外贸决策",t:"决策分析、思考帽、利弊分析、decision making"},
         {n:"chat-memory",d:"历史对话查询（按今天/本周/本月/全部检索）",t:"之前说过、上周聊的、历史记录、chat history"},
         {n:"auto-smtp-email",d:"[已禁用] 点此了解设计理念",t:"【此技能已禁用】发邮件、群发、SMTP 发送"},
+    ]},{g:"Egypt",items:[
+        {n:"b2b-egypt-pack",d:"埃及市场专包 — 背调/开发信/客户情报的埃及本地化叠加层（双语输出、认证、制裁核查）",t:"埃及市场、埃及客户、埃及公司、Egypt pack、Egyptian company"},
+        {n:"egypt-export-sources",d:"埃及出口资料源地图 — Nafeza/GOEIC/CargoX/埃及央行来源与核验说明",t:"埃及出口资料、埃及出口来源、GOEIC、Nafeza、CargoX"},
     ]},
 ];
 

@@ -19,7 +19,7 @@ test('slash command map exists and covers every user-facing skill', () => {
     const close = chat.indexOf('};', open);
     assert.ok(close > open, 'SKILL_CMD_EN not terminated');
     const map = new Function('return (' + chat.slice(open, close + 1) + ')')();
-    assert.equal(ids.length, 45, 'expected 45 skills in help list');
+    assert.equal(ids.length, 47, 'expected 47 skills in help list');
     ids.forEach(function (id) {
         assert.ok(map[id], 'missing command for ' + id);
         assert.ok(!han.test(map[id]), 'Chinese trigger leaked into slash insert for ' + id);

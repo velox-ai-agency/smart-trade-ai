@@ -403,4 +403,4 @@ class TestInvariants:
 
     def test_skill_count_unchanged(self):
         dirs = [p for p in SKILLS.iterdir() if p.is_dir() and (p / "SKILL.md").is_file()]
-        assert len(dirs) == 45, f"skill 目录数量变为 {len(dirs)}，应为 45"
+        assert len(dirs) == 47, f"skill 目录数量变为 {len(dirs)}，应为 47"

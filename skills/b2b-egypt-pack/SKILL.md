@@ -4,6 +4,17 @@ description: "Use for Egypt targets with Trade-AI skills."
 version: 1.0.0
 author: Velox-AI
 license: MIT
+triggers:
+  - "egypt pack"
+  - "targeting egypt"
+  - "egypt market"
+  - "egyptian company"
+  - "埃及市场"
+  - "埃及客户"
+  - "埃及公司"
+  - "باكت مصر"
+  - "شركة مصرية"
+  - "السوق المصرية"
 metadata:
   hermes:
     tags: [egypt, b2b, osint, sanctions, fresh-produce]

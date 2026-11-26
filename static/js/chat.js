@@ -1006,6 +1006,8 @@ const SKILL_CMD_EN = {
     'b2b-tender-archive': 'unzip',
     'b2b-tender-info': 'tender opportunities',
     'b2b-tender-doc-match': 'match drawings',
+    'b2b-egypt-pack': 'egypt pack',
+    'egypt-export-sources': 'egypt export sources',
 };
 
 function _skillText(key, fallback) {

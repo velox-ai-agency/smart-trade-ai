@@ -27,9 +27,9 @@ const zhKeys = keysFor(langBlock('zh', 'en'));
 const enKeys = keysFor(langBlock('en', 'ar'));
 const arKeys = keysFor(langBlock('ar', null));
 
-test('技能帮助 45 项与 7 组在 ZH/EN/AR 三语中都有译文键', () => {
-    assert.equal(groups.length, 7);
-    assert.equal(items.length, 45);
+test('技能帮助 47 项与 8 组在 ZH/EN/AR 三语中都有译文键', () => {
+    assert.equal(groups.length, 8);
+    assert.equal(items.length, 47);
     for (const set of [zhKeys, enKeys, arKeys]) {
         for (const g of groups) assert.ok(set.has('group.' + g), 'missing group key: ' + g);
         for (const n of items) {

@@ -1,6 +1,18 @@
 ---
 name: egypt-export-sources
-description: Source map for Egyptian export playbooks — Nafeza export declarations, GOEIC export/origin services, and Central Bank of Egypt external-operations rules. Scaffolding only; it does not replace official confirmation.
+description: Source map for Egyptian export playbooks — Nafeza export declarations, GOEIC export/origin services, and Central Bank of Egypt external-operations rules. Verified public sources only; it does not replace official confirmation.
+triggers:
+  - "egypt export sources"
+  - "egypt export declaration"
+  - "export from egypt"
+  - "GOEIC"
+  - "Nafeza"
+  - "CargoX"
+  - "Central Bank of Egypt"
+  - "埃及出口资料"
+  - "埃及出口来源"
+  - "نافذة"
+  - "البنك المركزي المصري"
 ---
 
 # Egypt Export Sources (source map only)

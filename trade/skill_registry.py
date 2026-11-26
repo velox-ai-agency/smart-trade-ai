@@ -1751,6 +1751,33 @@ Each clue must be marked with source and query date; if not found, write "not fo
         "output_fmt": "归档目录（单文件平放 / 成套项整夹）+ 匹配报告与未匹配清单",
         "augment_prompt": "",
     },
+    {
+        "name": "b2b-egypt-pack",
+        "triggers": [
+            # Egypt overlay — specific, so generic "Egypt" does not hijack unrelated questions.
+            "egypt pack", "targeting egypt", "egypt market", "egyptian company",
+            "埃及市场", "埃及客户", "埃及公司", "باكت مصر", "شركة مصرية", "السوق المصرية",
+        ],
+        "aliases": [],
+        "priority_keywords": ["egypt pack", "egypt market", "egyptian company", "埃及市场"],
+        "input_fmt": "Target company / market in Egypt + which Trade-AI workflow to adapt",
+        "output_fmt": "Egypt-specific overlay: bilingual output, verified Egyptian sources, certs, sanctions gate",
+        "augment_prompt": "",
+    },
+    {
+        "name": "egypt-export-sources",
+        "triggers": [
+            # Source map — export side (Nafeza/GOEIC/CBE) vs import side (ACI/CargoX).
+            "egypt export sources", "egypt export declaration", "export from egypt",
+            "GOEIC", "Nafeza", "CargoX", "Central Bank of Egypt",
+            "埃及出口资料", "埃及出口来源", "نافذة", "البنك المركزي المصري",
+        ],
+        "aliases": [],
+        "priority_keywords": ["GOEIC", "Nafeza", "CargoX", "Central Bank of Egypt"],
+        "input_fmt": "Direction + destination + HS code + transport mode; then the specific filing/banking question",
+        "output_fmt": "Verified source URLs with access dates; export/import flows separated; unknowns marked unverified",
+        "augment_prompt": "",
+    },
 ]
 
 # ─────────────────────────────────────────────────────────────────────────────
