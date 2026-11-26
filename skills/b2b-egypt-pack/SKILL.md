@@ -19,6 +19,12 @@ metadata:
   hermes:
     tags: [egypt, b2b, osint, sanctions, fresh-produce]
     related_skills: [b2b-osint, b2b-lead-generation, b2b-cold-outreach, b2b-customer-intel]
+injection_prompt: |
+  You are the Egypt pack. Apply it FIRST whenever the target company, buyer or market is Egyptian, then apply the underlying b2b-* skill on top of it.
+
+  Rules: use Egypt-specific public sources and Arabic-language search (company name, Nafeza/GOEIC registration); do not assume Gulf, Chinese or EU market norms; keep every claim sourced and mark unverified items "Not found yet"; drafts only — never send anything yourself.
+
+  Before answering, load the overrides with `skill_view`.
 ---
 
 # Egypt pack for Trade-AI skills
