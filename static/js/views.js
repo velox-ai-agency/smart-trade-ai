@@ -948,15 +948,15 @@ async function loadCompanies() {
 function loadCompanyListUI() {
     const container = $('company-list-ui');
     if (!companies.length) {
-        container.innerHTML = '<p style="color:var(--text-muted);font-size:13px;">暂无公司，请下方创建。</p>';
+        container.innerHTML = `<p style="color:var(--text-muted);font-size:13px;">${t('modal.co.empty')}</p>`;
         return;
     }
     container.innerHTML = companies.map(c => `
         <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border-light);">
             <div style="flex:1;"><div style="font-weight:600;font-size:13px;">${esc(c.name)}</div>
             <div style="font-size:11px;color:var(--text-muted);">${esc(c.slug)} · ${c.contact_email ? ' · ' + esc(c.contact_email) : ''}</div></div>
-            <button class="btn btn-xs" data-act="exportCompany" data-arg="${c.id}">导出</button>
-            <button class="btn btn-danger btn-xs" data-act="deleteCompany" data-arg="${c.id}">删除</button>
+            <button class="btn btn-xs" data-act="exportCompany" data-arg="${c.id}">${t('modal.co.export')}</button>
+            <button class="btn btn-danger btn-xs" data-act="deleteCompany" data-arg="${c.id}">${t('modal.co.delete')}</button>
         </div>`).join('');
 }
 
@@ -977,12 +977,12 @@ function _downloadBlob(blob, filename) {
 }
 
 async function exportCompany(cid) {
-    if (!confirm('导出包包含客户资料、对话、记忆和 Agent 身份，不包含桌面资料库文件（需自行拷贝），且未加密。请妥善保管。继续导出？')) return;
+    if (!confirm(t('co.export_confirm'))) return;
     const expBtn = document.querySelector(
         'button[data-act="exportCompany"][data-arg="' + cid + '"]',
     );
     const restoreExp = (expBtn && typeof TradeWait !== 'undefined')
-        ? TradeWait.inline(expBtn, {en: 'EXPORTING', zh: '打包中'}) : null;
+        ? TradeWait.inline(expBtn, {en: t('co.exporting'), zh: t('co.exporting')}) : null;
     try {
         const resp = await fetch(`/api/trade/companies/${cid}/export`, {
             headers: {
@@ -992,12 +992,12 @@ async function exportCompany(cid) {
         });
         if (resp.status === 413) {
             const data = await resp.json().catch(() => ({}));
-            alert('数据包过大，未自动打包。\n请手动拷贝：\n' + (data.paths || []).join('\n'));
+            alert(t('co.export_too_large') + (data.paths || []).join('\n'));
             return;
         }
         if (!resp.ok) {
             const data = await resp.json().catch(() => ({}));
-            toast('导出失败：' + (data.detail || resp.status));
+            toast(t('co.export_fail') + (data.detail || resp.status));
             return;
         }
         // 桌面目录超限时包内不含资料库文件，后端通过响应头告知需手动拷贝的路径
@@ -1007,11 +1007,9 @@ async function exportCompany(cid) {
             try {
                 const info = JSON.parse(decodeURIComponent(warnHeader));
                 if (info.manual_paths && info.manual_paths.length) {
-                    exportNote = '数据包已导出，但桌面资料库文件不随包迁移。\n'
-                        + '请按需手动拷贝以下目录，导入后放到目标机对应的公司桌面目录：\n'
-                        + info.manual_paths.join('\n');
+                    exportNote = t('co.export_note') + info.manual_paths.join('\n');
                 } else if (info.warnings && info.warnings.length) {
-                    exportNote = '导出完成，有提示：\n' + info.warnings.join('\n');
+                    exportNote = t('co.export_warn') + info.warnings.join('\n');
                 }
             } catch(_) { /* 头解析失败不影响下载 */ }
         }
@@ -1020,9 +1018,9 @@ async function exportCompany(cid) {
         const match = /filename="?([^";]+)"?/.exec(cd);
         _downloadBlob(blob, match ? decodeURIComponent(match[1]) : `trade-company-${cid}.zip`);
         if (exportNote) alert(exportNote);
-        else toast('导出完成，请妥善保管数据包');
+        else toast(t('co.export_ok'));
     } catch (err) {
-        toast('导出失败：' + (err && err.message ? err.message : err));
+        toast(t('co.export_fail') + (err && err.message ? err.message : err));
     } finally {
         if (restoreExp) restoreExp();
     }
@@ -1035,19 +1033,17 @@ function showImportCompanyDialog() {
     backdrop.className = 'modal-backdrop import-company-backdrop';
     backdrop.innerHTML = `
         <div class="modal" style="max-width:560px;">
-            <h3>📦 导入公司数据</h3>
+            <h3>${t('modal.co.import_title')}</h3>
             <p style="font-size:12px;color:var(--text-muted);line-height:1.6;">
-                选择从另一台电脑导出的 <code>.zip</code>。包内含客户资料、对话、记忆和 Agent 身份，未加密。<br>
-                桌面资料库文件不在包内，如有需要请自行拷贝到目标机对应目录。<br>
-                同名公司已存在时默认合并；如果只是同名但不是同一家公司，勾选下面的强制新建。
+                ${t('modal.co.import_desc')}
             </p>
             <label style="display:flex;align-items:center;gap:8px;font-size:12px;margin:10px 0;">
-                <input type="checkbox" id="imp-force-new"> 同名但不是同一家公司，强制新建（请先勾选，再选择文件）
+                <input type="checkbox" id="imp-force-new"> ${t('modal.co.import_force')}
             </label>
             <input type="file" id="imp-file" accept=".zip" style="width:100%;margin:10px 0;">
             <div id="imp-status" style="font-size:12px;color:var(--text-secondary);white-space:pre-wrap;line-height:1.6;min-height:40px;"></div>
             <div class="form-actions">
-                <button class="btn" data-act="closeBackdrop">关闭</button>
+                <button class="btn" data-act="closeBackdrop">${t('btn.close')}</button>
             </div>
         </div>`;
     document.body.appendChild(backdrop);
@@ -1062,13 +1058,13 @@ function showImportCompanyDialog() {
 
 async function uploadCompanyImport(file, targetCompanyId, forceNew) {
     const status = document.getElementById('imp-status');
-    if (status) status.textContent = '正在分析数据包，请勿关闭页面…';
+    if (status) status.textContent = t('imp.analyzing');
     // 合并到非当前公司时先切换 session 绑定：导入端点会拒绝「绑定 A 却写 B」
     if (targetCompanyId && targetCompanyId !== currentCompanyId) {
         const switched = await api('POST', '/api/trade/companies/' + targetCompanyId + '/switch').catch(() => null);
         // 切换失败：停止上传，避免带着旧绑定去写另一个公司
         if (!switched) {
-            if (status) status.textContent = '切换目标公司失败，请重试。';
+            if (status) status.textContent = t('imp.switch_fail');
             return;
         }
         currentCompanyId = targetCompanyId;
@@ -1093,7 +1089,7 @@ async function uploadCompanyImport(file, targetCompanyId, forceNew) {
                 const list = (data.candidates || [])
                     .map(function (c) { return c.id + ': ' + c.name + ' (' + c.slug + ')'; })
                     .join('\n');
-                const answer = prompt('目标机有多个同名公司，请输入要合并的公司 ID：\n' + list);
+                const answer = prompt(t('imp.target_prompt') + list);
                 const targetId = parseInt(answer, 10);
                 // 用户给了有效 ID：清掉旧的上传状态，带目标公司重新预检
                 if (targetId) {
@@ -1101,12 +1097,12 @@ async function uploadCompanyImport(file, targetCompanyId, forceNew) {
                     uploadCompanyImport(_pendingImportFile || file, targetId, false);
                 } else if (status) {
                     // 用户取消：保留文件选择，提示后可再次选文件重试
-                    status.textContent = '已取消：未选择目标公司';
+                    status.textContent = t('imp.cancelled');
                 }
                 return;
             }
             // 其它失败（非 zip / 过大 / 包不合规）：显示原因并清空选择以便重试
-            if (status) status.textContent = '导入失败：' + (data.detail || resp.status);
+            if (status) status.textContent = t('imp.failed') + (data.detail || resp.status);
             // 清空选择：否则重新选同一个文件不会触发 change，用户无法重试
             const inp = document.getElementById('imp-file');
             if (inp) inp.value = '';
@@ -1115,7 +1111,7 @@ async function uploadCompanyImport(file, targetCompanyId, forceNew) {
         // 预检成功：交给冲突渲染决定「无冲突直接确认」还是「逐对选择」
         _renderImportConflicts(data);
     } catch (err) {
-        if (status) status.textContent = '导入失败：' + (err && err.message ? err.message : err);
+        if (status) status.textContent = t('imp.failed') + (err && err.message ? err.message : err);
         const inp = document.getElementById('imp-file');
         if (inp) inp.value = '';
     }
@@ -1128,7 +1124,7 @@ function _renderImportConflicts(data) {
 
     // 无冲突：与今天一样的「一键导入」体验
     if (!data.conflicts || !data.conflicts.length) {
-        if (status) status.textContent = '未发现同名客户，开始导入…';
+        if (status) status.textContent = t('imp.no_conflicts');
         _confirmImport([]);
         return;
     }
@@ -1141,17 +1137,17 @@ function _renderImportConflicts(data) {
             return '<div class="imp-conflict" data-source-id="' + esc(String(c.source_id)) + '">' +
                 '<div class="imp-conflict-name">' + esc(c.source_name || '') + '</div>' +
                 '<select data-role="imp-action">' +
-                '<option value="merge">合并到「' + esc(c.target_name || '') + '」</option>' +
-                '<option value="create">新建为「' + esc(newName) + '」</option>' +
+                '<option value="merge">' + t('imp.merge_into') + esc(c.target_name || '') + t('imp.close_quote') + '</option>' +
+                '<option value="create">' + t('imp.create_as') + esc(newName) + t('imp.close_quote') + '</option>' +
                 '</select></div>';
         }).join('');
         status.innerHTML =
-            '<div class="imp-conflict-title">发现 ' + esc(String(data.conflicts.length)) + ' 个同名客户，请逐个选择：</div>' +
+            '<div class="imp-conflict-title">' + esc(t('imp.conflicts_title', {n: String(data.conflicts.length)})) + '</div>' +
             rows +
             '<div class="imp-conflict-actions">' +
-            '<button type="button" class="btn btn-xs" data-imp-bulk="merge">全部合并</button>' +
-            '<button type="button" class="btn btn-xs" data-imp-bulk="create">全部新建</button>' +
-            '<button type="button" class="btn btn-primary btn-xs" id="imp-confirm-btn">开始导入</button>' +
+            '<button type="button" class="btn btn-xs" data-imp-bulk="merge">' + esc(t('imp.bulk_merge')) + '</button>' +
+            '<button type="button" class="btn btn-xs" data-imp-bulk="create">' + esc(t('imp.bulk_create')) + '</button>' +
+            '<button type="button" class="btn btn-primary btn-xs" id="imp-confirm-btn">' + esc(t('imp.confirm')) + '</button>' +
             '</div>';
     }
 
@@ -1185,10 +1181,10 @@ async function _confirmImport(decisions) {
     const status = document.getElementById('imp-status');
     // 没有 upload_id：预检没跑完或状态被清掉，只能让用户重新选文件
     if (!_importUploadId) {
-        if (status) status.textContent = '导入链接已失效，请重新选择文件。';
+        if (status) status.textContent = t('imp.link_expired');
         return;
     }
-    if (status) status.textContent = '正在导入，请勿关闭页面…';
+    if (status) status.textContent = t('imp.importing');
     try {
         const resp = await fetch(
             '/api/trade/companies/import-package/' + encodeURIComponent(_importUploadId) + '/confirm',
@@ -1205,13 +1201,13 @@ async function _confirmImport(decisions) {
         if (!resp.ok) {
             // 过期：upload_id 已被清掉，链接不能再用，提示重选文件
             if (resp.status === 410) {
-                if (status) status.textContent = '导入链接已过期，请重新选择文件。';
+                if (status) status.textContent = t('imp.link_expired');
             } else if (resp.status === 409) {
                 // 409：另一请求正在导入，或还有未选择的冲突
-                if (status) status.textContent = data.detail || '导入正在进行中，请稍候。';
+                if (status) status.textContent = data.detail || t('imp.in_progress');
             } else {
                 // 其它错误：显示后端原因，让用户可重试
-                if (status) status.textContent = '导入失败：' + (data.detail || resp.status);
+                if (status) status.textContent = t('imp.failed') + (data.detail || resp.status);
             }
             // 清空选择：确认失败后让用户能重新选同一个文件发起新一轮预检
             const inp = document.getElementById('imp-file');
@@ -1222,7 +1218,7 @@ async function _confirmImport(decisions) {
         _importUploadId = null;
         pollImportJob(data.job_id);
     } catch (err) {
-        if (status) status.textContent = '导入失败：' + (err && err.message ? err.message : err);
+        if (status) status.textContent = t('imp.failed') + (err && err.message ? err.message : err);
         const inp = document.getElementById('imp-file');
         if (inp) inp.value = '';
     }
@@ -1242,13 +1238,13 @@ async function pollImportJob(jobId) {
         try {
             wait = TradeWait.mount(host, {
                 mode: 'task',
-                title: '导入公司数据包',
-                statusLabel: '导入公司数据包',
-                cancelText: '关闭',
+                title: t('modal.co.import'),
+                statusLabel: t('modal.co.import'),
+                cancelText: t('btn.close'),
                 // “关闭”只收起面板，后台导入继续；完成/失败时自动重新显示
                 onDismiss: function () { host.style.display = 'none'; }
             });
-            wait.phase('working', '排队中');
+            wait.phase('working', t('imp.queued'));
         } catch (e) { console.warn('导入等待面板挂载失败', e); wait = null; }
     }
     for (let i = 0; i < 1800; i++) {
@@ -1265,8 +1261,8 @@ async function pollImportJob(jobId) {
                 if (wait) wait.finish({phase: 'failed'});
                 if (status) {
                     status.textContent = resp.status === 404
-                        ? '导入任务已失效（服务可能重启过），请刷新页面后检查公司列表。'
-                        : '查询导入状态失败：' + (data.detail || resp.status);
+                        ? t('imp.job_expired')
+                        : t('imp.status_fail') + (data.detail || resp.status);
                 }
                 return;
             }
@@ -1277,15 +1273,17 @@ async function pollImportJob(jobId) {
         if (data.status === 'done') {
             const report = data.report || {};
             revealWait();
-            if (wait) wait.finish({phase: 'acquired', zh: '导入完成'});
+            if (wait) wait.finish({phase: 'acquired', zh: t('imp.done_short')});
             if (status) {
-                status.textContent = '导入完成：' + (report.mode === 'created' ? '已新建公司' : '已合并到已有公司')
-                    + '（' + ((report.target && report.target.name) || '') + '）\n'
-                    + '客户 +' + ((report.tables && report.tables.customers && report.tables.customers.inserted) || 0)
-                    + '，对话 +' + ((report.tables && report.tables.conversations && report.tables.conversations.inserted) || 0)
-                    + '，订单 +' + ((report.tables && report.tables.orders && report.tables.orders.inserted) || 0)
-                    + '，文件 ' + ((report.files && report.files.copied) || 0) + ' 个'
-                    + (report.memory && report.memory.added ? '，记忆 +' + report.memory.added : '');
+                status.textContent = t('imp.report', {
+                    mode: report.mode === 'created' ? t('imp.mode_created') : t('imp.mode_merged'),
+                    name: (report.target && report.target.name) || '',
+                    customers: (report.tables && report.tables.customers && report.tables.customers.inserted) || 0,
+                    conversations: (report.tables && report.tables.conversations && report.tables.conversations.inserted) || 0,
+                    orders: (report.tables && report.tables.orders && report.tables.orders.inserted) || 0,
+                    files: (report.files && report.files.copied) || 0,
+                    memory: report.memory && report.memory.added ? t('imp.memory_added', {n: report.memory.added}) : ''
+                });
                 // 导出时跳过的资料库文件：这里给出目标机的精确落盘位置
                 if (report.warnings && report.warnings.length) {
                     status.textContent += '\n⚠️ ' + report.warnings.join('\n');
@@ -1310,24 +1308,24 @@ async function pollImportJob(jobId) {
                 const list = (data.candidates || [])
                     .map(function (c) { return c.id + ': ' + c.name + ' (' + c.slug + ')'; })
                     .join('\n');
-                const answer = prompt('目标机有多个同名公司，请输入要合并的公司 ID：\n' + list);
+                const answer = prompt(t('imp.target_prompt') + list);
                 const targetId = parseInt(answer, 10);
                 if (targetId && _pendingImportFile) {
                     uploadCompanyImport(_pendingImportFile, targetId, false);
                 } else if (status) {
-                    status.textContent = '已取消：未选择目标公司';
+                    status.textContent = t('imp.cancelled');
                 }
                 return;
             }
-            if (status) status.textContent = '导入失败：' + (data.error || '未知错误');
+            if (status) status.textContent = t('imp.failed') + (data.error || t('imp.unknown_error'));
             return;
         }
-        if (wait) wait.phase('working', data.phase === 'queued' ? '排队中' : '正在导入');
-        if (status) status.textContent = '导入中…（' + (data.phase || data.status) + '）';
+        if (wait) wait.phase('working', data.phase === 'queued' ? t('imp.queued') : t('imp.in_progress_short'));
+        if (status) status.textContent = t('imp.progress', {phase: data.phase || data.status});
     }
     revealWait();
-    if (wait) wait.finish({phase: 'failed', zh: '导入超时'});
-    if (status) status.textContent = '导入超时，请查看日志或重试。';
+    if (wait) wait.finish({phase: 'failed', zh: t('imp.timeout')});
+    if (status) status.textContent = t('imp.timeout_status');
 }
 
 function autoSlug() {
@@ -1335,7 +1333,7 @@ function autoSlug() {
     const slugEl = $('co-slug');
     if (!name) {
         slugEl.value = '';
-        slugEl.placeholder = '自动生成';
+        slugEl.placeholder = t('modal.co.slug_ph');
         slugEl.style.color = 'var(--text-muted)';
         return;
     }
@@ -1351,7 +1349,7 @@ function autoSlug() {
 
 async function createCompany() {
     const name = $('co-name').value.trim();
-    if (!name) { toast('请填写公司名称'); return; }
+    if (!name) { toast(t('co.name_required')); return; }
     const slug = $('co-slug').value.trim();
     const body = {name};
     if (slug) body.slug = slug;
@@ -1363,26 +1361,26 @@ async function createCompany() {
     const r = await api('POST', '/api/trade/companies', body);
     if (r?.id) {
         if (r.work_dir_is_new === false) {
-            toast(`桌面目录已存在，已创建为：${r.work_dir.split('/').pop()}`);
+            toast(t('co.created_workdir', {name: r.work_dir.split('/').pop()}));
         } else {
-            toast('公司创建成功，桌面工作目录已就绪');
+            toast(t('co.created_ok'));
         }
         ['co-name','co-slug','co-contact-name','co-contact-email','co-website'].forEach(id=>$(id).value='');
         // 创建成功即关闭弹窗 —— 不需要用户再点一次「关闭」
         hideModal('company-modal');
         await loadCompanies();
         onCompanyChange(r.id);
-    } else toast(r?.detail||'创建失败');
+    } else toast(r?.detail||t('co.create_fail'));
 }
 
 async function deleteCompany(id) {
-    if (!confirm('确定停用该公司？数据将保留 30 天后自动清理。')) return;
+    if (!confirm(t('co.delete_confirm'))) return;
     // 后端要求 X-Confirm-Delete: yes，否则 400（审计 P1-8）
     const r = await api('DELETE', `/api/trade/companies/${id}`, null, {
         'X-Confirm-Delete': 'yes',
     });
-    if (r?.ok) { toast('已停用'); if (currentCompanyId===id) onCompanyChange(''); await loadCompanies(); loadCompanyListUI(); }
-    else toast(r?.detail||'删除失败');
+    if (r?.ok) { toast(t('co.deleted')); if (currentCompanyId===id) onCompanyChange(''); await loadCompanies(); loadCompanyListUI(); }
+    else toast(r?.detail||t('co.delete_fail'));
 }
 
 async function onCompanyChange(cid) {
@@ -1417,7 +1415,7 @@ async function onCompanyChange(cid) {
             currentCompanyId = prevCid;
             const sel = $('company-select');
             if (sel && prevCid != null) sel.value = String(prevCid);
-            toast('切换公司失败，请重试');
+            toast(t('co.switch_fail'));
             return;
         }
         saveState();
@@ -1446,8 +1444,8 @@ async function saveCompanyIdentity() {
     if (!currentCompanyId) return;
     const identity = $('identity-editor').value;
     const r = await api('PUT', `/api/trade/companies/${currentCompanyId}/agent-identity`, {agent_identity_md:identity});
-    if (r?.company_id) { toast('身份配置已保存'); hideModal('company-modal'); }
-    else toast(r?.detail||'保存失败');
+    if (r?.company_id) { toast(t('co.identity_saved')); hideModal('company-modal'); }
+    else toast(r?.detail||t('co.identity_fail'));
 }
 
 // ═════════════════════ HERMES 版本过旧 → 升级面板 ═════════════════════

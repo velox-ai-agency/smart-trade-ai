@@ -83,7 +83,7 @@ test('公司切换的 /switch 失败必须回滚前端选中', () => {
         '切换失败必须把 currentCompanyId 回滚到 prevCid',
     );
     assert.ok(
-        /if\s*\(\s*!switched\s*\)\s*\{[\s\S]*?toast\('切换公司失败/.test(body),
+        /if\s*\(\s*!switched\s*\)\s*\{[\s\S]*?toast\(\s*t\('co\.switch_fail'\)/.test(body),
         '切换失败必须 toast 提示用户重试',
     );
 });

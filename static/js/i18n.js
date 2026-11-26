@@ -31,6 +31,34 @@ const I18N = {
         'modal.co.title':'🏢 公司设置','modal.co.tab_list':'公司列表','modal.co.tab_identity':'Agent 身份',
         'modal.co.add_title':'添加新公司','modal.co.name':'公司名称 *','modal.co.name_ph':'例如：我的外贸公司',
         'modal.co.slug_ph':'自动生成','modal.co.slug_tt':'由系统根据公司名称自动生成',
+        'modal.co.slug':'Slug','modal.co.import':'导入公司数据',
+        'modal.co.empty':'暂无公司，请下方创建。','modal.co.export':'导出','modal.co.delete':'删除',
+        'modal.co.import_title':'📦 导入公司数据',
+        'modal.co.import_desc':'选择从另一台电脑导出的 <code>.zip</code>。包内含客户资料、对话、记忆和 Agent 身份，未加密。<br>桌面资料库文件不在包内，如有需要请自行拷贝到目标机对应目录。<br>同名公司已存在时默认合并；如果只是同名但不是同一家公司，勾选下面的强制新建。',
+        'modal.co.import_force':'同名但不是同一家公司，强制新建（请先勾选，再选择文件）',
+        'imp.analyzing':'正在分析数据包，请勿关闭页面…','imp.switch_fail':'切换目标公司失败，请重试。',
+        'imp.target_prompt':'目标机有多个同名公司，请输入要合并的公司 ID：\n','imp.cancelled':'已取消：未选择目标公司',
+        'imp.failed':'导入失败：','imp.no_conflicts':'未发现同名客户，开始导入…',
+        'imp.merge_into':'合并到「','imp.create_as':'新建为「','imp.close_quote':'」',
+        'imp.conflicts_title':'发现 {n} 个同名客户，请逐个选择：',
+        'imp.bulk_merge':'全部合并','imp.bulk_create':'全部新建','imp.confirm':'开始导入',
+        'imp.link_expired':'导入链接已失效，请重新选择文件。','imp.importing':'正在导入，请勿关闭页面…',
+        'imp.in_progress':'导入正在进行中，请稍候。',
+        'imp.job_expired':'导入任务已失效（服务可能重启过），请刷新页面后检查公司列表。','imp.status_fail':'查询导入状态失败：',
+        'imp.done_prefix':'导入完成：','imp.done_short':'导入完成','imp.mode_created':'已新建公司','imp.mode_merged':'已合并到已有公司',
+        'imp.report':'导入完成：{mode}（{name}）\n客户 +{customers}，对话 +{conversations}，订单 +{orders}，文件 {files} 个{memory}',
+        'imp.memory_added':'，记忆 +{n}','imp.unknown_error':'未知错误',
+        'imp.queued':'排队中','imp.in_progress_short':'正在导入','imp.progress':'导入中…（{phase}）',
+        'imp.timeout':'导入超时','imp.timeout_status':'导入超时，请查看日志或重试。',
+        'co.name_required':'请填写公司名称','co.created_workdir':'桌面目录已存在，已创建为：{name}',
+        'co.created_ok':'公司创建成功，桌面工作目录已就绪','co.create_fail':'创建失败',
+        'co.delete_confirm':'确定停用该公司？数据将保留 30 天后自动清理。','co.deleted':'已停用','co.delete_fail':'删除失败',
+        'co.switch_fail':'切换公司失败，请重试',
+        'co.export_confirm':'导出包包含客户资料、对话、记忆和 Agent 身份，不包含桌面资料库文件（需自行拷贝），且未加密。请妥善保管。继续导出？',
+        'co.exporting':'打包中','co.export_too_large':'数据包过大，未自动打包。\n请手动拷贝：\n',
+        'co.export_fail':'导出失败：','co.export_note':'数据包已导出，但桌面资料库文件不随包迁移。\n请按需手动拷贝以下目录，导入后放到目标机对应的公司桌面目录：\n',
+        'co.export_warn':'导出完成，有提示：\n','co.export_ok':'导出完成，请妥善保管数据包',
+        'co.identity_saved':'身份配置已保存','co.identity_fail':'保存失败',
         'modal.co.contact':'联系人','modal.co.contact_ph':'姓名',
         'modal.co.email':'邮箱','modal.co.website':'网站',
         'modal.co.identity_desc':'配置当前选中公司的 AI Agent 身份。系统会在对话时注入此内容。',
@@ -498,6 +526,34 @@ const I18N = {
         'modal.co.title':'🏢 Company Settings','modal.co.tab_list':'Companies','modal.co.tab_identity':'Agent Identity',
         'modal.co.add_title':'Add Company','modal.co.name':'Company Name *','modal.co.name_ph':'e.g. My Trading Co.',
         'modal.co.slug_ph':'Auto-generated','modal.co.slug_tt':'Auto-generated from company name',
+        'modal.co.slug':'Slug','modal.co.import':'Import Company Data',
+        'modal.co.empty':'No companies yet. Create one below.','modal.co.export':'Export','modal.co.delete':'Delete',
+        'modal.co.import_title':'📦 Import Company Data',
+        'modal.co.import_desc':'Select a <code>.zip</code> exported from another computer. It contains customer files, conversations, memory and Agent identity, unencrypted.<br>Desktop knowledge-base files are not included; copy them manually to the target machine if needed.<br>A same-name company is merged by default; tick the box below to force a new company if it is a different business.',
+        'modal.co.import_force':'Same name but a different company — force create new (tick first, then choose the file)',
+        'imp.analyzing':'Analyzing the package. Please keep this page open…','imp.switch_fail':'Could not switch to the target company. Please retry.',
+        'imp.target_prompt':'Multiple companies on this machine share the same name. Enter the company ID to merge into:\n','imp.cancelled':'Cancelled: no target company selected',
+        'imp.failed':'Import failed: ','imp.no_conflicts':'No same-name customers found. Starting import…',
+        'imp.merge_into':'Merge into “','imp.create_as':'Create as “','imp.close_quote':'”',
+        'imp.conflicts_title':'Found {n} same-name customers. Choose one by one:',
+        'imp.bulk_merge':'Merge all','imp.bulk_create':'Create all','imp.confirm':'Start Import',
+        'imp.link_expired':'Import link expired. Please choose the file again.','imp.importing':'Importing. Please keep this page open…',
+        'imp.in_progress':'Import is still running. Please wait.',
+        'imp.job_expired':'Import job expired (the service may have restarted). Refresh the page and check the company list.','imp.status_fail':'Could not check import status: ',
+        'imp.done_prefix':'Import complete: ','imp.done_short':'Import complete','imp.mode_created':'New company created','imp.mode_merged':'Merged into existing company',
+        'imp.report':'Import complete: {mode} ({name})\nCustomers +{customers}, conversations +{conversations}, orders +{orders}, files {files}{memory}',
+        'imp.memory_added':', memory +{n}','imp.unknown_error':'Unknown error',
+        'imp.queued':'Queued','imp.in_progress_short':'Importing','imp.progress':'Importing… ({phase})',
+        'imp.timeout':'Import timed out','imp.timeout_status':'Import timed out. Check the logs or retry.',
+        'co.name_required':'Please enter the company name','co.created_workdir':'A desktop folder already exists; created as: {name}',
+        'co.created_ok':'Company created. Desktop working folder is ready.','co.create_fail':'Creation failed',
+        'co.delete_confirm':'Deactivate this company? Data is retained for 30 days, then automatically removed.','co.deleted':'Deactivated','co.delete_fail':'Deletion failed',
+        'co.switch_fail':'Could not switch company. Please retry.',
+        'co.export_confirm':'The export package contains customers, conversations, memory and Agent identity. Desktop knowledge-base files are not included (copy them manually) and the package is unencrypted. Keep it safe. Continue?',
+        'co.exporting':'PACKAGING','co.export_too_large':'The package is too large to build automatically.\nCopy these manually:\n',
+        'co.export_fail':'Export failed: ','co.export_note':'The package was exported, but desktop knowledge-base files are not included.\nCopy the folders below as needed and place them in the company desktop folder on the target machine:\n',
+        'co.export_warn':'Export complete, with warnings:\n','co.export_ok':'Export complete. Keep the package safe.',
+        'co.identity_saved':'Agent identity saved','co.identity_fail':'Save failed',
         'modal.co.contact':'Contact','modal.co.contact_ph':'Name',
         'modal.co.email':'Email','modal.co.website':'Website',
         'modal.co.identity_desc':'Configure the AI Agent identity for this company. Injected into every conversation.',
@@ -964,6 +1020,61 @@ const I18N = {
         'modal.co.name_ph': "مثال: شركة التجارة الخاصة بي",
         'modal.co.slug_ph': "توليد تلقائي",
         'modal.co.slug_tt': "يُنشأ تلقائياً من اسم الشركة",
+        'modal.co.slug': "المعرّف",
+        'modal.co.import': "استيراد بيانات الشركة",
+        'modal.co.empty': "لا توجد شركات بعد. أنشئ شركة جديدة أدناه.",
+        'modal.co.export': "تصدير",
+        'modal.co.delete': "حذف",
+        'modal.co.import_title': "📦 استيراد بيانات الشركة",
+        'modal.co.import_desc': "اختر ملف <code>.zip</code> المُصدَّر من جهاز كمبيوتر آخر. يحتوي على ملفات العملاء والمحادثات والذاكرة وهوية الوكيل، وهو غير مشفر.<br>لا تتضمن الحزمة ملفات مكتبة المعرفة الموجودة على سطح المكتب؛ انسخها يدوياً إلى المجلد المقابل على الجهاز الهدف عند الحاجة.<br>تتم دمج الشركة التي تحمل الاسم نفسه تلقائياً؛ وإذا كانت شركة مختلفة، فعّل الخيار أدناه لإنشاء شركة جديدة.",
+        'modal.co.import_force': "الاسم نفسه لشركة مختلفة — فرض إنشاء شركة جديدة (فعّل الخيار أولاً، ثم اختر الملف)",
+        'imp.analyzing': "جارٍ تحليل الحزمة. يُرجى إبقاء هذه الصفحة مفتوحة…",
+        'imp.switch_fail': "تعذّر التبديل إلى الشركة الهدف. يُرجى المحاولة مرة أخرى.",
+        'imp.target_prompt': "توجد عدة شركات بالاسم نفسه على هذا الجهاز. أدخل معرّف الشركة المراد الدمج فيها:\n",
+        'imp.cancelled': "تم الإلغاء: لم يتم اختيار شركة هدف",
+        'imp.failed': "فشل الاستيراد: ",
+        'imp.no_conflicts': "لم يتم العثور على عملاء بالاسم نفسه. بدء الاستيراد…",
+        'imp.merge_into': "الدمج في «",
+        'imp.create_as': "الإنشاء باسم «",
+        'imp.close_quote': "»",
+        'imp.conflicts_title': "تم العثور على {n} عميل بالاسم نفسه. يُرجى الاختيار واحداً تلو الآخر:",
+        'imp.bulk_merge': "دمج الكل",
+        'imp.bulk_create': "إنشاء الكل",
+        'imp.confirm': "بدء الاستيراد",
+        'imp.link_expired': "انتهت صلاحية رابط الاستيراد. يُرجى اختيار الملف مرة أخرى.",
+        'imp.importing': "جارٍ الاستيراد. يُرجى إبقاء هذه الصفحة مفتوحة…",
+        'imp.in_progress': "الاستيراد لا يزال قيد التنفيذ. يُرجى الانتظار.",
+        'imp.job_expired': "انتهت صلاحية مهمة الاستيراد (ربما أُعيد تشغيل الخدمة). حدّث الصفحة وتحقق من قائمة الشركات.",
+        'imp.status_fail': "تعذّر التحقق من حالة الاستيراد: ",
+        'imp.done_prefix': "اكتمل الاستيراد: ",
+        'imp.done_short': "اكتمل الاستيراد",
+        'imp.mode_created': "تم إنشاء شركة جديدة",
+        'imp.mode_merged': "تم الدمج في شركة موجودة",
+        'imp.report': "اكتمل الاستيراد: {mode} ({name})\nالعملاء +{customers}، المحادثات +{conversations}، الطلبات +{orders}، الملفات {files}{memory}",
+        'imp.memory_added': "، الذاكرة +{n}",
+        'imp.unknown_error': "خطأ غير معروف",
+        'imp.queued': "في الانتظار",
+        'imp.in_progress_short': "جارٍ الاستيراد",
+        'imp.progress': "جارٍ الاستيراد… ({phase})",
+        'imp.timeout': "انتهت مهلة الاستيراد",
+        'imp.timeout_status': "انتهت مهلة الاستيراد. راجع السجلات أو أعد المحاولة.",
+        'co.name_required': "يُرجى إدخال اسم الشركة",
+        'co.created_workdir': "يوجد مجلد على سطح المكتب بالاسم نفسه؛ تم الإنشاء باسم: {name}",
+        'co.created_ok': "تم إنشاء الشركة. مجلد العمل على سطح المكتب جاهز.",
+        'co.create_fail': "فشل الإنشاء",
+        'co.delete_confirm': "هل تريد تعطيل هذه الشركة؟ تُحتفظ بالبيانات 30 يوماً ثم تُحذف تلقائياً.",
+        'co.deleted': "تم التعطيل",
+        'co.delete_fail': "فشل الحذف",
+        'co.switch_fail': "تعذّر التبديل إلى الشركة. يُرجى المحاولة مرة أخرى.",
+        'co.export_confirm': "تحتوي حزمة التصدير على العملاء والمحادثات والذاكرة وهوية الوكيل. لا تشمل ملفات مكتبة المعرفة على سطح المكتب (انسخها يدوياً) وهي غير مشفرة. يُرجى حفظها جيداً. هل تريد المتابعة؟",
+        'co.exporting': "جارٍ التجميع",
+        'co.export_too_large': "الحزمة كبيرة جداً ولا يمكن تجميعها تلقائياً.\nيُرجى نسخ ما يلي يدوياً:\n",
+        'co.export_fail': "فشل التصدير: ",
+        'co.export_note': "تم تصدير الحزمة، لكن ملفات مكتبة المعرفة على سطح المكتب غير مضمّنة.\nانسخ المجلدات التالية حسب الحاجة وضعها في مجلد الشركة على الجهاز الهدف:\n",
+        'co.export_warn': "اكتمل التصدير مع تحذيرات:\n",
+        'co.export_ok': "اكتمل التصدير. يُرجى حفظ الحزمة جيداً.",
+        'co.identity_saved': "تم حفظ هوية الوكيل",
+        'co.identity_fail': "فشل الحفظ",
         'modal.co.contact': "جهة الاتصال",
         'modal.co.contact_ph': "الاسم",
         'modal.co.email': "البريد الإلكتروني",
@@ -5440,6 +5551,7 @@ function _updateStaticModals() {
         lbls.forEach(function(l) {
             var f = l.getAttribute('for');
             if (f === 'co-name') l.textContent = t('modal.co.name');
+            else if (f === 'co-slug') l.textContent = t('modal.co.slug');
             else if (f === 'co-contact-name') l.textContent = t('modal.co.contact');
             else if (f === 'co-contact-email') l.textContent = t('modal.co.email');
             else if (f === 'co-website') l.textContent = t('modal.co.website');
@@ -5451,12 +5563,19 @@ function _updateStaticModals() {
             else if (inp.id === 'co-slug') { inp.placeholder = t('modal.co.slug_ph'); inp.title = t('modal.co.slug_tt'); }
             else if (inp.id === 'co-contact-name') inp.placeholder = t('modal.co.contact_ph');
         });
+        var importLbl = document.getElementById('co-import-label');
+        if (importLbl) importLbl.textContent = t('modal.co.import');
+        var identityDesc = cm.querySelector('#tab-identity > p');
+        if (identityDesc) identityDesc.textContent = t('modal.co.identity_desc');
         var ta = cm.querySelector('#identity-editor'); if (ta) ta.placeholder = t('modal.co.identity_ph');
-        var btns = cm.querySelectorAll('.form-actions button');
-        btns.forEach(function(b) {
-            if (b.textContent.includes('创建') || b.textContent.includes('Create')) b.textContent = t('modal.co.create');
-            else if (b.textContent.includes('保存') || b.textContent.includes('Save')) b.textContent = t('btn.save');
-            else if (b.textContent.includes('关闭') || b.textContent.includes('Close')) b.textContent = t('btn.close');
+        var cmBtns = {
+            'co-btn-close-list': t('btn.close'),
+            'co-btn-close-identity': t('btn.close'),
+            'co-btn-create': t('modal.co.create'),
+            'co-btn-save-identity': t('btn.save')
+        };
+        Object.keys(cmBtns).forEach(function (id) {
+            var b = document.getElementById(id); if (b) b.textContent = cmBtns[id];
         });
     }
     // Customer modal
