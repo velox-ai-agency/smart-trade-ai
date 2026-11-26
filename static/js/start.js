@@ -621,10 +621,15 @@
             acts = '<button class="btn" data-start-act="close">' + escText(d, tr(d, 'start.close')) + '</button>';
         } else {
             html = '<p class="start-hint">' + escText(d, tr(d, 'start.intro')) + '</p>';
-            acts = '<button class="btn btn-primary" data-start-act="begin">' + escText(d, tr(d, 'start.begin')) + '</button>';
+            acts = '<button class="btn btn-primary" data-start-act="begin">' + escText(d, tr(d, 'start.begin')) + '</button>'
+                + '<button class="btn" data-start-act="close">' + escText(d, tr(d, 'start.cancel')) + '</button>';
         }
         if (state.notice && state.status !== 'no_company') {
             html = '<p class="start-notice">' + escText(d, state.notice) + '</p>' + html;
+        }
+        // 任何一步都允许退出：只有 Begin/Confirm 的对话框会把人困在里面
+        if (state.status === 'question' || state.status === 'review' || state.status === 'edit') {
+            acts += '<button class="btn" data-start-act="close">' + escText(d, tr(d, 'start.cancel')) + '</button>';
         }
         body.innerHTML = html;
         actions.innerHTML = acts;

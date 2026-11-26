@@ -477,7 +477,8 @@ const I18N = {
         'skills.egypt-export-sources.d': 'Egypt export source map — Nafeza / GOEIC / CargoX / Central Bank of Egypt sources with verification notes',
         'skills.egypt-export-sources.t': 'Egypt export sources, GOEIC, Nafeza, CargoX, Central Bank of Egypt, Egypt export declaration',
         // START onboarding UI
-        'start.button':'Start','start.title':'Set up your company profile',
+        'start.button':'Start',
+        'start.cancel':'Cancel','start.title':'Set up your company profile',
         'start.no_company':'Select a company first before any private data is loaded.',
         'start.loading':'Loading…','start.error':'Failed to load: {msg}',
         'start.intro':'Answer a few short questions to build a reusable company profile.',
@@ -2288,6 +2289,22 @@ var HTML_TERMS = {
  "创建公司": {
   "en": "Create company",
   "ar": "إنشاء شركة"
+ },
+ "请先选择或创建公司": {
+  "en": "Select or create a company",
+  "ar": "اختر شركة أو أنشئ واحدة"
+ },
+ "Trade AI 为多公司隔离架构": {
+  "en": "Trade AI keeps each company's data separate",
+  "ar": "يعزل Trade AI بيانات كل شركة على حدة"
+ },
+ "导入已有公司数据": {
+  "en": "Import existing company data",
+  "ar": "استيراد بيانات شركة موجودة"
+ },
+ "创建公司 / 选择公司": {
+  "en": "Create / select a company",
+  "ar": "إنشاء / اختيار شركة"
  },
  "配置当前选中公司的 AI Agent 身份。系统会在对话时注入此内容。": {
   "en": "Configure the AI Agent identity of the currently selected company. The system injects this content during conversations.",

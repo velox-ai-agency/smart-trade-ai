@@ -1535,7 +1535,8 @@ const TOOL_NAMES = {
     file_extract:'📋 提取文档',
     web_search:'🌐 搜索',web_fetch:'📥 抓取',memory_recall:'🧠 回忆',
     memory_retain:'💾 保存',execute_code:'💻 代码',terminal:'🖥️ 终端',
-    delegate_task:'🤖 委派',vision:'👁️ 图像',skill_load:'📦 技能',
+    delegate_task:'🤖 委派',vision:'👁️ 图像',skill_load:'📦 技能',skill_view:'📦 技能',
+    skill_list:'📦 技能',skills_search:'📦 技能',
 };
 // 界面只显示英文或阿拉伯语：TOOL_NAMES 里的中文只是 JS_TERMS 的查表 key。
 // （原先直接把中文 label 塞进等待界面，英文/阿拉伯语界面都显示「搜索文件」。）

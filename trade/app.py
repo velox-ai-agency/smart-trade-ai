@@ -1243,7 +1243,34 @@ def serve_trade_chat(app: FastAPI) -> None:
             _STATIC_DIR = _runtime_static
         else:
             _STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
+
     _TRADE_CHAT_HTML = _STATIC_DIR / "trade_chat.html"
+    _ASSET_V_CACHE = {"at": 0.0, "v": "0"}
+
+    def _asset_version() -> str:
+        """静态资源版本号 = 相关文件里最新的 mtime。
+
+        页面里的 ?v= 曾经是手写的常量，改了 chat.js 却没有改它，浏览器就一直用
+        缓存里的旧脚本 —— 现象是「改完还是老样子」。按 mtime 自动生成，
+        任何一次刷新都会拿到新 URL。
+        """
+        import time as _time
+
+        now = _time.time()
+        if now - _ASSET_V_CACHE["at"] < 5:
+            return _ASSET_V_CACHE["v"]
+        latest = 0
+        targets = [_STATIC_DIR / "trade_chat.html"]
+        targets += list(_STATIC_DIR.glob("js/*.js"))
+        targets += list(_STATIC_DIR.glob("*.css"))
+        for path in targets:
+            try:
+                latest = max(latest, path.stat().st_mtime_ns)
+            except OSError:
+                continue
+        value = format(latest or 1, "x")[-10:]
+        _ASSET_V_CACHE.update({"at": now, "v": value})
+        return value
 
     # 托管 static/ 目录下的 CSS/JS 等静态资源
     if _STATIC_DIR.is_dir():
@@ -1278,6 +1305,8 @@ def serve_trade_chat(app: FastAPI) -> None:
             )
         html = _TRADE_CHAT_HTML.read_text(encoding="utf-8")
         html = html.replace("__TRADE_SESSION_TOKEN__", _SESSION_TOKEN)
+        # 静态资源 URL 带内容版本，避免浏览器继续用缓存里的旧脚本
+        html = html.replace("__TRADE_ASSET_V__", _asset_version())
         # CSP nonce（审计 O-17）：内联 <script> 元素每次请求一个 nonce；
         # 内联 on*= 事件属性已全部迁移到 data-* 委托，script-src-attr 为
         # 'none'，script-src/script-src-elem 不再放行 unsafe-inline。
@@ -1286,7 +1315,10 @@ def serve_trade_chat(app: FastAPI) -> None:
         html = html.replace("__TRADE_CSP_NONCE__", nonce)
         return HTMLResponse(
             content=html,
-            headers={"Content-Security-Policy": _build_trade_csp(nonce)},
+            headers={
+                "Content-Security-Policy": _build_trade_csp(nonce),
+                "Cache-Control": "no-store",
+            },
         )
 
 

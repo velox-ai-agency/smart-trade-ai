@@ -262,6 +262,9 @@ function _replaceMainContent(html) {
         child.remove();
     }
     main.insertAdjacentHTML('beforeend', html);
+    // 新插入的 HTML 是中文源文，_translateStaticHtml 只在页面加载/切语言时跑过，
+    // 不补这一趟就会把中文直接留在界面上（2026-11-26 无公司空态实测）。
+    if (typeof _translateStaticHtml === 'function') _translateStaticHtml();
 }
 
 function navToView(view, chatCtx, chatName) {
