@@ -31,7 +31,7 @@ const WRITES = [
     {
         name: '客户新增/编辑',
         call: "await api('POST', `/api/trade/customers`, body)",
-        success: "toast(editId ? '客户已更新' : '客户已添加')",
+        success: "toast(editId ? t('cust.updated') : t('cust.created'))",
     },
     {
         name: '订单删除',

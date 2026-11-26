@@ -1724,7 +1724,7 @@ function showCustomerEditModal(cid) {
         if (!c) return;
         const extra1 = _parseExtra1(c);
         const extra2 = _parseExtra2(c);
-        $('customer-modal-title').textContent = '编辑客户';
+        $('customer-modal-title').textContent = t('modal.cust.title_edit');
         $('cust-edit-id').value = cid;
         $('cust-name').value = c.name||'';
         $('cust-title').value = extra2['title']||'';
@@ -1746,7 +1746,7 @@ function showCustomerEditModal(cid) {
         $('cust-follow-up-note').value = extra2['follow_up_note']||'';
         $('cust-note').value = c.note||'';
     } else {
-        $('customer-modal-title').textContent = '添加客户';
+        $('customer-modal-title').textContent = t('modal.cust.title');
         $('cust-edit-id').value = '';
         ['cust-name','cust-contact','cust-title','cust-responsibility','cust-country','cust-city','cust-email','cust-phone','cust-whatsapp','cust-linkedin','cust-website','cust-tier','cust-buyer-type','cust-main-category','cust-match-score','cust-backup-email','cust-note','cust-follow-up-note'].forEach(id => $(id).value='');
         if ($('cust-function')) $('cust-function').value = '其他';
@@ -1757,7 +1757,7 @@ function showCustomerEditModal(cid) {
 
 async function saveCustomer() {
     const name = $('cust-name').value.trim();
-    if (!name) { toast('请填写客户名称'); return; }
+    if (!name) { toast(t('cust.name_required')); return; }
     const editId = $('cust-edit-id').value;
     const contact = ($('cust-contact')?.value?.trim() || '');
     const note = $('cust-note').value.trim();
@@ -1790,7 +1790,7 @@ async function saveCustomer() {
     hideModal('customer-modal');
     await loadCustomersData();
     if (currentView === 'customers') renderCustomersTable(allCustomers);
-    toast(editId ? '客户已更新' : '客户已添加');
+    toast(editId ? t('cust.updated') : t('cust.created'));
 }
 
 // ── 批量导入 ───────────────────────────────────────────
@@ -2824,6 +2824,10 @@ let _visitPlans = [];
 let _visitCurrent = null;
 let _visitCustomerId = null;
 
+// Site Visit 的整页 innerHTML 是运行时拼出来的，不会经过 i18n 的静态翻译扫描；
+// 所有可见文案必须在这里就地翻译（存储值/正则词表保持中文不动）。
+function _vt(zh, en) { return langText(zh, en); }
+
 /** 从客户详情打开验厂：只显示该客户的计划，并预置 customer_id。 */
 function openVisitForCustomer(cid) {
     _visitCustomerId = cid;
@@ -2831,7 +2835,7 @@ function openVisitForCustomer(cid) {
         viewCache['visit'].element.remove();
         delete viewCache['visit'];
     }
-    navToView('visit', undefined, '验厂计划');
+    navToView('visit', undefined, _vt('验厂计划', 'Site Visit'));
 }
 
 async function renderVisitPlansViewInto(container) {
@@ -2852,30 +2856,30 @@ async function renderVisitPlansViewInto(container) {
         '<div class="visit-head">' +
         (bound ? '<button type="button" class="btn" id="visit-back">← ' +
             (langText('返回客户详情','Back to customer')) + '</button>' : '') +
-        '<h2 class="cust-title">验厂计划<span class="cust-idx">SITE VISIT</span>' +
+        '<h2 class="cust-title">' + _vt('验厂计划', 'Site Visit') + '<span class="cust-idx">SITE VISIT</span>' +
         (boundName ? '<span class="cust-co">' + esc(boundName) + '</span>' : '') + '</h2>' +
         '<div class="visit-chips" id="visit-chips"></div>' +
         '<div class="visit-actions">' +
-        '<button type="button" class="btn" id="visit-suggest">生成建议</button>' +
-        '<button type="button" class="btn primary" id="visit-save">保存</button>' +
-        '<button type="button" class="btn" id="visit-print-btn">打印 A4</button>' +
-        '<button type="button" class="btn" id="visit-mobile">手机长图</button>' +
-        '<button type="button" class="btn" id="visit-memo">私密备忘录</button>' +
-        '<button type="button" class="btn" id="visit-new">＋ 新建一次来访</button>' +
+        '<button type="button" class="btn" id="visit-suggest">' + _vt('生成建议', 'Generate suggestions') + '</button>' +
+        '<button type="button" class="btn primary" id="visit-save">' + _vt('保存', 'Save') + '</button>' +
+        '<button type="button" class="btn" id="visit-print-btn">' + _vt('打印 A4', 'Print A4') + '</button>' +
+        '<button type="button" class="btn" id="visit-mobile">' + _vt('手机长图', 'Mobile long image') + '</button>' +
+        '<button type="button" class="btn" id="visit-memo">' + _vt('私密备忘录', 'Private memo') + '</button>' +
+        '<button type="button" class="btn" id="visit-new">' + _vt('＋ 新建一次来访', '＋ New visit') + '</button>' +
         '</div></div>' +
         '<div class="visit-grid">' +
-        '<div class="vcard"><h4>行程与来访人</h4>' +
-        '<label>标题<input id="vp-title" type="text"></label>' +
-        '<label>客户<select id="vp-customer"></select></label>' +
-        '<label>日期<input id="vp-date" type="date"></label>' +
-        '<label>天数<input id="vp-days" type="number" min="1" value="1"></label>' +
-        '<label>地点<input id="vp-location" type="text"></label>' +
-        '<label>来访人<textarea id="vp-visitors" rows="3"></textarea></label></div>' +
-        '<div class="vcard"><h4>日程</h4><textarea id="vp-schedule" rows="8" placeholder="12-08 上午 参观车间…"></textarea></div>' +
-        '<div class="vcard"><h4>人员与分工</h4><textarea id="vp-staff" rows="8" placeholder="接待：张三 / 技术：…"></textarea></div>' +
-        '<div class="vcard"><h4>访前清单</h4><textarea id="vp-checklist" rows="8"></textarea></div>' +
-        '<div class="vcard"><h4>内部风险</h4><textarea id="vp-risks" rows="8"></textarea></div>' +
-        '<div class="vcard"><h4>对外说明</h4><textarea id="vp-summary" rows="8"></textarea></div>' +
+        '<div class="vcard"><h4>' + _vt('行程与来访人', 'Itinerary & visitors') + '</h4>' +
+        '<label>' + _vt('标题', 'Title') + '<input id="vp-title" type="text"></label>' +
+        '<label>' + _vt('客户', 'Customer') + '<select id="vp-customer"></select></label>' +
+        '<label>' + _vt('日期', 'Date') + '<input id="vp-date" type="date"></label>' +
+        '<label>' + _vt('天数', 'Days') + '<input id="vp-days" type="number" min="1" value="1"></label>' +
+        '<label>' + _vt('地点', 'Location') + '<input id="vp-location" type="text"></label>' +
+        '<label>' + _vt('来访人', 'Visitors') + '<textarea id="vp-visitors" rows="3"></textarea></label></div>' +
+        '<div class="vcard"><h4>' + _vt('日程', 'Schedule') + '</h4><textarea id="vp-schedule" rows="8" placeholder="' + _vt('12-08 上午 参观车间…', '12-08 Morning: workshop tour…') + '"></textarea></div>' +
+        '<div class="vcard"><h4>' + _vt('人员与分工', 'Staff & roles') + '</h4><textarea id="vp-staff" rows="8" placeholder="' + _vt('接待：张三 / 技术：…', 'Reception: Zhang / Technical: …') + '"></textarea></div>' +
+        '<div class="vcard"><h4>' + _vt('访前清单', 'Pre-visit checklist') + '</h4><textarea id="vp-checklist" rows="8"></textarea></div>' +
+        '<div class="vcard"><h4>' + _vt('内部风险', 'Internal risks') + '</h4><textarea id="vp-risks" rows="8"></textarea></div>' +
+        '<div class="vcard"><h4>' + _vt('对外说明', 'External summary') + '</h4><textarea id="vp-summary" rows="8"></textarea></div>' +
         '</div></div>';
     _renderVisitChips();
     const custSel = $('vp-customer');
@@ -2921,7 +2925,7 @@ async function fillVisitSuggestions(silent) {
     // 风险：空则整段填入；已有内容（旧计划/用户改过）只追加客户档案块，不覆盖
     const riskEl = $('vp-risks');
     if (riskEl) {
-        const marker = '【客户档案提醒 · 内部】';
+        const marker = _vt('【客户档案提醒 · 内部】', '[Customer profile note · internal]');
         if (!riskEl.value.trim()) {
             if (d.risks) { riskEl.value = d.risks; filled = true; }
         } else if (Array.isArray(d.profile_notes) && d.profile_notes.length &&
@@ -2930,7 +2934,7 @@ async function fillVisitSuggestions(silent) {
             filled = true;
         }
     }
-    if (filled && !silent) toast('已填入建议（可自行修改）');
+    if (filled && !silent) toast(_vt('已填入建议（可自行修改）', 'Suggestions filled in (editable)'));
 }
 
 function _renderVisitChips() {
@@ -2941,7 +2945,7 @@ function _renderVisitChips() {
             return '<button type="button" class="visit-chip' + (_visitCurrent && _visitCurrent.id === p.id ? ' on' : '') +
                 '" data-act="_visitSelect" data-arg="' + p.id + '">#' + p.id + ' ' + esc(p.visit_date || '') + '</button>';
         }).join('')
-        : '<span class="muted">暂无来访计划</span>';
+        : '<span class="muted">' + _vt('暂无来访计划', 'No site visits yet') + '</span>';
 }
 
 function _visitSelect(id) {
@@ -2993,7 +2997,7 @@ async function saveVisitPlan() {
         saved = await api('POST', '/api/trade/visit-plans', body);
     }
     if (!saved) return;
-    toast('验厂计划已保存');
+    toast(_vt('验厂计划已保存', 'Site visit saved'));
     const idx = _visitPlans.findIndex(function (p) { return p.id === saved.id; });
     if (idx >= 0) _visitPlans[idx] = saved; else _visitPlans.unshift(saved);
     _visitCurrent = saved;
@@ -3091,7 +3095,7 @@ function _memoNoteFailure() {
 function _memoPromptPassword(title, withConfirm) {
     return new Promise(function (resolve) {
         const left = _memoLockedLeft();
-        if (left > 0) { toast('密语已锁定，请 ' + left + ' 秒后再试'); resolve(null); return; }
+        if (left > 0) { toast(_vt('密语已锁定，请 ', 'Passphrase locked. Try again in ') + left + _vt(' 秒后再试', 's')); resolve(null); return; }
         const ov = document.createElement('div');
         // O-新7：与结果弹层同 id，navToView 的清理选择器才扫得到
         ov.id = 'memo-modal';
@@ -3099,14 +3103,14 @@ function _memoPromptPassword(title, withConfirm) {
         ov.innerHTML = '<div class="memo-box" style="max-width:380px;">' +
             '<div class="memo-head"><strong>' + esc(title) + '</strong></div>' +
             '<input type="password" id="memo-pass" autocomplete="off" ' +
-            'placeholder="密语" style="width:100%;margin:10px 0;padding:8px;box-sizing:border-box;">' +
+            'placeholder="' + _vt('密语', 'Passphrase') + '" style="width:100%;margin:10px 0;padding:8px;box-sizing:border-box;">' +
             (withConfirm
                 ? '<input type="password" id="memo-pass2" autocomplete="off" ' +
-                  'placeholder="再输入一次" style="width:100%;margin:0 0 10px;padding:8px;box-sizing:border-box;">'
+                  'placeholder="' + _vt('再输入一次', 'Confirm passphrase') + '" style="width:100%;margin:0 0 10px;padding:8px;box-sizing:border-box;">'
                 : '') +
             '<div style="display:flex;gap:8px;justify-content:flex-end;">' +
-            '<button type="button" class="btn" id="memo-cancel">取消</button>' +
-            '<button type="button" class="btn primary" id="memo-ok">确定</button></div></div>';
+            '<button type="button" class="btn" id="memo-cancel">' + _vt('取消', 'Cancel') + '</button>' +
+            '<button type="button" class="btn primary" id="memo-ok">' + _vt('确定', 'OK') + '</button></div></div>';
         document.body.appendChild(ov);
         const pass = ov.querySelector('#memo-pass');
         const pass2 = ov.querySelector('#memo-pass2');
@@ -3114,9 +3118,9 @@ function _memoPromptPassword(title, withConfirm) {
         function close(value) { ov.remove(); resolve(value); }
         function submit() {
             const value = pass.value || '';
-            if (!value) { toast('请输入密语'); return; }
+            if (!value) { toast(_vt('请输入密语', 'Enter the passphrase')); return; }
             if (withConfirm && value !== (pass2.value || '')) {
-                toast('两次输入不一致');
+                toast(_vt('两次输入不一致', 'Passphrases do not match'));
                 return;
             }
             close(value);
@@ -3133,23 +3137,23 @@ async function openCustomerMemo() {
     const cid = sel && sel.value ? Number(sel.value) : 0;
     if (!cid) { toast(langText('请先选择客户','Select a customer first')); return; }
     const locked = _memoLockedLeft();
-    if (locked > 0) { toast('密语已锁定，请 ' + locked + ' 秒后再试'); return; }
+    if (locked > 0) { toast(_vt('密语已锁定，请 ', 'Passphrase locked. Try again in ') + locked + _vt(' 秒后再试', 's')); return; }
     try {
         const st = await api('GET', '/api/trade/profile/memo/status');
         if (!st) return;
         _memoUnlockMode = st.unlock_mode === 'session' ? 'session' : 'always';
         let pass = '';
         if (!st.configured) {
-            const first = await _memoPromptPassword('首次使用：设置私密备忘录密语（至少 4 位）', true);
+            const first = await _memoPromptPassword(_vt('首次使用：设置私密备忘录密语（至少 4 位）', 'First use: set a private memo passphrase (at least 4 characters)'), true);
             if (!first) return;
-            if (first.length < 4) { toast('密语至少 4 位'); return; }
+            if (first.length < 4) { toast(_vt('密语至少 4 位', 'Passphrase must be at least 4 characters')); return; }
             const saved = await api('POST', '/api/trade/profile/memo/passphrase', {passphrase: first});
             if (!saved) return;
             pass = first;
         } else if (_memoUnlockMode === 'session' && _memoSessionPass) {
             pass = _memoSessionPass;
         } else {
-            pass = await _memoPromptPassword('输入私密备忘录密语', false);
+            pass = await _memoPromptPassword(_vt('输入私密备忘录密语', 'Enter private memo passphrase'), false);
             if (!pass) return;
         }
         // O-新22：只有 403（密语错误）才计前端口令锁；网络错 / 500 / 429
@@ -3163,7 +3167,7 @@ async function openCustomerMemo() {
         if (!data && _memoUnlockMode === 'session' && _memoSessionPass) {
             // 会话缓存的密语已失效：清掉并让用户重输一次
             _memoSessionPass = '';
-            pass = await _memoPromptPassword('密语已失效，请重新输入', false);
+            pass = await _memoPromptPassword(_vt('密语已失效，请重新输入', 'Passphrase expired, please enter it again'), false);
             if (!pass) return;
             memoStatus = 0;
             data = await api(
@@ -3190,14 +3194,14 @@ async function openCustomerMemo() {
         }).join('');
         ov.className = 'memo-modal';
         ov.innerHTML = '<div class="memo-box">' +
-            '<div class="memo-head"><strong>私密备忘录</strong>' +
-            '<select id="memo-mode" title="密语策略" style="margin:0 8px;padding:4px;">' +
-            '<option value="always">每次输入密语</option>' +
-            '<option value="session">本会话内有效</option></select>' +
-            '<button type="button" class="btn" id="memo-close">关闭</button></div>' +
-            '<h4>家庭 / 私密档案</h4><ul>' + (facts || '<li>无</li>') + '</ul>' +
-            '<h4>客户索要</h4><ul>' + (gifts || '<li>无</li>') + '</ul>' +
-            '<p class="muted">仅本机查看；不会进入 AI、打印、长图或导出。</p></div>';
+            '<div class="memo-head"><strong>' + _vt('私密备忘录', 'Private memo') + '</strong>' +
+            '<select id="memo-mode" title="' + _vt('密语策略', 'Unlock mode') + '" style="margin:0 8px;padding:4px;">' +
+            '<option value="always">' + _vt('每次输入密语', 'Always ask') + '</option>' +
+            '<option value="session">' + _vt('本会话内有效', 'This session only') + '</option></select>' +
+            '<button type="button" class="btn" id="memo-close">' + _vt('关闭', 'Close') + '</button></div>' +
+            '<h4>' + _vt('家庭 / 私密档案', 'Family / private profile') + '</h4><ul>' + (facts || '<li>' + _vt('无', 'None') + '</li>') + '</ul>' +
+            '<h4>' + _vt('客户索要', 'Customer requests') + '</h4><ul>' + (gifts || '<li>' + _vt('无', 'None') + '</li>') + '</ul>' +
+            '<p class="muted">' + _vt('仅本机查看；不会进入 AI、打印、长图或导出。', 'Local only; never sent to AI, print, long image or export.') + '</p></div>';
         document.body.appendChild(ov);
         const modeSel = $('memo-mode');
         modeSel.value = _memoUnlockMode;
@@ -3207,11 +3211,11 @@ async function openCustomerMemo() {
             if (!saved) { modeSel.value = _memoUnlockMode; return; }
             _memoUnlockMode = mode;
             if (mode === 'always') _memoSessionPass = '';
-            toast('密语策略已更新');
+            toast(_vt('密语策略已更新', 'Unlock mode updated'));
         };
         $('memo-close').onclick = function () { ov.remove(); };
     } catch (e) {
-        toast('读取私密备忘录失败');
+        toast(_vt('读取私密备忘录失败', 'Failed to load private memo'));
     }
 }
 
@@ -3220,36 +3224,36 @@ function printVisitPlan() {
     _ensurePrivacyTerms(); // W13：拿到与后端同一份词表（失败用内置兜底）
     const p = _collectVisitPlan();
     const pay = p.payload || {};
-    const meta = [p.visit_date, (p.days || 1) + ' 天', p.location].filter(Boolean).join(' · ');
+    const meta = [p.visit_date, (p.days || 1) + ' ' + _vt('天', 'days'), p.location].filter(Boolean).join(' · ');
     document.querySelectorAll('#visit-print-preview').forEach(function (el) { el.remove(); });
     const ov = document.createElement('div');
     ov.id = 'visit-print-preview';
     ov.innerHTML =
         '<div class="vp-toolbar">' +
-        '<label><input type="checkbox" data-sheet="public" checked> 公开页</label>' +
+        '<label><input type="checkbox" data-sheet="public" checked> ' + _vt('公开页', 'Public sheet') + '</label>' +
         // 内部页默认不勾选：公开页与内部页在同一次打印任务里，
         // 默认勾选等于把「内部风险」连同客户私密画像一起打出去
         // （2026-11-20 审计 P0-1）
-        '<label><input type="checkbox" data-sheet="internal"> 内部页</label>' +
-        '<span class="vp-hint">公开页给客户看；内部页只上内部，页头带「内部 · 勿外传」</span>' +
-        '<button type="button" class="btn" id="vp-close">关闭</button>' +
-        '<button type="button" class="btn primary" id="vp-do-print">打印</button>' +
+        '<label><input type="checkbox" data-sheet="internal"> ' + _vt('内部页', 'Internal sheet') + '</label>' +
+        '<span class="vp-hint">' + _vt('公开页给客户看；内部页只上内部，页头带「内部 · 勿外传」', 'Public sheet is for the customer; internal sheet stays internal (marked internal / do not share)') + '</span>' +
+        '<button type="button" class="btn" id="vp-close">' + _vt('关闭', 'Close') + '</button>' +
+        '<button type="button" class="btn primary" id="vp-do-print">' + _vt('打印', 'Print') + '</button>' +
         '</div>' +
         '<div class="vp-board">' +
         '<div class="vsheet-wrap" data-sheet="public"><div class="vsheet">' +
-        '<div class="eb">SITE VISIT / 资料</div>' +
-        '<h1>' + esc(p.title || '验厂计划') + '</h1>' +
+        '<div class="eb">' + _vt('SITE VISIT / 资料', 'SITE VISIT / BRIEF') + '</div>' +
+        '<h1>' + esc(p.title || _vt('验厂计划', 'Site Visit')) + '</h1>' +
         '<div class="meta">' + esc(meta) + '</div>' +
-        _vsheetSec('来访人', pay.visitors) + _vsheetSec('日程', pay.schedule) +
-        _vsheetSec('对外说明', pay.summary) +
+        _vsheetSec(_vt('来访人', 'Visitors'), pay.visitors) + _vsheetSec(_vt('日程', 'Schedule'), pay.schedule) +
+        _vsheetSec(_vt('对外说明', 'External summary'), pay.summary) +
         '<div class="foot">' + esc(p.location || '') + '</div>' +
         '</div></div>' +
         '<div class="vsheet-wrap" data-sheet="internal"><div class="vsheet internal">' +
-        '<div class="ibar">内部 · 勿外传</div>' +
-        '<h1>' + esc(p.title || '验厂计划') + '</h1>' +
+        '<div class="ibar">' + _vt('内部 · 勿外传', 'INTERNAL · DO NOT SHARE') + '</div>' +
+        '<h1>' + esc(p.title || _vt('验厂计划', 'Site Visit')) + '</h1>' +
         '<div class="meta">' + esc(meta) + '</div>' +
-        _vsheetSec('人员与分工', pay.staff) + _vsheetSec('访前清单', pay.checklist) +
-        _vsheetSec('内部风险', pay.risks) +
+        _vsheetSec(_vt('人员与分工', 'Staff & roles'), pay.staff) + _vsheetSec(_vt('访前清单', 'Pre-visit checklist'), pay.checklist) +
+        _vsheetSec(_vt('内部风险', 'Internal risks'), pay.risks) +
         '<div class="foot">INTERNAL</div>' +
         '</div></div>' +
         '</div>';
@@ -3289,13 +3293,13 @@ function _vBuildLongImage(plan, includeInternal) {
     const W = 1080, PAD = 72, LH = 44;
     const pay = plan.payload || {};
     // 长图同样按内容过滤家庭称谓（分类不可靠，P1-F）
-    const pub = [['来访人', _vPrivateFilter(pay.visitors)], ['日程', _vPrivateFilter(pay.schedule)],
-        ['对外说明', _vPrivateFilter(pay.summary)]];
-    const intl = [['人员与分工', _vPrivateFilter(pay.staff)], ['访前清单', _vPrivateFilter(pay.checklist)],
-        ['内部风险', _vPrivateFilter(pay.risks)]];
+    const pub = [[_vt('来访人', 'Visitors'), _vPrivateFilter(pay.visitors)], [_vt('日程', 'Schedule'), _vPrivateFilter(pay.schedule)],
+        [_vt('对外说明', 'External summary'), _vPrivateFilter(pay.summary)]];
+    const intl = [[_vt('人员与分工', 'Staff & roles'), _vPrivateFilter(pay.staff)], [_vt('访前清单', 'Pre-visit checklist'), _vPrivateFilter(pay.checklist)],
+        [_vt('内部风险', 'Internal risks'), _vPrivateFilter(pay.risks)]];
     const secs = (includeInternal ? [pub[0], pub[1], intl[0], intl[1], intl[2], pub[2]] : pub)
         .filter(function (s) { return String(s[1] || '').trim(); });
-    const meta = [plan.visit_date, (plan.days || 1) + ' 天', plan.location].filter(Boolean).join(' · ');
+    const meta = [plan.visit_date, (plan.days || 1) + ' ' + _vt('天', 'days'), plan.location].filter(Boolean).join(' · ');
     const canvas = document.createElement('canvas');
     canvas.width = W;
     const fontBody = '30px "Noto Sans SC","PingFang SC",sans-serif';
@@ -3305,7 +3309,7 @@ function _vBuildLongImage(plan, includeInternal) {
     const maxW = W - PAD * 2;
     // 标题与 meta 也换行，避免超长标题画出画布
     ctx.font = fontTitle;
-    const titleLines = _vWrap(ctx, plan.title || '验厂计划', maxW);
+    const titleLines = _vWrap(ctx, plan.title || _vt('验厂计划', 'Site Visit'), maxW);
     ctx.font = fontMeta;
     const metaLines = _vWrap(ctx, meta, maxW).slice(0, 2);
     ctx.font = fontBody;
@@ -3320,7 +3324,7 @@ function _vBuildLongImage(plan, includeInternal) {
     ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, canvas.height);
     ctx.fillStyle = '#0C0D0E'; ctx.fillRect(0, 0, W, bandH);
     ctx.fillStyle = '#B7BCC0'; ctx.font = '22px monospace';
-    ctx.fillText(includeInternal ? 'SITE VISIT / 内部资料' : 'SITE VISIT / 验厂资料', PAD, 90);
+    ctx.fillText(includeInternal ? _vt('SITE VISIT / 内部资料', 'SITE VISIT / INTERNAL') : _vt('SITE VISIT / 验厂资料', 'SITE VISIT / BRIEF'), PAD, 90);
     ctx.fillStyle = '#fff'; ctx.font = fontTitle;
     let ty = 168;
     titleLines.forEach(function (line) { ctx.fillText(line, PAD, ty); ty += 64; });
@@ -3338,7 +3342,7 @@ function _vBuildLongImage(plan, includeInternal) {
         y += 18;
     });
     ctx.fillStyle = '#999'; ctx.font = '20px monospace';
-    ctx.fillText(includeInternal ? 'TRADE · 内部资料 · 请勿外传' : 'TRADE · 验厂资料', PAD, canvas.height - 40);
+    ctx.fillText(includeInternal ? _vt('TRADE · 内部资料 · 请勿外传', 'TRADE · INTERNAL · DO NOT SHARE') : _vt('TRADE · 验厂资料', 'TRADE · SITE VISIT BRIEF'), PAD, canvas.height - 40);
     return canvas.toDataURL('image/png');
 }
 
@@ -3348,11 +3352,11 @@ function openVisitLongImage() {
     const ov = document.createElement('div');
     ov.id = 'visit-longimage';
     ov.innerHTML =
-        '<div class="vp-toolbar"><label><input type="checkbox" id="vl-internal"> 含内部信息</label>' +
-        '<span class="vp-hint">默认公开版：来访人 / 日程 / 对外说明；勾选后加入人员 / 清单 / 内部风险</span>' +
-        '<a class="btn primary" id="vl-download" href="#">下载长图</a>' +
-        '<button type="button" class="btn" id="vl-close">关闭</button></div>' +
-        '<div class="vl-body"><img alt="验厂长图" src=""></div>';
+        '<div class="vp-toolbar"><label><input type="checkbox" id="vl-internal"> ' + _vt('含内部信息', 'Include internal') + '</label>' +
+        '<span class="vp-hint">' + _vt('默认公开版：来访人 / 日程 / 对外说明；勾选后加入人员 / 清单 / 内部风险', 'Public by default: visitors / schedule / external summary; check to include staff / checklist / internal risks') + '</span>' +
+        '<a class="btn primary" id="vl-download" href="#">' + _vt('下载长图', 'Download long image') + '</a>' +
+        '<button type="button" class="btn" id="vl-close">' + _vt('关闭', 'Close') + '</button></div>' +
+        '<div class="vl-body"><img alt="' + _vt('验厂长图', 'Site visit long image') + '" src=""></div>';
     document.body.appendChild(ov);
     const a = document.getElementById('vl-download');
     const img = ov.querySelector('.vl-body img');
@@ -3360,9 +3364,9 @@ function openVisitLongImage() {
     function refresh() {
         const inc = !!(cb && cb.checked);
         let url;
-        try { url = _vBuildLongImage(plan, inc); } catch (e) { toast('生成长图失败'); return; }
+        try { url = _vBuildLongImage(plan, inc); } catch (e) { toast(_vt('生成长图失败', 'Failed to generate long image')); return; }
         a.href = url;
-        a.download = (plan.visit_date || '验厂') + (inc ? '-内部' : '-公开') + '-长图.png';
+        a.download = (plan.visit_date || _vt('验厂', 'site-visit')) + (inc ? _vt('-内部', '-internal') : _vt('-公开', '-public')) + _vt('-长图.png', '-long.png');
         img.src = url;
     }
     if (cb) cb.addEventListener('change', refresh);

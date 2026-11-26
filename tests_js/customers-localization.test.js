@@ -77,3 +77,22 @@ test('画像分类弹窗下拉：显示翻译、存储值保留中文', () => {
     // 语音画像里的客户下拉也不能直出中文占位项
     assert.match(SRC, /esc\(langText\('不关联客户','No customer'\)\)/);
 });
+
+test('Site Visit 动态文案全部有阿拉伯语译文（AR_TERMS）', () => {
+    // Site Visit 整页 innerHTML 是运行时拼出来的，不经过 _translateStaticHtml；
+    // langText(zh,en) 在阿文界面只查 AR_TERMS，缺一个键就会退化成英文。
+    const fs = require('node:fs');
+    const path = require('node:path');
+    const cust = fs.readFileSync(path.join(__dirname, '..', 'static', 'js', 'customers.js'), 'utf8');
+    const sv = cust.slice(cust.indexOf('function _vt('));
+    const arBlock = SRC.slice(SRC.indexOf('var AR_TERMS'), SRC.indexOf('function langText'));
+    const keys = new Set();
+    const re = /(?:_vt|langText)\('([^']*)'\s*,\s*'[^']*'\)/g;
+    let m;
+    while ((m = re.exec(sv)) !== null) keys.add(m[1]);
+    assert.ok(keys.size > 20, '应扫描到 Site Visit 的动态文案');
+    Array.from(keys).sort().forEach(function (zh) {
+        const escaped = zh.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        assert.match(arBlock, new RegExp('"' + escaped + '"\\s*:\\s*"[^"]+"'), 'AR_TERMS 缺少：' + zh);
+    });
+});
