@@ -17,7 +17,7 @@ from pydantic import BaseModel
 
 from trade import osint_jobs
 from trade.api.deps import require_company
-from trade.osint.ui_l10n import sanitize_for_ui
+from trade.osint.ui_l10n import localize_for_ui, sanitize_for_ui
 
 router = APIRouter(tags=["osint-jobs"])
 
@@ -94,10 +94,12 @@ async def osint_job_events(
             for event in events:
                 cursor = event["seq"]
                 idle = 0
-                data = json.dumps(
-                    sanitize_for_ui(event["payload"], lang) if lang in ("ar", "en") else event["payload"],
-                    ensure_ascii=False,
-                )
+                # EN/AR UI：先按字典翻译（来源标签/结论词），再对残余 CJK 兜底。
+                # 直接 sanitize 会把「美国州公司登记」撕成残缺字符。
+                payload = event["payload"]
+                if lang in ("ar", "en"):
+                    payload = sanitize_for_ui(localize_for_ui(payload, lang), lang)
+                data = json.dumps(payload, ensure_ascii=False)
                 yield (
                     f"id: {event['seq']}\n"
                     f"event: {event['type']}\n"

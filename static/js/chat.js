@@ -1845,8 +1845,9 @@ function _abortOsintJobReaders() {
 
 function _osintStatusText(status) {
     const map = {
-        queued: '排队中', running: '进行中', done: '已完成',
-        partial: '未完成', failed: '失败', cancelled: '已取消',
+        queued: langText('排队中', 'Queued'), running: langText('进行中', 'Running'),
+        done: langText('已完成', 'Done'), partial: langText('未完成', 'Partial'),
+        failed: langText('失败', 'Failed'), cancelled: langText('已取消', 'Cancelled'),
     };
     return map[status] || String(status || '');
 }
@@ -1881,13 +1882,13 @@ async function loadOsintJobs(isPoll) {
         // 聊天还在生成回复：采集完成也先别结束动画，等 _flushPendingDockVerdicts
         if (job.status === 'done' && _chatStreamActive > 0 && p.wait && !p.wait.final) {
             p.pendingVerdict = p.pendingVerdict || {rating: ''};
-            p.wait.phase('composing', '采集完成，正在生成回复…');
+            p.wait.phase('composing', langText('采集完成，正在生成回复…', 'Collection done — composing the reply…'));
             p.wait.cancelBtn.disabled = true;
             return;
         }
         if (p.wait && !p.wait.final) {
             const phase = job.status === 'cancelled' ? 'aborted' : (job.status === 'failed' ? 'failed' : 'acquired');
-            const zh = job.status === 'partial' ? '未完成 · 已保存部分结果' : (phase === 'acquired' ? '采集完成' : undefined);
+            const zh = job.status === 'partial' ? langText('未完成 · 已保存部分结果', 'Partial — partial results saved') : (phase === 'acquired' ? langText('采集完成', 'Collection done') : undefined);
             p.wait.finish({phase: phase, zh: zh});
         }
     });
@@ -1901,7 +1902,7 @@ function _renderRailOsintJobs(jobs) {
 
     let html = '<div class="rail-bh"><span class="t">' +
         (typeof iconHtml === 'function' ? iconHtml('search', 16) : '') +
-        esc('后台背调') + '</span><span class="lbl">OSINT · ' +
+        esc(langText('后台背调', 'Background checks')) + '</span><span class="lbl">OSINT · ' +
         esc(String(jobs.length)) + '</span></div>';
 
     jobs.slice(0, 5).forEach(function (job) {
@@ -1910,7 +1911,7 @@ function _renderRailOsintJobs(jobs) {
             '<div class="osint-top"><span class="mono">' + esc(job.target) + '</span>' +
             '<span class="osint-status st-' + esc(job.status) + '">' +
             esc(_osintStatusText(job.status)) + '</span>' +
-            (running ? '<button type="button" class="todo-del" data-role="cancel" aria-label="取消">×</button>' : '') +
+            (running ? '<button type="button" class="todo-del" data-role="cancel" aria-label="' + esc(t('btn.cancel')) + '">×</button>' : '') +
             '</div>' +
             '<div class="rail-line" id="osint-prog-' + esc(String(job.id)) + '"></div>' +
             '</div>';
@@ -1925,24 +1926,28 @@ function _renderRailOsintJobs(jobs) {
 }
 
 function _osintEventText(type, payload) {
-    if (type === 'job_start') return '已启动（预算 ' + (payload.budget || '?') + ' 秒）';
-    if (type === 'source_start') return '查询 ' + (payload.label || payload.source || '') + '…';
+    if (type === 'job_start') return langText('已启动（预算', 'Started (budget ') + (payload.budget || '?') + langText(' 秒）', 's)');
+    if (type === 'source_start') return langText('查询', 'Querying ') + (payload.label || payload.source || '') + '…';
     if (type === 'source_done') {
         const st = {
-            hit: '命中', candidate: '同名候选', miss: '未命中',
-            error: '出错', timeout: '超时', skipped: '跳过', done: '完成',
-        }[payload.status] || payload.status || '完成';
-        return (payload.source || '来源') + '：' + st;
+            hit: langText('命中', 'HIT'), candidate: langText('同名候选', 'possible match'),
+            miss: langText('未命中', 'MISS'), error: langText('出错', 'ERROR'),
+            timeout: langText('超时', 'TIMEOUT'), skipped: langText('跳过', 'skipped'),
+            done: langText('完成', 'done'),
+        }[payload.status] || payload.status || langText('完成', 'done');
+        return (payload.source || langText('来源', 'source')) + langText('：', ': ') + st;
     }
     if (type === 'verdict') {
         const zh = {
-            low: '低风险', medium: '中风险', high: '高风险',
-            incomplete: '未完成核验', limited: '仅完成制裁筛查',
-        }[payload.rating] || payload.rating || '未知';
-        return '评级 ' + zh;
+            low: langText('低风险', 'low risk'), medium: langText('中风险', 'medium risk'),
+            high: langText('高风险', 'high risk'),
+            incomplete: langText('未完成核验', 'incomplete verification'),
+            limited: langText('仅完成制裁筛查', 'sanctions screening only'),
+        }[payload.rating] || payload.rating || langText('未知', 'unknown');
+        return langText('评级', 'Rating: ') + zh;
     }
-    if (type === 'error') return '错误：' + (payload.message || '');
-    if (type === 'cancelled') return '已取消';
+    if (type === 'error') return langText('错误：', 'Error: ') + (payload.message || '');
+    if (type === 'cancelled') return langText('已取消', 'Cancelled');
     return type;
 }
 
@@ -1972,7 +1977,7 @@ function _handleOsintJobSse(jobId, block) {
         if (type === 'verdict' && _chatStreamActive > 0 && panel.wait && !panel.wait.final) {
             panel.pendingVerdict = payload;
             panel.status = 'done';
-            panel.wait.phase('composing', '采集完成，正在生成回复…');
+            panel.wait.phase('composing', langText('采集完成，正在生成回复…', 'Collection done — composing the reply…'));
             panel.wait.cancelBtn.disabled = true;
             _updateDock();
             return;
@@ -2241,7 +2246,7 @@ function _watchOsintJob(jobId) {
     (async function () {
         try {
             const resp = await fetch('/api/trade/osint/jobs/' + jobId + '/events?after=' +
-                (_osintJobCursors[jobId] || 0), {
+                (_osintJobCursors[jobId] || 0) + '&lang=' + encodeURIComponent(currentLang || 'en'), {
                 headers: {'X-Hermes-Session-Token': TOKEN, 'X-Company-ID': String(companyId)},
                 signal: controller.signal,
             });
